@@ -1,4 +1,87 @@
 // ==========================================
+// 1. 初始化 Firebase 云数据库
+// ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+  authDomain: "my-teacher-studio.firebaseapp.com",
+  projectId: "my-teacher-studio",
+  storageBucket: "my-teacher-studio.firebasestorage.app",
+  messagingSenderId: "82774284780",
+  appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9",
+  measurementId: "G-1ME126HTVP"
+};
+
+// 初始化
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ==========================================
+// 2. 云端排行榜功能函数
+// ==========================================
+
+// 保存成绩到云端
+function saveScoreToCloud(studentName, score, timeUsed) {
+    db.collection("leaderboard").add({
+        name: studentName,
+        score: Number(score),
+        time: Number(timeUsed),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        console.log("成绩已成功同步至云端！");
+        loadCloudLeaderboard(); // 提交成功后立刻刷新排行榜
+    })
+    .catch((error) => {
+        console.error("成绩保存失败: ", error);
+    });
+}
+
+// 从云端加载排行榜 (按分数从高到低，用时从短到长)
+function loadCloudLeaderboard() {
+    const leaderboardList = document.getElementById("leaderboard-list");
+    if (!leaderboardList) return;
+
+    leaderboardList.innerHTML = "<li>加载中...</li>";
+
+    db.collection("leaderboard")
+      .orderBy("score", "desc")
+      .orderBy("time", "asc")
+      .limit(10)
+      .get()
+      .then((querySnapshot) => {
+          leaderboardList.innerHTML = "";
+          if (querySnapshot.empty) {
+              leaderboardList.innerHTML = "<li>暂无排名，快来抢占第一名吧！</li>";
+              return;
+          }
+
+          let rank = 1;
+          querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              const li = document.createElement("li");
+              
+              // 加上前三名的奖牌小图标
+              let medal = "";
+              if (rank === 1) medal = "🥇 ";
+              else if (rank === 2) medal = "🥈 ";
+              else if (rank === 3) medal = "🥉 ";
+
+              li.textContent = `${medal}第${rank}名: ${data.name} - ${data.score}分 (${data.time}秒)`;
+              leaderboardList.appendChild(li);
+              rank++;
+          });
+      })
+      .catch((error) => {
+          console.error("读取排行榜失败: ", error);
+          leaderboardList.innerHTML = "<li>排行榜加载失败</li>";
+      });
+}
+
+// 页面加载完成后自动获取一次排行榜
+document.addEventListener("DOMContentLoaded", () => {
+    loadCloudLeaderboard();
+});
+// ==========================================
 // ⚙️ 老师设定区 (在这里控制本次测试的模式)
 // ==========================================
 
