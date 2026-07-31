@@ -1,3 +1,75 @@
+// ==========================================
+// 🔑 密码设置区
+// ==========================================
+const STUDIO_PASSWORD = "8888"; // 主页大门密码
+
+// 各个年级的专属密码 (防止越级)
+const GRADE_PASSWORDS = {
+    "1": "1111", // 一年级密码
+    "2": "2222", // 二年级密码
+    "3": "3333", // 三年级密码
+    "4": "4444", // 四年级密码
+    "5": "5555", // 五年级密码
+    "6": "6666"  // 六年级密码
+};
+
+// ==========================================
+// 🔒 1. 主页大门密码验证
+// ==========================================
+function checkStudioPassword() {
+    // 检查是否已经验证过 (避免每次刷新都要输入)
+    const isAuth = sessionStorage.getItem("studio_authenticated");
+    
+    if (!isAuth) {
+        const input = prompt("🔒 欢迎来到老师的学习小屋，请输入大门密码：");
+        if (input === STUDIO_PASSWORD) {
+            sessionStorage.setItem("studio_authenticated", "true");
+            alert("验证成功，欢迎访问！");
+        } else {
+            alert("密码错误，无法进入！");
+            document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>🔒 抱歉，密码错误，无法访问此网站。</h2>";
+        }
+    }
+}
+
+// 页面一加载就执行大门验证
+checkStudioPassword();
+
+
+// ==========================================
+// 🔒 2. 卡片点击时的年级密码拦截 (重写 renderCardGroup 函数)
+// ==========================================
+function renderCardGroup(container, items) {
+    container.innerHTML = "";
+    if (!items || items.length === 0) {
+        container.innerHTML = "<p style='color:#777; font-size:14px;'>暂未添加内容</p>";
+        return;
+    }
+
+    items.forEach(item => {
+        const a = document.createElement("a");
+        a.className = "activity-card";
+        a.href = "#"; // 阻止直接跳转
+        a.textContent = item.name;
+
+        // 点击卡片时，要求输入该年级的专属密码
+        a.addEventListener("click", (e) => {
+            e.preventDefault();
+            const correctPass = GRADE_PASSWORDS[currentGrade];
+            const userPass = prompt(`🔒 进入【${currentGrade}年级】项目，请输入该年级密码：`);
+
+            if (userPass === correctPass) {
+                // 密码正确，将授权记入 sessionStorage，然后跳转
+                sessionStorage.setItem(`auth_grade_${currentGrade}`, "true");
+                window.location.href = item.url;
+            } else {
+                alert("❌ 密码错误，无法进入该年级项目！");
+            }
+        });
+
+        container.appendChild(a);
+    });
+}
 // ===================================================
 // ⚙️ 老师的数据配置中心 (未来增加新游戏只需在这里添加)
 // ===================================================
