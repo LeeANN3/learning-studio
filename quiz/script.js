@@ -15,30 +15,41 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+
 // ==========================================
-// 2. 云端排行榜功能函数
+// 2. 云端排行榜功能函数 (Firebase)
 // ==========================================
 
-// 保存成绩到云端
-function saveScoreToCloud(studentName, score, timeUsed) {
+// 保存成绩到云端数据库
+function saveScoreToCloud() {
+    const name = playerNameInput.value.trim();
+    if (!name) {
+        alert("请输入学生名字！");
+        return;
+    }
+
+    if (saveScoreBtn) saveScoreBtn.disabled = true;
+
     db.collection("leaderboard").add({
-        name: studentName,
+        name: name,
         score: Number(score),
-        time: Number(timeUsed),
+        time: Number(seconds),
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
-        console.log("成绩已成功同步至云端！");
+        alert("成绩已成功同步至云端！");
+        playerNameInput.value = "";
         loadCloudLeaderboard(); // 提交成功后立刻刷新排行榜
     })
     .catch((error) => {
         console.error("成绩保存失败: ", error);
+        alert("保存失败，请检查网络后再试！");
+        if (saveScoreBtn) saveScoreBtn.disabled = false;
     });
 }
 
 // 从云端加载排行榜 (按分数从高到低，用时从短到长)
 function loadCloudLeaderboard() {
-    const leaderboardList = document.getElementById("leaderboard-list");
     if (!leaderboardList) return;
 
     leaderboardList.innerHTML = "<li>加载中...</li>";
@@ -77,10 +88,7 @@ function loadCloudLeaderboard() {
       });
 }
 
-// 页面加载完成后自动获取一次排行榜
-document.addEventListener("DOMContentLoaded", () => {
-    loadCloudLeaderboard();
-});
+
 // ==========================================
 // ⚙️ 老师设定区 (在这里控制本次测试的模式)
 // ==========================================
@@ -134,11 +142,15 @@ let timer = null;
 
 
 // ==========================================
-// 初始更新首页
+// 初始更新首页 (加载云端排行榜)
 // ==========================================
 
 totalQuestionText.textContent = `${TOTAL_QUESTIONS} Questions`;
-renderLeaderboard();
+
+// 页面加载完成后自动获取云端排行榜
+document.addEventListener("DOMContentLoaded", () => {
+    loadCloudLeaderboard();
+});
 
 
 // ==========================================
@@ -190,7 +202,7 @@ function startGame() {
 
 
 // ==========================================
-// 显示题目 (根据老师设定的 questionType / answerType 显示)
+// 显示题目
 // ==========================================
 
 function showQuestion() {
@@ -200,18 +212,15 @@ function showQuestion() {
 
     questionNumber.textContent = `Question ${currentQuestionIndex + 1} / ${questionList.length}`;
 
-    // 1. 读取老师设定的出题类型 (若设置不规范则默认用 english)
     const promptText = currentWord[questionType] || currentWord.english;
     questionText.textContent = promptText;
 
-    // 2. 生成选项
     const choices = createChoices(currentWord);
 
     choices.forEach(choice => {
         const button = document.createElement("button");
         button.className = "option-btn";
 
-        // 读取老师设定的答案类型 (若设置不规范则默认用 chinese)
         button.textContent = choice[answerType] || choice.chinese;
         button.dataset.id = choice.id;
 
@@ -241,7 +250,7 @@ function createChoices(correctWord) {
 
 
 // ==========================================
-// 答题检查 (自动提供红绿视觉反馈)
+// 答题检查
 // ==========================================
 
 function checkAnswer(selectedButton, selectedChoice, currentWord) {
@@ -302,64 +311,6 @@ function endGame() {
 
 
 // ==========================================
-// 排行榜逻辑 (使用本地 LocalStorage 存储)
-// ==========================================
-
-function saveScore() {
-    const name = playerNameInput.value.trim();
-    if (!name) {
-        alert("请输入学生名字！");
-        return;
-    }
-
-    const leaderboard = JSON.parse(localStorage.getItem("quiz_leaderboard") || "[]");
-
-    const newRecord = {
-        name: name,
-        score: score,
-        time: seconds,
-        date: new Date().toLocaleDateString()
-    };
-
-    leaderboard.push(newRecord);
-
-    // 排序逻辑：高分优先，同分者用时短优先
-    leaderboard.sort((a, b) => {
-        if (b.score !== a.score) {
-            return b.score - a.score;
-        }
-        return a.time - b.time;
-    });
-
-    const top10 = leaderboard.slice(0, 10);
-    localStorage.setItem("quiz_leaderboard", JSON.stringify(top10));
-
-    alert("成绩已保存！");
-    playerNameInput.value = "";
-    if (saveScoreBtn) saveScoreBtn.disabled = true;
-    renderLeaderboard();
-}
-
-function renderLeaderboard() {
-    if (!leaderboardList) return;
-
-    const leaderboard = JSON.parse(localStorage.getItem("quiz_leaderboard") || "[]");
-    leaderboardList.innerHTML = "";
-
-    if (leaderboard.length === 0) {
-        leaderboardList.innerHTML = "<li>暂无排名数据</li>";
-        return;
-    }
-
-    leaderboard.forEach((record, index) => {
-        const li = document.createElement("li");
-        li.textContent = `#${index + 1} ${record.name} - ${record.score}分 (${record.time}秒)`;
-        leaderboardList.appendChild(li);
-    });
-}
-
-
-// ==========================================
 // 事件绑定
 // ==========================================
 
@@ -373,6 +324,7 @@ restartBtn.addEventListener("click", () => {
     startGame();
 });
 
+// 绑定云端保存逻辑
 if (saveScoreBtn) {
-    saveScoreBtn.addEventListener("click", saveScore);
+    saveScoreBtn.addEventListener("click", saveScoreToCloud);
 }
