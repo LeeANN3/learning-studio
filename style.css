@@ -1,0 +1,170 @@
+/* 全局基础设置 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'ZCOOL KuaiLe', Arial, sans-serif;
+}
+
+body {
+    background-color: #faf6f0; /* 象牙白手绘纸质背景 */
+    color: #2c2c2c;
+    padding: 20px;
+}
+
+/* 涂鸦通用风格：粗黑框 + 偏移手绘阴影 */
+.doodle-header, .sidebar, .category-block, .grade-btn, #search-input, .activity-card {
+    border: 3px solid #2c2c2c;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 4px 4px 0px #2c2c2c;
+    transition: all 0.15s ease-in-out;
+}
+
+/* 顶部导航栏 */
+.doodle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: #ff5964; /* 鲜艳糖果红 */
+}
+
+/* 年级按钮 */
+.grade-nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.grade-btn {
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #fff;
+    font-weight: bold;
+}
+
+.grade-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 6px 6px 0px #2c2c2c;
+}
+
+/* 选中年级的高亮高糖果色 */
+.grade-btn.active {
+    background-color: #ffea00; /* 糖果黄 */
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 0px #2c2c2c;
+}
+
+/* 搜索框 */
+#search-input {
+    padding: 10px 15px;
+    font-size: 16px;
+    outline: none;
+    width: 200px;
+}
+
+#search-input:focus {
+    background-color: #e8f5e9;
+}
+
+/* 主布局：左右分割 */
+.main-container {
+    display: flex;
+    gap: 25px;
+}
+
+/* 左侧目录 */
+.sidebar {
+    width: 250px;
+    padding: 20px;
+    flex-shrink: 0;
+    min-height: 500px;
+}
+
+.subject-tag {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 3px dashed #2c2c2c;
+}
+
+.lesson-menu {
+    list-style: none;
+}
+
+.lesson-menu li {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border: 2px solid #2c2c2c;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    background: #fff;
+    transition: 0.1s;
+}
+
+.lesson-menu li:hover, .lesson-menu li.active {
+    background: #35a7ff; /* 糖果蓝 */
+    color: #fff;
+    box-shadow: 3px 3px 0px #2c2c2c;
+}
+
+/* 右侧内容区 */
+.content-area {
+    flex-grow: 1;
+}
+
+.lesson-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+/* 三大分类色彩板 */
+.bg-pink { background-color: #ffdde1; }
+.bg-yellow { background-color: #fff9c4; }
+.bg-blue { background-color: #e1f5fe; }
+
+.category-block {
+    padding: 20px;
+    min-height: 400px;
+}
+
+.category-title {
+    font-size: 20px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #2c2c2c;
+}
+
+/* 单元卡片项目 */
+.activity-card {
+    display: block;
+    text-decoration: none;
+    color: #2c2c2c;
+    padding: 14px;
+    margin-bottom: 12px;
+    font-weight: bold;
+}
+
+.activity-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #2c2c2c;
+    background-color: #ffffff;
+}

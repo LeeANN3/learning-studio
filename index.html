@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老师的学习小屋 ✏️ Teacher Studio</title>
+    <!-- 引入手绘可爱字体 (可选) -->
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 顶栏：Logo + 年级导航 + 搜索 -->
+    <header class="doodle-header">
+        <div class="logo">✏️ 学习小屋 Studio</div>
+        
+        <!-- 年级切换 Tab -->
+        <nav class="grade-nav">
+            <button class="grade-btn active" data-grade="1">一年级</button>
+            <button class="grade-btn" data-grade="2">二年级</button>
+            <button class="grade-btn" data-grade="3">三年级</button>
+            <button class="grade-btn" data-grade="4">四年级</button>
+            <button class="grade-btn" data-grade="5">五年级</button>
+            <button class="grade-btn" data-grade="6">六年级</button>
+        </nav>
+
+        <!-- 搜索框 -->
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="🔍 搜索单元/词汇...">
+        </div>
+    </header>
+
+    <!-- 主体区域：左侧单元目录 + 右侧内容卡片 -->
+    <main class="main-container">
+
+        <!-- 左侧目录 (侧边栏) -->
+        <aside class="sidebar">
+            <div class="subject-tag">📚 华文科</div>
+            <ul class="lesson-menu" id="lesson-menu">
+                <!-- 动态生成单元列表 -->
+            </ul>
+        </aside>
+
+        <!-- 右侧内容区块 -->
+        <section class="content-area">
+            <h2 id="current-lesson-title" class="lesson-title">单元加载中...</h2>
+
+            <!-- 三大分类区块 -->
+            <div class="cards-grid">
+                
+                <!-- 1. 测验区 -->
+                <div class="category-block bg-pink">
+                    <h3 class="category-title">📝 测验 (Quiz)</h3>
+                    <div class="card-list" id="quiz-list"></div>
+                </div>
+
+                <!-- 2. 复习区 -->
+                <div class="category-block bg-yellow">
+                    <h3 class="category-title">🎴 复习 (Review)</h3>
+                    <div class="card-list" id="review-list"></div>
+                </div>
+
+                <!-- 3. 游戏区 -->
+                <div class="category-block bg-blue">
+                    <h3 class="category-title">🎮 游戏 (Games)</h3>
+                    <div class="card-list" id="game-list"></div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
