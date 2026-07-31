@@ -9,7 +9,7 @@ const studioData = {
             id: "g1-l1",
             title: "第一单元：我爱我的学校",
             quiz: [
-                { name: "📝 词汇识别测验", url: "quiz/index.html" }
+                { name: "📝 词汇识别测验", url: "./quiz/index.html" }
             ],
             review: [
                 { name: "🎴 单元生字 Flashcards", url: "#" }
@@ -22,7 +22,7 @@ const studioData = {
             id: "g1-l2",
             title: "第二单元：可爱的小动物",
             quiz: [
-                { name: "📝 动物拼音测验", url: "quiz/index.html" }
+                { name: "📝 动物拼音测验", url: "./quiz/index.html" }
             ],
             review: [],
             game: []
