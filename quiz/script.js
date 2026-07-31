@@ -1,4 +1,27 @@
 // ==========================================
+// 🔒 测验独立门禁 (防绕过)
+// ==========================================
+const THIS_QUIZ_GRADE = "1"; // 本测验属于一年级
+const QUIZ_PASSWORD = "1111"; // 一年级密码
+
+function checkQuizAccess() {
+    // 检查是否在主页已经验证过该年级密码
+    const isGradeAuth = sessionStorage.getItem(`auth_grade_${THIS_QUIZ_GRADE}`);
+
+    if (!isGradeAuth) {
+        const input = prompt(`🔒 本测验属于【${THIS_QUIZ_GRADE}年级】，请输入该年级密码：`);
+        if (input === QUIZ_PASSWORD) {
+            sessionStorage.setItem(`auth_grade_${THIS_QUIZ_GRADE}`, "true");
+        } else {
+            alert("❌ 密码错误，无法参与测验！");
+            document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>🔒 密码错误，无权访问此测验！</h2>";
+        }
+    }
+}
+
+// 页面加载立刻验证
+checkQuizAccess();
+// ==========================================
 // 1. 初始化 Firebase 云数据库
 // ==========================================
 const firebaseConfig = {
