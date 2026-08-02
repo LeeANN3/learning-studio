@@ -1,43 +1,69 @@
 // ==========================================
-// 🔑 密码设置区
+// 🔑 1. 主页身份验证与云端登录
 // ==========================================
-const STUDIO_PASSWORD = "8888"; // 主页大门密码
+async function loginStudio() {
+    let studentInfo = sessionStorage.getItem("current_student");
 
-// 各个年级的专属密码 (防止越级)
-const GRADE_PASSWORDS = {
-    "1": "1111", // 一年级密码
-    "2": "2222", // 二年级密码
-    "3": "3333", // 三年级密码
-    "4": "4444", // 四年级密码
-    "5": "5555", // 五年级密码
-    "6": "6666"  // 六年级密码
-};
-
-// ==========================================
-// 🔒 1. 主页大门密码验证
-// ==========================================
-function checkStudioPassword() {
-    // 检查是否已经验证过 (避免每次刷新都要输入)
-    const isAuth = sessionStorage.getItem("studio_authenticated");
-    
-    if (!isAuth) {
-        const input = prompt("🔒 欢迎来到老师的学习小屋，请输入大门密码：");
-        if (input === STUDIO_PASSWORD) {
-            sessionStorage.setItem("studio_authenticated", "true");
-            alert("验证成功，欢迎访问！");
-        } else {
-            alert("密码错误，无法进入！");
-            document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>🔒 抱歉，密码错误，无法访问此网站。</h2>";
+    if (!studentInfo) {
+        const input = prompt("🔒 欢迎来到老师的学习小屋！请输入你的通行码 (例: ZLL8888)：");
+        if (!input || input.length < 4) {
+            alert("❌ 格式不正确！");
+            location.reload();
+            return;
         }
+
+        // 拆分：前3位是字母代号，后面是主页密码
+        const idPrefix = input.substring(0, 3).toUpperCase();
+        const inputPassword = input.substring(3);
+
+        try {
+            // 1. 从 Firebase 读取主页大门密码
+            const passDoc = await db.collection("settings").doc("passwords").get();
+            const masterPass = passDoc.data().master;
+
+            // 2. 从 Firebase 读取学生名单匹配身份
+            const registryDoc = await db.collection("students").doc("registry").get();
+            const studentData = registryDoc.data()[idPrefix];
+
+            if (inputPassword === masterPass && studentData) {
+                // 验证成功，保存学生身份到 sessionStorage
+                const studentObj = {
+                    id: idPrefix,
+                    name: studentData.name,
+                    grade: studentData.grade
+                };
+                sessionStorage.setItem("current_student", JSON.stringify(studentObj));
+                alert(`🎉 登录成功！欢迎你，${studentData.name}同学！`);
+                showWelcomeBar(studentObj);
+            } else {
+                alert("❌ 身份代号或密码错误！");
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>🔒 身份验证失败，无法访问。</h2>";
+            }
+        } catch (error) {
+            console.error("登录失败:", error);
+            alert("❌ 网络连接失败，请刷新重试！");
+        }
+    } else {
+        // 如果已经登录过，直接渲染欢迎语
+        showWelcomeBar(JSON.parse(studentInfo));
     }
 }
 
-// 页面一加载就执行大门验证
-checkStudioPassword();
+// 2. 顶栏显示“欢迎，张丽丽同学！”
+function showWelcomeBar(student) {
+    const welcomeDiv = document.getElementById("welcome-bar") || document.createElement("div");
+    welcomeDiv.id = "welcome-bar";
+    welcomeDiv.style.cssText = "position: fixed; top: 15px; right: 20px; background: #fffae6; border: 2px solid #2b2b2b; padding: 6px 16px; border-radius: 20px; font-weight: bold; box-shadow: 3px 3px 0 #2b2b2b; z-index: 1000;";
+    welcomeDiv.innerHTML = `👋 欢迎，${student.name}同学 (${student.grade}年级)`;
+    document.body.appendChild(welcomeDiv);
+}
+
+// 页面一加载就执行大门身份验证
+document.addEventListener("DOMContentLoaded", loginStudio);
 
 
 // ==========================================
-// 🔒 2. 卡片点击时的年级密码拦截 (重写 renderCardGroup 函数)
+// 🔒 3. 卡片点击时的“智能年级拦截” (无需重复输密码)
 // ==========================================
 function renderCardGroup(container, items) {
     container.innerHTML = "";
@@ -49,22 +75,31 @@ function renderCardGroup(container, items) {
     items.forEach(item => {
         const a = document.createElement("a");
         a.className = "activity-card";
-        a.href = "#"; // 阻止直接跳转
+        a.href = "#"; // 阻止默认直接跳转
         a.textContent = item.name;
 
-        // 点击卡片时，要求输入该年级的专属密码
+        // 点击卡片时的智能判断
         a.addEventListener("click", (e) => {
             e.preventDefault();
-            const correctPass = GRADE_PASSWORDS[currentGrade];
-            const userPass = prompt(`🔒 进入【${currentGrade}年级】项目，请输入该年级密码：`);
-
-            if (userPass === correctPass) {
-                // 密码正确，将授权记入 sessionStorage，然后跳转
-                sessionStorage.setItem(`auth_grade_${currentGrade}`, "true");
-                window.location.href = item.url;
-            } else {
-                alert("❌ 密码错误，无法进入该年级项目！");
+            
+            // 获取当前登录的学生信息
+            const studentInfo = sessionStorage.getItem("current_student");
+            if (!studentInfo) {
+                alert("🔒 请先进行身份验证！");
+                location.reload();
+                return;
             }
+
+            const student = JSON.parse(studentInfo);
+
+            // 🚫 防越级判断：检查当前点击的年级标签 (currentGrade) 是否匹配学生登记的年级
+            if (String(student.grade) !== String(currentGrade)) {
+                alert(`❌ 无法进入！本栏目属于【${currentGrade}年级】，而你是【${student.grade}年级】的学生。`);
+                return;
+            }
+
+            // 年级匹配成功，直接放行跳转到游戏！
+            window.location.href = item.url;
         });
 
         container.appendChild(a);
