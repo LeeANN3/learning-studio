@@ -42,14 +42,16 @@
         <h2 id="final-score"></h2>
         <h3 id="final-time"></h3>
 
-        <!-- 成绩提交表单 -->
-        <div style="text-align: center; margin: 20px 0;">
-            <input type="text" id="player-name" placeholder="输入你的名字" style="padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc;">
-            <button id="save-score-btn" style="padding: 10px 20px; font-size: 16px; background: #2196F3; color: white; border-radius: 8px; margin-left: 10px;">保存成绩</button>
-        </div>
+<!-- 成绩提交区域 -->
+<div style="text-align: center; margin: 20px 0;">
+    <!-- 提示当前登录的学生身份 -->
+    <p style="font-size: 15px; color: #555; margin-bottom: 10px; font-weight: bold;">
+        🎓 准备将成绩保存至你的个人名下
+    </p>
+    <button id="save-score-btn" style="padding: 10px 20px; font-size: 16px; background: #2196F3; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">保存成绩</button>
+</div>
 
-        <button id="restart-btn">Play Again</button>
-    </section>
+<button id="restart-btn">Play Again</button>
 
 </div>
 
