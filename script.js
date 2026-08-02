@@ -82,7 +82,7 @@ async function loginStudio() {
     let studentInfo = sessionStorage.getItem("current_student");
 
     if (!studentInfo) {
-        const input = prompt("🔒 欢迎来到老师的学习小屋！请输入你的通行码 (例: SLH****)：");
+        const input = prompt("🔒 欢迎来到学习小屋！请输入你的通行码 (例: SLH****)：");
         if (!input) {
             alert("❌ 请输入通行码后进入！");
             location.reload();
