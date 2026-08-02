@@ -1,4 +1,110 @@
 // ==========================================
+// 🔥 Firebase 项目初始化配置
+// ==========================================
+// ⚠️ 注意：请确保下方 firebaseConfig 里的参数与你 Firebase 控制台中的一致
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",              // 替换为你 Firebase 控制台的 apiKey
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",        // 替换为你的 projectId
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef123456"
+};
+
+// 如果 Firebase 尚未初始化，进行初始化
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+// 全局 db 变量供后续读写 Firestore 使用
+const db = firebase.firestore();
+
+// ==========================================
+// 🔑 登录逻辑
+// ==========================================
+async function loginStudio() {
+    let studentInfo = sessionStorage.getItem("current_student");
+
+    if (!studentInfo) {
+        const input = prompt("🔒 欢迎来到老师的学习小屋！请输入你的通行码 (例: ZSY8888)：");
+        if (!input) {
+            alert("❌ 请输入通行码后进入！");
+            location.reload();
+            return;
+        }
+
+        const cleanInput = input.trim();
+        if (cleanInput.length < 4) {
+            alert("❌ 通行码格式不正确！请输入形如 ZSY8888 的组合。");
+            location.reload();
+            return;
+        }
+
+        // 提取前 3 位代号与后半部分密码
+        const idPrefix = cleanInput.substring(0, 3).toUpperCase();
+        const inputPassword = cleanInput.substring(3);
+
+        try {
+            // 1. 读取主页通用大门密码 (settings > passwords > master)
+            const passDoc = await db.collection("settings").doc("passwords").get();
+            if (!passDoc.exists) {
+                alert("⚠️ 系统错误：Firestore 中找不到 settings/passwords 文档！");
+                return;
+            }
+            const masterPass = passDoc.data().master;
+
+            // 2. 读取学生注册表 (students > registry > ZSY)
+            const registryDoc = await db.collection("students").doc("registry").get();
+            if (!registryDoc.exists) {
+                alert("⚠️ 系统错误：Firestore 中找不到 students/registry 文档！");
+                return;
+            }
+
+            const registryData = registryDoc.data();
+            const studentData = registryData[idPrefix];
+
+            // 验证密码
+            if (String(inputPassword) !== String(masterPass)) {
+                alert(`❌ 密码错误！你输入的密码是 "${inputPassword}"，不匹配主页密码。`);
+                location.reload();
+                return;
+            }
+
+            // 验证学生代号
+            if (!studentData) {
+                alert(`❌ 身份代号错误！在名册中找不到代号 "${idPrefix}" 的学生。`);
+                location.reload();
+                return;
+            }
+
+            // 验证成功，保存学生身份到本地会话
+            const studentObj = {
+                id: idPrefix,
+                name: studentData.name,
+                grade: String(studentData.grade)
+            };
+            sessionStorage.setItem("current_student", JSON.stringify(studentObj));
+            alert(`🎉 登录成功！欢迎你，${studentData.name}同学！`);
+
+            if (typeof showWelcomeBar === "function") {
+                showWelcomeBar(studentObj);
+            }
+
+        } catch (error) {
+            console.error("登录详细报错日志:", error);
+            alert(`❌ 连接数据库失败！错误原因: ${error.message}`);
+        }
+    } else {
+        if (typeof showWelcomeBar === "function") {
+            showWelcomeBar(JSON.parse(studentInfo));
+        }
+    }
+}
+
+// 页面加载完成后自动触发登录检查
+window.addEventListener("DOMContentLoaded", () => {
+    loginStudio();
+});
+// ==========================================
 // 🔑 1. 主页身份验证与云端登录
 // ==========================================
 async function loginStudio() {
