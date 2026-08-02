@@ -102,9 +102,9 @@ async function loginStudio() {
 
         try {
             // 1. 读取主页通用大门密码
-            const passDoc = await db.collection("settings").doc("passwords").get();
+            const passDoc = await db.collection("setting").doc("password").get();
             if (!passDoc.exists) {
-                alert("⚠️ 系统错误：Firestore 中找不到 settings/passwords 文档！");
+                alert("⚠️ 系统错误：Firestore 中找不到 setting/password 文档！");
                 return;
             }
             const masterPass = passDoc.data().master;
