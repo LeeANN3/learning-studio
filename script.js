@@ -157,14 +157,11 @@ async function loginStudio() {
 
 // 2. 顶栏显示“欢迎，张丽丽同学！”
 function showWelcomeBar(student) {
-    let welcomeDiv = document.getElementById("welcome-bar");
-    if (!welcomeDiv) {
-        welcomeDiv = document.createElement("div");
-        welcomeDiv.id = "welcome-bar";
-        welcomeDiv.style.cssText = "position: fixed; top: 15px; right: 20px; background: #fffae6; border: 2px solid #2b2b2b; padding: 6px 16px; border-radius: 20px; font-weight: bold; box-shadow: 3px 3px 0 #2b2b2b; z-index: 1000;";
-        document.body.appendChild(welcomeDiv);
+const welcomeDiv = document.getElementById("welcome-bar");
+    if (welcomeDiv) {
+        welcomeDiv.innerHTML = `👋 欢迎，${student.name}同学 (${student.grade}年级)`;
+        welcomeDiv.style.display = "inline-block"; // 登录成功后显示气泡
     }
-    welcomeDiv.innerHTML = `👋 欢迎，${student.name}同学 (${student.grade}年级)`;
 }
 
 
