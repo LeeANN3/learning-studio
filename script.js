@@ -155,16 +155,6 @@ async function loginStudio() {
     }
 }
 
-// 2. 顶栏显示“欢迎，张丽丽同学！”
-function showWelcomeBar(student) {
-const welcomeDiv = document.getElementById("welcome-bar");
-    if (welcomeDiv) {
-        welcomeDiv.innerHTML = `👋 欢迎，${student.name}同学 (${student.grade}年级)`;
-        welcomeDiv.style.display = "inline-block"; // 登录成功后显示气泡
-    }
-}
-
-
 // ==========================================
 // 🎨 2. 页面渲染与交互逻辑
 // ==========================================
