@@ -36,7 +36,7 @@ async function checkQuizAccess() {
 
         try {
             // 从 Firebase 获取本周最新的年级密码
-            const passDoc = await db.collection("settings").doc("passwords").get();
+            const passDoc = await db.collection("setting").doc("password").get();
             const correctQuizPass = passDoc.data()[`grade${THIS_QUIZ_GRADE}`];
 
             if (idPrefix === student.id && quizPass === correctQuizPass) {
