@@ -3,12 +3,12 @@
 // ==========================================
 // ⚠️ 注意：请确保下方 firebaseConfig 里的参数与你 Firebase 控制台中的一致
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",              // 替换为你 Firebase 控制台的 apiKey
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",        // 替换为你的 projectId
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef123456"
+    apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",              // 替换为你 Firebase 控制台的 apiKey
+    authDomain: "my-teacher-studio.firebaseapp.com",
+    projectId: "my-teacher-studio",        // 替换为你的 projectId
+    storageBucket: "my-teacher-studio.firebasestorage.app",
+    messagingSenderId: "82774284780",
+    appId: ""1:82774284780:web:e29680ea7a0e5c435ec8c9"
 };
 
 // 如果 Firebase 尚未初始化，进行初始化
