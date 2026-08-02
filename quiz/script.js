@@ -1,28 +1,61 @@
 // ==========================================
-// 🔒 测验独立门禁 (防绕过)
+// 🔒 1. 测验云端门禁 (防越级 + 防绕过 + 周动态密码)
 // ==========================================
-const THIS_QUIZ_GRADE = "1"; // 本测验属于一年级
-const QUIZ_PASSWORD = "1111"; // 一年级密码
+const THIS_QUIZ_GRADE = "1"; // 本测验所属年级 (如果是二年级游戏就改为 "2")
 
-function checkQuizAccess() {
-    // 检查是否在主页已经验证过该年级密码
-    const isGradeAuth = sessionStorage.getItem(`auth_grade_${THIS_QUIZ_GRADE}`);
+async function checkQuizAccess() {
+    // 1. 检查主页是否已经登录
+    const studentInfoStr = sessionStorage.getItem("current_student");
+    if (!studentInfoStr) {
+        alert("🔒 请先从主页登录你的学生通行码！");
+        window.location.href = "../index.html"; // 退回主页
+        return;
+    }
 
+    const student = JSON.parse(studentInfoStr);
+
+    // 2. 拦截越级学生
+    if (String(student.grade) !== String(THIS_QUIZ_GRADE)) {
+        alert(`❌ 本测验属于【${THIS_QUIZ_GRADE}年级】，而你登记的年级是【${student.grade}年级】！`);
+        window.location.href = "../index.html";
+        return;
+    }
+
+    // 3. 校验本周游戏动态密码 (同一个浏览器 session 内只弹窗验证一次)
+    const isGradeAuth = sessionStorage.getItem(`auth_quiz_g${THIS_QUIZ_GRADE}`);
     if (!isGradeAuth) {
-        const input = prompt(`🔒 本测验属于【${THIS_QUIZ_GRADE}年级】，请输入该年级密码：`);
-        if (input === QUIZ_PASSWORD) {
-            sessionStorage.setItem(`auth_grade_${THIS_QUIZ_GRADE}`, "true");
-        } else {
-            alert("❌ 密码错误，无法参与测验！");
-            document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>🔒 密码错误，无权访问此测验！</h2>";
+        const input = prompt(`🔒 请输入【${THIS_QUIZ_GRADE}年级】本周游戏密码 (例: ${student.id}1111)：`);
+        if (!input || input.length < 4) {
+            alert("❌ 格式不正确！");
+            window.location.href = "../index.html";
+            return;
+        }
+
+        const idPrefix = input.substring(0, 3).toUpperCase();
+        const quizPass = input.substring(3);
+
+        try {
+            // 从 Firebase 获取本周最新的年级密码
+            const passDoc = await db.collection("settings").doc("passwords").get();
+            const correctQuizPass = passDoc.data()[`grade${THIS_QUIZ_GRADE}`];
+
+            if (idPrefix === student.id && quizPass === correctQuizPass) {
+                sessionStorage.setItem(`auth_quiz_g${THIS_QUIZ_GRADE}`, "true");
+            } else {
+                alert("❌ 游戏密码或身份代号错误！");
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>🔒 密码错误，无权访问此测验！</h2>";
+            }
+        } catch (error) {
+            console.error("验证失败:", error);
+            alert("❌ 网络错误，无法验证密码！");
+            window.location.href = "../index.html";
         }
     }
 }
 
-// 页面加载立刻验证
-checkQuizAccess();
+
 // ==========================================
-// 1. 初始化 Firebase 云数据库
+// 2. 初始化 Firebase 云数据库
 // ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
@@ -35,33 +68,37 @@ const firebaseConfig = {
 };
 
 // 初始化
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
 
 // ==========================================
-// 2. 云端排行榜功能函数 (Firebase)
+// 3. 云端排行榜功能函数 (自动使用真实姓名)
 // ==========================================
 
-// 保存成绩到云端数据库
+// 自动保存成绩到云端数据库 (无需手动输入名字)
 function saveScoreToCloud() {
-    const name = playerNameInput.value.trim();
-    if (!name) {
-        alert("请输入学生名字！");
+    const studentInfoStr = sessionStorage.getItem("current_student");
+    if (!studentInfoStr) {
+        alert("未读取到你的身份信息，请返回主页重新登录！");
         return;
     }
+
+    const student = JSON.parse(studentInfoStr);
 
     if (saveScoreBtn) saveScoreBtn.disabled = true;
 
     db.collection("leaderboard").add({
-        name: name,
+        grade: THIS_QUIZ_GRADE,
+        name: student.name, // 自动读取真实姓名 (例如: 张丽丽)
         score: Number(score),
         time: Number(seconds),
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
-        alert("成绩已成功同步至云端！");
-        playerNameInput.value = "";
+        alert(`🎉 成绩已成功同步至云端！表现很棒，${student.name}同学！`);
         loadCloudLeaderboard(); // 提交成功后立刻刷新排行榜
     })
     .catch((error) => {
@@ -71,7 +108,7 @@ function saveScoreToCloud() {
     });
 }
 
-// 从云端加载排行榜 (按分数从高到低，用时从短到长)
+// 从云端加载排行榜
 function loadCloudLeaderboard() {
     if (!leaderboardList) return;
 
@@ -94,7 +131,6 @@ function loadCloudLeaderboard() {
               const data = doc.data();
               const li = document.createElement("li");
               
-              // 加上前三名的奖牌小图标
               let medal = "";
               if (rank === 1) medal = "🥇 ";
               else if (rank === 2) medal = "🥈 ";
@@ -116,13 +152,8 @@ function loadCloudLeaderboard() {
 // ⚙️ 老师设定区 (在这里控制本次测试的模式)
 // ==========================================
 
-// 出题类型：可选 "english" | "chinese" | "pinyin"
 let questionType = "english"; 
-
-// 选项答案类型：可选 "english" | "chinese" | "pinyin"
 let answerType = "chinese";   
-
-// 每次游戏最多出几题
 const TOTAL_QUESTIONS = 20; 
 
 
@@ -149,7 +180,6 @@ const finalScore = document.getElementById("final-score");
 const finalTime = document.getElementById("final-time");
 
 const totalQuestionText = document.getElementById("total-question-text");
-const playerNameInput = document.getElementById("player-name");
 const leaderboardList = document.getElementById("leaderboard-list");
 
 
@@ -165,13 +195,16 @@ let timer = null;
 
 
 // ==========================================
-// 初始更新首页 (加载云端排行榜)
+// 初始更新首页 (加载门禁 + 排行榜)
 // ==========================================
 
-totalQuestionText.textContent = `${TOTAL_QUESTIONS} Questions`;
+if (totalQuestionText) {
+    totalQuestionText.textContent = `${TOTAL_QUESTIONS} Questions`;
+}
 
-// 页面加载完成后自动获取云端排行榜
+// 页面加载完成后自动执行门禁校验与排行榜读取
 document.addEventListener("DOMContentLoaded", () => {
+    checkQuizAccess();
     loadCloudLeaderboard();
 });
 
@@ -337,17 +370,20 @@ function endGame() {
 // 事件绑定
 // ==========================================
 
-startBtn.addEventListener("click", () => {
-    if (saveScoreBtn) saveScoreBtn.disabled = false;
-    startGame();
-});
+if (startBtn) {
+    startBtn.addEventListener("click", () => {
+        if (saveScoreBtn) saveScoreBtn.disabled = false;
+        startGame();
+    });
+}
 
-restartBtn.addEventListener("click", () => {
-    if (saveScoreBtn) saveScoreBtn.disabled = false;
-    startGame();
-});
+if (restartBtn) {
+    restartBtn.addEventListener("click", () => {
+        if (saveScoreBtn) saveScoreBtn.disabled = false;
+        startGame();
+    });
+}
 
-// 绑定云端保存逻辑
 if (saveScoreBtn) {
     saveScoreBtn.addEventListener("click", saveScoreToCloud);
 }
