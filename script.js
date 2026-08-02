@@ -110,9 +110,9 @@ async function loginStudio() {
             const masterPass = passDoc.data().master;
 
             // 2. 读取学生注册表
-            const registryDoc = await db.collection("students").doc("registry").get();
+            const registryDoc = await db.collection("student").doc("registry").get();
             if (!registryDoc.exists) {
-                alert("⚠️ 系统错误：Firestore 中找不到 students/registry 文档！");
+                alert("⚠️ 系统错误：Firestore 中找不到 student/registry 文档！");
                 return;
             }
 
