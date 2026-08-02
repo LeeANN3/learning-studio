@@ -168,3 +168,24 @@ body {
     box-shadow: 6px 6px 0px #2c2c2c;
     background-color: #ffffff;
 }
+
+/* 🎓 融入顶栏的学生身份气泡 */
+.welcome-tag {
+    display: none; /* 默认隐藏，登录后由 JS 激活显示 */
+    background: #fffae6;
+    border: 2px solid #2b2b2b;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #2b2b2b;
+    box-shadow: 2px 2px 0 #2b2b2b;
+    white-space: nowrap; /* 防止换行 */
+}
+
+/* 如果顶栏是用 flex 布局，确保垂直对齐 */
+.doodle-header {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* 让各元素保持合适间距 */
+}
