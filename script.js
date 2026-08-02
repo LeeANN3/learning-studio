@@ -34,7 +34,7 @@ async function loginStudio() {
 
         const cleanInput = input.trim();
         if (cleanInput.length < 4) {
-            alert("❌ 通行码格式不正确！请输入形如 ZSY8888 的组合。");
+            alert("❌ 通行码格式不正确！请输入形如 SLH**** 的组合。");
             location.reload();
             return;
         }
