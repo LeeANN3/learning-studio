@@ -154,6 +154,14 @@ async function loginStudio() {
         initPage(); // 已登录则直接初始化渲染
     }
 }
+// 2. 顶栏显示“欢迎，张丽丽同学！”
+function showWelcomeBar(student) {
+const welcomeDiv = document.getElementById("welcome-bar");
+    if (welcomeDiv) {
+        welcomeDiv.innerHTML = `👋 欢迎，${student.name}同学 (${student.grade}年级)`;
+       // 登录成功后显示气泡
+    }
+}
 
 // ==========================================
 // 🎨 2. 页面渲染与交互逻辑
