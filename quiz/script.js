@@ -24,7 +24,7 @@ async function checkQuizAccess() {
     // 3. 校验本周游戏动态密码 (同一个浏览器 session 内只弹窗验证一次)
     const isGradeAuth = sessionStorage.getItem(`auth_quiz_g${THIS_QUIZ_GRADE}`);
     if (!isGradeAuth) {
-        const input = prompt(`🔒 请输入【${THIS_QUIZ_GRADE}年级】本周游戏密码 (例: ${student.id}????)：`);
+        const input = prompt(`🔒 请输入【${THIS_QUIZ_GRADE}年级】本周游戏密码 (例:SLH****)：`);
         if (!input || input.length < 4) {
             alert("❌ 格式不正确！");
             window.location.href = "../index.html";
