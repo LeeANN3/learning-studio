@@ -10,17 +10,15 @@ const firebaseConfig = {
     appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9" 
 };
 
-// 如果 Firebase 尚未初始化，进行初始化
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.firestore();
 
 // ==========================================
-// ⚙️ 老师的数据配置中心 (课程/游戏列表)
+// ⚙️ 课程与活动数据中心
 // ==========================================
 const studioData = {
-    // 1：一年级
     "1": [
         {
             id: "g1-l1",
@@ -45,8 +43,6 @@ const studioData = {
             game: []
         }
     ],
-
-    // 2：二年级
     "2": [
         {
             id: "g2-l1",
@@ -56,16 +52,14 @@ const studioData = {
             game: []
         }
     ],
-
-    // 3 ~ 6 年级
     "3": [], "4": [], "5": [], "6": []
 };
 
-// 当前状态
+// 全局当前状态
 let currentGrade = "1";
 let currentLessonIndex = 0;
 
-// 获取 DOM 元素
+// 获取 DOM 节点
 const gradeBtns = document.querySelectorAll(".grade-btn");
 const lessonMenu = document.getElementById("lesson-menu");
 const lessonTitle = document.getElementById("current-lesson-title");
@@ -74,15 +68,14 @@ const reviewList = document.getElementById("review-list");
 const gameList = document.getElementById("game-list");
 const searchInput = document.getElementById("search-input");
 
-
 // ==========================================
-// 🔑 1. 主页身份验证与登录
+// 🔑 1. 原版通行码登录与身份验证 (如 SLH888)
 // ==========================================
 async function loginStudio() {
     let studentInfo = sessionStorage.getItem("current_student");
 
     if (!studentInfo) {
-        const input = prompt("🔒 欢迎来到学习小屋！请输入你的通行码 (例: SLH****)：");
+        const input = prompt("🔒 欢迎来到学习小屋！请输入你的通行码 (例如: SLH888)：");
         if (!input) {
             alert("❌ 请输入通行码后进入！");
             location.reload();
@@ -91,49 +84,49 @@ async function loginStudio() {
 
         const cleanInput = input.trim();
         if (cleanInput.length < 4) {
-            alert("❌ 通行码格式不正确！请输入形如 SLH**** 的组合。");
+            alert("❌ 通行码格式不正确！请输入形如 SLH888 的组合。");
             location.reload();
             return;
         }
 
-        // 提取前 3 位代号与后半部分密码
+        // 拆解：前 3 位为学生代号 (SLH)，后半部分为密码 (888)
         const idPrefix = cleanInput.substring(0, 3).toUpperCase();
         const inputPassword = cleanInput.substring(3);
 
         try {
-            // 1. 读取主页通用大门密码
+            // 1. 读取 Firestore 设置的 master 密码
             const passDoc = await db.collection("setting").doc("password").get();
             if (!passDoc.exists) {
-                alert("⚠️ 系统错误：Firestore 中找不到 setting/password 文档！");
+                alert("⚠️ 系统错误：找不到 setting/password 文档！");
                 return;
             }
             const masterPass = passDoc.data().master;
 
-            // 2. 读取学生注册表
+            // 2. 读取 Firestore 学生花名册
             const registryDoc = await db.collection("student").doc("registry").get();
             if (!registryDoc.exists) {
-                alert("⚠️ 系统错误：Firestore 中找不到 student/registry 文档！");
+                alert("⚠️ 系统错误：找不到 student/registry 文档！");
                 return;
             }
 
             const registryData = registryDoc.data();
             const studentData = registryData[idPrefix];
 
-            // 验证密码
+            // 密码校验
             if (String(inputPassword) !== String(masterPass)) {
-                alert(`❌ 密码错误！你输入的密码是 "${inputPassword}"，不匹配主页密码。`);
+                alert(`❌ 密码错误！你输入的密码是 "${inputPassword}"，不正确。`);
                 location.reload();
                 return;
             }
 
-            // 验证学生代号
+            // 学生代号校验
             if (!studentData) {
-                alert(`❌ 身份代号错误！在名册中找不到代号 "${idPrefix}" 的学生。`);
+                alert(`❌ 代号错误！名册中没有找到代号 "${idPrefix}" 的学生。`);
                 location.reload();
                 return;
             }
 
-            // 验证成功，保存身份
+            // 验证通过，写入 SessionStorage
             const studentObj = {
                 id: idPrefix,
                 name: studentData.name,
@@ -142,74 +135,58 @@ async function loginStudio() {
             sessionStorage.setItem("current_student", JSON.stringify(studentObj));
             alert(`🎉 登录成功！欢迎你，${studentData.name}同学！`);
 
-            setupStudentView(studentObj);
+            applyStudentSession(studentObj);
 
         } catch (error) {
-            console.error("登录详细报错日志:", error);
-            alert(`❌ 连接数据库失败！错误原因: ${error.message}`);
+            console.error("登录报错:", error);
+            alert(`❌ 数据库连接失败: ${error.message}`);
         }
     } else {
-        setupStudentView(JSON.parse(studentInfo));
+        applyStudentSession(JSON.parse(studentInfo));
     }
 }
 
-// 辅助函数：根据学生信息更新界面及切换对应年级
-function setupStudentView(student) {
-    showWelcomeBar(student);
-    
-    // 自动切到该学生的当前年级
+// 应用当前登录学生状态
+function applyStudentSession(student) {
+    // 1. 更新顶部欢迎标题中的学生名字
+    const welcomeTitle = document.getElementById("welcome-title");
+    if (welcomeTitle) {
+        welcomeTitle.innerHTML = `👋 嗨，<span class="highlight-macaron">${student.name}同学</span> (${student.grade}年级)！`;
+    }
+
+    // 2. 自动选定该学生的年级
     if (student.grade && studioData[student.grade]) {
         currentGrade = student.grade;
-        updateActiveGradeButton(currentGrade);
+        gradeBtns.forEach(btn => {
+            if (btn.dataset.grade === String(currentGrade)) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
     }
-    
-    initPage(); // 初始化渲染
-}
 
-// 顶栏更新学生姓名和年级信息
-function showWelcomeBar(student) {
-    // 兼容新版 HTML 中的欢迎卡片
-    const welcomeTitle = document.querySelector(".welcome-title");
-    if (welcomeTitle) {
-        welcomeTitle.innerHTML = `👋 嗨，<span class="highlight-macaron">${student.name}同学</span> (${student.grade}年级)`;
-    }
-}
-
-// 更新年级按钮的选中高亮样式
-function updateActiveGradeButton(grade) {
-    gradeBtns.forEach(btn => {
-        if (btn.dataset.grade === String(grade)) {
-            btn.classList.add("active");
-        } else {
-            btn.classList.remove("active");
-        }
-    });
-}
-
-// ==========================================
-// 🎨 2. 页面渲染与交互逻辑
-// ==========================================
-
-// 初始化主页内容
-function initPage() {
+    // 3. 渲染对应课程内容
     renderLessons();
 }
 
-// 渲染侧边栏单元菜单
+// ==========================================
+// 🎨 2. 课程与活动渲染
+// ==========================================
+
 function renderLessons() {
     const lessons = studioData[currentGrade] || [];
     if (!lessonMenu) return;
-    
+
     lessonMenu.innerHTML = "";
 
     if (lessons.length === 0) {
-        lessonMenu.innerHTML = "<li style='color:#888;'>暂无课程</li>";
+        lessonMenu.innerHTML = "<li style='color:#999;'>暂无课程</li>";
         if (lessonTitle) lessonTitle.textContent = "该年级暂无内容";
         clearCards();
         return;
     }
 
-    // 防错机制：防止索引越界
     if (currentLessonIndex >= lessons.length) {
         currentLessonIndex = 0;
     }
@@ -230,7 +207,6 @@ function renderLessons() {
     renderContent(lessons[currentLessonIndex]);
 }
 
-// 渲染右侧内容卡片
 function renderContent(lessonData) {
     if (!lessonData) {
         clearCards();
@@ -244,35 +220,25 @@ function renderContent(lessonData) {
     renderCardGroup(gameList, lessonData.game);
 }
 
-// 渲染卡片组 + 🔒 智能年级防越级拦截
+// 渲染卡片 + 年级越级拦截
 function renderCardGroup(container, items) {
     if (!container) return;
     container.innerHTML = "";
 
     if (!items || items.length === 0) {
-        container.innerHTML = "<p style='color:#888; font-size:13px; padding: 4px 0;'>暂未添加内容</p>";
+        container.innerHTML = "<p style='color:#888; font-size:13px;'>暂无内容</p>";
         return;
     }
 
     items.forEach(item => {
         const a = document.createElement("a");
-        a.className = "activity-card";
-        a.style.display = "block";
-        a.style.padding = "10px 14px";
-        a.style.marginBottom = "8px";
-        a.style.backgroundColor = "#FFFFFF";
-        a.style.borderRadius = "14px";
-        a.style.textDecoration = "none";
-        a.style.color = "#4A4E69";
-        a.style.fontWeight = "bold";
-        a.style.boxShadow = "0 2px 6px rgba(0,0,0,0.04)";
-        a.href = "#"; // 阻止默认跳转，由 JS 控制判断
+        a.className = "activity-card-item";
+        a.href = "#";
         a.textContent = item.name;
 
-        // 点击卡片时的年级越级拦截判断
         a.addEventListener("click", (e) => {
             e.preventDefault();
-            
+
             const studentInfo = sessionStorage.getItem("current_student");
             if (!studentInfo) {
                 alert("🔒 请先进行身份验证！");
@@ -282,13 +248,12 @@ function renderCardGroup(container, items) {
 
             const student = JSON.parse(studentInfo);
 
-            // 防越级判断：如果点击的年级与学生年级不相符
+            // 跨年级防越级拦截
             if (String(student.grade) !== String(currentGrade)) {
                 alert(`❌ 无法进入！本栏目属于【${currentGrade}年级】，而你是【${student.grade}年级】的学生。`);
                 return;
             }
 
-            // 年级匹配无误，放行跳转
             if (item.url && item.url !== "#") {
                 window.location.href = item.url;
             } else {
@@ -306,21 +271,25 @@ function clearCards() {
     if (gameList) gameList.innerHTML = "<p style='color:#888; font-size:13px;'>暂无游戏</p>";
 }
 
-// 事件绑定 (绑定年级切换与搜索)
+// ==========================================
+// 🖱️ 3. 事件绑定与 Bottom Nav 交互实现
+// ==========================================
 function setupEvents() {
+    // 年级按钮点击
     gradeBtns.forEach(btn => {
-        btn.onclick = () => {
+        btn.addEventListener("click", () => {
             gradeBtns.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
 
             currentGrade = btn.dataset.grade;
             currentLessonIndex = 0;
             renderLessons();
-        };
+        });
     });
 
+    // 搜索实时过滤
     if (searchInput) {
-        searchInput.oninput = (e) => {
+        searchInput.addEventListener("input", (e) => {
             const query = e.target.value.toLowerCase().trim();
             const items = lessonMenu.querySelectorAll("li");
 
@@ -331,12 +300,62 @@ function setupEvents() {
                     item.style.display = "none";
                 }
             });
-        };
+        });
+    }
+
+    // 底部 Bottom Navigation 交互绑定
+    const navHome = document.getElementById("nav-home");
+    const navGrade = document.getElementById("nav-grade");
+    const navMsg = document.getElementById("nav-msg");
+    const navSearch = document.getElementById("nav-search");
+
+    const searchModal = document.getElementById("search-modal");
+    const closeSearch = document.getElementById("close-search");
+
+    const msgModal = document.getElementById("msg-modal");
+    const closeMsg = document.getElementById("close-msg");
+
+    // 辅助切换高亮
+    function setNavActive(target) {
+        document.querySelectorAll(".nav-item").forEach(item => item.classList.remove("active"));
+        if(target) target.classList.add("active");
+    }
+
+    if (navHome) {
+        navHome.addEventListener("click", () => {
+            setNavActive(navHome);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+    }
+
+    if (navGrade) {
+        navGrade.addEventListener("click", () => {
+            setNavActive(navGrade);
+            const anchor = document.getElementById("grade-section-anchor");
+            if (anchor) anchor.scrollIntoView({ behavior: "smooth" });
+        });
+    }
+
+    if (navMsg && msgModal) {
+        navMsg.addEventListener("click", () => {
+            setNavActive(navMsg);
+            msgModal.classList.add("show");
+        });
+        if (closeMsg) closeMsg.addEventListener("click", () => msgModal.classList.remove("show"));
+    }
+
+    if (navSearch && searchModal) {
+        navSearch.addEventListener("click", () => {
+            setNavActive(navSearch);
+            searchModal.classList.add("show");
+            if (searchInput) searchInput.focus();
+        });
+        if (closeSearch) closeSearch.addEventListener("click", () => searchModal.classList.remove("show"));
     }
 }
 
-// 页面加载完成后启动流程
+// 页面载入时启动
 window.addEventListener("DOMContentLoaded", () => {
-    setupEvents();   // 1. 初始化事件监听（只绑定一次）
-    loginStudio();    // 2. 启动验证与数据渲染
+    setupEvents();
+    loginStudio();
 });
