@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>趣味学习岛 - Dashboard</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
+            background-color: #fafafa;
+            background-image: radial-gradient(#e5e7eb 1.2px, transparent 1.2px);
+            background-size: 20px 20px;
+            min-height: 100vh; color: #1a1a1a; padding: 16px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container { width: 100%; max-width: 768px; margin: 0 auto; }
+
+        .top-navbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .brand-badge {
+            display: flex; align-items: center; gap: 8px;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 18px; font-weight: 700;
+        }
+        .brand-badge i {
+            background: #ffffff; border: 2px solid #1a1a1a; border-radius: 10px;
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 2px 2px 0px #1a1a1a;
+        }
+
+        .btn-doodle {
+            background: #ffffff; border: 2px solid #1a1a1a; border-radius: 12px;
+            padding: 5px 12px; font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            box-shadow: 2px 2px 0px #1a1a1a; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-doodle:hover { background: #ffe600; transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #1a1a1a; }
+
+        .doodle-card {
+            background-color: #ffffff; border: 2px solid #1a1a1a; border-radius: 20px;
+            box-shadow: 4px 4px 0px #1a1a1a; padding: 20px; margin-bottom: 20px;
+        }
+
+        /* 欢迎面板与角色标识 */
+        .user-greeting {
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 24px;
+            text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+        }
+        .user-name-highlight {
+            background-color: #ffe600; padding: 2px 10px; border-radius: 10px;
+            border: 2px solid #1a1a1a; box-shadow: 2px 2px 0px #1a1a1a;
+        }
+        .role-badge-tag {
+            font-size: 13px; padding: 2px 8px; border-radius: 8px; border: 1.5px solid #1a1a1a;
+            background: #ffffff; font-weight: bold;
+        }
+
+        .date-time-box {
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            margin-top: 10px; padding: 8px; border: 2px dashed #1a1a1a; border-radius: 12px; background: #fafafa;
+        }
+
+        /* 年级按钮网格 */
+        .grades-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 12px; }
+        @media (min-width: 600px) { .grades-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .grade-btn {
+            background-color: #ffffff; border: 2px solid #1a1a1a; border-radius: 16px;
+            padding: 16px 10px; text-align: center; cursor: pointer;
+            box-shadow: 3px 3px 0px #1a1a1a; display: flex; flex-direction: column; align-items: center; gap: 8px;
+            position: relative;
+        }
+        .grade-btn i { font-size: 28px; }
+        .grade-btn span { font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 18px; font-weight: 700; }
+        .grade-btn:hover:not(.locked) { background-color: #ffe600; transform: translate(-1px, -1px); box-shadow: 4px 4px 0px #1a1a1a; }
+
+        /* 锁定的年级卡片 */
+        .grade-btn.locked {
+            background-color: #f4f4f5; opacity: 0.75; cursor: pointer;
+        }
+        .lock-icon-badge {
+            position: absolute; top: 8px; right: 8px; font-size: 14px;
+            background: #ffffff; border: 1.5px solid #1a1a1a; border-radius: 50%;
+            width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 老师解封 Modal 弹窗 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-card {
+            background: #ffffff; border: 2px solid #1a1a1a; border-radius: 18px; padding: 20px;
+            width: 90%; max-width: 340px; box-shadow: 4px 4px 0px #1a1a1a; text-align: center;
+        }
+
+        /* 下拉选择单元 Selector */
+        .unit-select {
+            width: 100%; max-width: 380px; padding: 10px; border: 2px solid #1a1a1a; border-radius: 14px;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 16px; font-weight: 700;
+            background-color: #ffffff; box-shadow: 2px 2px 0px #1a1a1a; outline: none; margin: 10px 0 20px;
+        }
+
+        .category-block { margin-bottom: 20px; }
+        .category-header {
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 18px; font-weight: 700;
+            padding: 6px 12px; background: #ffffff; border: 2px solid #1a1a1a; border-radius: 10px;
+            display: inline-flex; align-items: center; gap: 6px; box-shadow: 2px 2px 0px #1a1a1a; margin-bottom: 10px;
+        }
+        .category-block.game .category-header { background-color: #ffe600; }
+
+        .link-list { display: flex; flex-direction: column; gap: 10px; }
+        .link-item {
+            background-color: #ffffff; border: 2px solid #1a1a1a; border-radius: 12px;
+            padding: 12px 14px; box-shadow: 2px 2px 0px #1a1a1a; display: flex;
+            justify-content: space-between; align-items: center; text-decoration: none; color: #1a1a1a;
+        }
+        .link-item:hover { background-color: #ffe600; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="top-navbar">
+            <div class="brand-badge">
+                <i class="fa-solid fa-gamepad"></i>
+                <span>Fun Learning</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn-doodle" onclick="toggleLanguage()">
+                    <i class="fa-solid fa-globe"></i>
+                    <span id="lang-btn-text">English</span>
+                </button>
+                <button type="button" class="btn-doodle" onclick="handleLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span id="txt-logout">退出</span>
+                </button>
+            </div>
+        </header>
+
+        <main id="view-dashboard">
+            <div class="doodle-card">
+                <div class="user-greeting">
+                    <span id="txt-welcome-prefix">欢迎，</span>
+                    <span class="user-name-highlight" id="user-display-name">---</span>
+                    <span class="role-badge-tag" id="user-role-tag">--</span>
+                </div>
+                
+                <div class="date-time-box">
+                    <div style="font-size:16px;" id="live-date">----年--月--日</div>
+                    <div style="font-family:'Fredoka'; font-size:22px; font-weight:700;" id="live-time">00:00 AM</div>
+                </div>
+            </div>
+
+            <div class="doodle-card">
+                <h2 style="font-family:'Fredoka', 'ZCOOL KuaiLe'; font-size:20px; display:flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span id="txt-select-grade">选择你的年级：</span>
+                </h2>
+                
+                <div class="grades-grid" id="grades-grid-container">
+                    <!-- 年级按键由 JS 动态添加（处理锁定逻辑） -->
+                </div>
+            </div>
+        </main>
+
+        <main id="view-grade" class="hidden">
+            <div class="doodle-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <button class="btn-doodle" onclick="showDashboardView()">
+                        <i class="fa-solid fa-arrow-left"></i> <span id="txt-back-hub">返回大厅</span>
+                    </button>
+                    <h1 style="font-family:'Fredoka', 'ZCOOL KuaiLe'; font-size:22px;" id="grade-title-text">
+                        <span>X年级学习区</span>
+                    </h1>
+                </div>
+
+                <div style="text-align:center;">
+                    <label style="font-weight:bold; font-size:15px;" id="lbl-select-unit">选择学习单元：</label>
+                    <select id="unit-select" class="unit-select" onchange="onUnitChange()"></select>
+                </div>
+
+                <div class="category-block quiz">
+                    <div class="category-header"><i class="fa-solid fa-pen-to-square"></i><span id="txt-cat-quiz">测验 (Quizzes)</span></div>
+                    <div class="link-list" id="list-quiz"></div>
+                </div>
+
+                <div class="category-block review">
+                    <div class="category-header"><i class="fa-solid fa-book-bookmark"></i><span id="txt-cat-review">复习 (Revision)</span></div>
+                    <div class="link-list" id="list-review"></div>
+                </div>
+
+                <div class="category-block game">
+                    <div class="category-header"><i class="fa-solid fa-gamepad"></i><span id="txt-cat-game">游戏 (Games)</span></div>
+                    <div class="link-list" id="list-game"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="unlock-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 style="font-family:'Fredoka', 'ZCOOL KuaiLe'; margin-bottom:10px;">🔒 老师现场解锁</h3>
+            <p style="font-size:14px; color:#666; margin-bottom:12px;">此年级非该学生默认年级，请输入老师解封密钥：</p>
+            <input type="password" id="modal-pass-input" style="width:100%; padding:8px; border:2px solid #1a1a1a; border-radius:10px; font-size:16px; text-align:center; margin-bottom:12px;" placeholder="默认 8888">
+            <div style="display:flex; gap:10px;">
+                <button class="btn-doodle" style="flex:1; justify-content:center;" onclick="closeUnlockModal()">取消</button>
+                <button class="btn-doodle" style="flex:1; justify-content:center; background:#ffe600;" onclick="confirmUnlockGrade()">解锁进入</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // 老师现场解封临时暗号 (默认 8888)
+        const TEACHER_QUICK_PIN = "8888";
+
+        let currentLang = 'zh';
+        let currentUserRole = 'student'; // 'student' 或 'teacher'
+        let currentUserGrade = 1;        // 学生默认年级
+        let selectedGrade = 1;
+        let selectedUnit = 'unit1';
+        let targetUnlockGrade = null;
+
+        // 监听 Auth & 读取 Firestore Role
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const displayName = user.displayName || user.email.split('@')[0];
+                document.getElementById('user-display-name').innerText = displayName;
+
+                try {
+                    const doc = await db.collection("users").doc(user.uid).get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        currentUserRole = data.role || 'student';
+                        currentUserGrade = data.grade || 1;
+                    }
+                } catch (e) {
+                    console.log("Firestore Read Error:", e);
+                }
+
+                updateRoleBadge();
+                renderGradeButtons();
+
+                // 若为学生角色，登录后自动直达对应年级学习区；老师角色则停留在年级大厅
+                if (currentUserRole === 'student') {
+                    openGradeView(currentUserGrade);
+                } else {
+                    showDashboardView();
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function handleLogout() { auth.signOut().then(() => window.location.href = "index.html"); }
+
+        function updateRoleBadge() {
+            const tag = document.getElementById('user-role-tag');
+            if (currentUserRole === 'teacher') {
+                tag.innerText = currentLang === 'zh' ? "👨‍🏫 教师模式 (全区畅通)" : "👨‍🏫 Teacher Mode";
+                tag.style.background = "#ffe600";
+            } else {
+                tag.innerText = currentLang === 'zh' ? `${currentUserGrade}年级` : `Grade ${currentUserGrade}`;
+                tag.style.background = "#ffffff";
+            }
+        }
+
+        function renderGradeButtons() {
+            const container = document.getElementById('grades-grid-container');
+            container.innerHTML = '';
+
+            const icons = ["fa-shapes", "fa-puzzle-piece", "fa-rocket", "fa-brain", "fa-flask", "fa-trophy"];
+
+            for (let i = 1; i <= 6; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'grade-btn';
+                
+                // 老师可以直接进所有年级；学生只能进自己年级
+                const isLocked = (currentUserRole !== 'teacher') && (i !== currentUserGrade);
+
+                if (isLocked) {
+                    btn.classList.add('locked');
+                    btn.innerHTML = `<div class="lock-icon-badge"><i class="fa-solid fa-lock"></i></div>`;
+                }
+
+                btn.innerHTML += `
+                    <i class="fa-solid ${icons[i-1]}"></i>
+                    <span>${currentLang === 'zh' ? getChineseNumber(i) + '年级' : 'Grade ' + i}</span>
+                `;
+
+                btn.onclick = () => {
+                    if (isLocked) {
+                        openUnlockModal(i);
+                    } else {
+                        openGradeView(i);
+                    }
+                };
+
+                container.appendChild(btn);
+            }
+        }
+
+        function openUnlockModal(gradeNum) {
+            targetUnlockGrade = gradeNum;
+            document.getElementById('modal-pass-input').value = '';
+            document.getElementById('unlock-modal').classList.remove('hidden');
+        }
+
+        function closeUnlockModal() {
+            document.getElementById('unlock-modal').classList.add('hidden');
+        }
+
+        function confirmUnlockGrade() {
+            const pass = document.getElementById('modal-pass-input').value.trim();
+            if (pass === TEACHER_QUICK_PIN) {
+                closeUnlockModal();
+                openGradeView(targetUnlockGrade);
+            } else {
+                alert(currentLang === 'zh' ? "密码错误！" : "Incorrect PIN!");
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const daysZh = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+            const daysEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const dayOfWeek = now.getDay();
+
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+
+            if (currentLang === 'zh') {
+                document.getElementById('live-date').innerText = `${year}年${month}月${date}日 ${daysZh[dayOfWeek]}`;
+            } else {
+                const monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                document.getElementById('live-date').innerText = `${daysEn[dayOfWeek]}, ${monthsEn[now.getMonth()]} ${date}, ${year}`;
+            }
+
+            document.getElementById('live-time').innerText = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 示例单元与内容
+        const gradeData = {
+            1: {
+                units: [{ id: "unit1", nameZh: "第一单元：认识数字 1-20", nameEn: "Unit 1: Numbers 1-20" }],
+                content: { unit1: { quizzes: [{ titleZh: "数字识别测验", titleEn: "Number Quiz", url: "#", descZh: "5 题", descEn: "5 questions" }], reviews: [], games: [{ titleZh: "气球接接乐", titleEn: "Balloon Pop", url: "games/game1.html", descZh: "按数字接气球", descEn: "Pop balloon" }] } }
+            },
+            2: { units: [{ id: "unit1", nameZh: "第一单元：乘法九九表", nameEn: "Unit 1: Multiplication" }], content: { unit1: { quizzes: [], reviews: [], games: [] } } },
+            3: { units: [{ id: "unit1", nameZh: "第一单元：千以内加减法", nameEn: "Unit 1: Addition" }], content: { unit1: { quizzes: [], reviews: [], games: [] } } },
+            4: { units: [{ id: "unit1", nameZh: "第一单元：大数的认识", nameEn: "Unit 1: Big Numbers" }], content: { unit1: { quizzes: [], reviews: [], games: [] } } },
+            5: { units: [{ id: "unit1", nameZh: "第一单元：小数运算", nameEn: "Unit 1: Decimals" }], content: { unit1: { quizzes: [], reviews: [], games: [] } } },
+            6: { units: [{ id: "unit1", nameZh: "第一单元：分数与比例", nameEn: "Unit 1: Fractions" }], content: { unit1: { quizzes: [], reviews: [], games: [] } } }
+        };
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+            document.getElementById('lang-btn-text').innerText = currentLang === 'zh' ? 'English' : '中文';
+            document.getElementById('txt-logout').innerText = currentLang === 'zh' ? '退出' : 'Logout';
+            updateClock();
+            updateRoleBadge();
+            renderGradeButtons();
+            if (!document.getElementById('view-grade').classList.contains('hidden')) renderGradeViewContent();
+        }
+
+        function openGradeView(num) {
+            selectedGrade = num;
+            const info = gradeData[num];
+            if (info && info.units.length > 0) selectedUnit = info.units[0].id;
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-grade').classList.remove('hidden');
+            renderGradeViewContent();
+        }
+
+        function showDashboardView() {
+            document.getElementById('view-grade').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+        }
+
+        function renderGradeViewContent() {
+            const info = gradeData[selectedGrade] || { units: [], content: {} };
+            document.getElementById('grade-title-text').innerText = `${currentLang === 'zh' ? getChineseNumber(selectedGrade) + '年级' : 'Grade ' + selectedGrade} ${currentLang === 'zh' ? '学习区' : 'Zone'}`;
+
+            const selectElem = document.getElementById('unit-select');
+            selectElem.innerHTML = '';
+            info.units.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.innerText = currentLang === 'zh' ? u.nameZh : u.nameEn;
+                if (u.id === selectedUnit) opt.selected = true;
+                selectElem.appendChild(opt);
+            });
+
+            const unitContent = (info.content && info.content[selectedUnit]) || { quizzes: [], reviews: [], games: [] };
+            renderLinkCategory('list-quiz', unitContent.quizzes || [], 'fa-pen-to-square');
+            renderLinkCategory('list-review', unitContent.reviews || [], 'fa-book-bookmark');
+            renderLinkCategory('list-game', unitContent.games || [], 'fa-gamepad');
+        }
+
+        function onUnitChange() {
+            selectedUnit = document.getElementById('unit-select').value;
+            renderGradeViewContent();
+        }
+
+        function renderLinkCategory(containerId, listData, icon) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            if (listData.length === 0) {
+                container.innerHTML = `<div style="color:#888; text-align:center; padding:8px;">${currentLang === 'zh' ? '暂未添加内容' : 'No content yet'}</div>`;
+                return;
+            }
+            listData.forEach(item => {
+                const el = document.createElement('a');
+                el.className = 'link-item';
+                el.href = item.url || '#';
+                el.innerHTML = `
+                    <div>
+                        <div style="font-weight:bold;">${currentLang === 'zh' ? item.titleZh : item.titleEn}</div>
+                        <div style="font-size:13px; color:#666;">${currentLang === 'zh' ? item.descZh : item.descEn}</div>
+                    </div>
+                    <i class="fa-solid fa-play"></i>
+                `;
+                container.appendChild(el);
+            });
+        }
+
+        function getChineseNumber(num) {
+            return ["零", "一", "二", "三", "四", "五", "六"][num] || num;
+        }
+    </script>
+</body>
+</html>
