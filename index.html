@@ -351,14 +351,14 @@
     .tab-view.active-view { display: block; }
 
     /* --------------------------------------------------
-       9. 登录系统界面样式 (SLH8888 专用)
+       9. 极简密码登录界面样式
        -------------------------------------------------- */
     #view-login {
-      padding-top: 40px;
+      padding-top: 50px;
     }
     .login-card {
       background: #FFFFFF;
-      padding: 30px 24px;
+      padding: 35px 24px;
       border-radius: 35px;
       box-shadow: 0 15px 35px rgba(180, 170, 160, 0.15);
       text-align: center;
@@ -414,7 +414,7 @@
 
   <div class="app-container">
     
-    <!-- 1. Header 顶部品牌与时间 (登录成功后显示) -->
+    <!-- Header 顶部品牌与时间 (登录成功后显示) -->
     <div class="header-top" id="main-header" style="display: none;">
       <div class="logo" onclick="switchTab('home')">🎈 学习工作室</div>
       <div class="header-right">
@@ -423,26 +423,21 @@
       </div>
     </div>
 
-    <!-- ==================== TAB 0: 登录视图 (my-teacher-studio 识别) ==================== -->
+    <!-- ==================== TAB 0: 纯密码登录视图 ==================== -->
     <div id="view-login" class="tab-view active-view">
       <div class="login-card light-card">
-        <div style="font-size: 40px; margin-bottom: 10px;">🎈</div>
-        <div class="login-title">学生身份验证</div>
-        <div class="login-subtitle">请输入学号与密码登录工作室</div>
+        <div style="font-size: 40px; margin-bottom: 10px;">🔑</div>
+        <div class="login-title">学习工作室登录</div>
+        <div class="login-subtitle">请输入你的专属密码进入</div>
 
         <div class="input-group">
-          <label class="input-label">🆔 学号 (格式: SLH8888)</label>
-          <input type="text" class="macaron-input" id="login-studentid" placeholder="例如: SLH8888" value="SLH8888" style="text-transform: uppercase;">
-        </div>
-
-        <div class="input-group">
-          <label class="input-label">🔒 密码</label>
-          <input type="password" class="macaron-input" id="login-password" placeholder="请输入密码">
+          <label class="input-label">🔒 通行密码</label>
+          <input type="password" class="macaron-input" id="login-password" placeholder="例如: ZSY8888" value="ZSY8888" style="text-transform: uppercase;">
         </div>
 
         <div id="login-error-msg" class="login-tips"></div>
 
-        <button class="primary-btn" onclick="handleFirebaseLogin()">🚀 验证身份并进入</button>
+        <button class="primary-btn" onclick="handleFirebaseLogin()">🚀 进入工作室</button>
       </div>
     </div>
 
@@ -572,72 +567,51 @@
     </div>
   </div>
 
-  <!-- 交互逻辑 (已集成 my-teacher-studio 真实配置) -->
+  <!-- 逻辑交互（使用密码直接检索 Firebase 用户） -->
   <script>
-    // --------------------------------------------------
-    // 1. 你的 Firebase 真实配置已写入
-    // --------------------------------------------------
+    // 1. Firebase 官方密钥配置
     const firebaseConfig = {
       apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
       authDomain: "my-teacher-studio.firebaseapp.com",
-      databaseURL: "https://my-teacher-studio-default-rtdb.firebaseio.com", // 自动适配默认 Realtime Database
+      databaseURL: "https://my-teacher-studio-default-rtdb.firebaseio.com",
       projectId: "my-teacher-studio",
       storageBucket: "my-teacher-studio.firebasestorage.app",
       messagingSenderId: "82774284780",
       appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
     };
 
-    // 初始化 Firebase
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.database();
 
-    // --------------------------------------------------
-    // 2. SLH8888 格式识别与 Firebase 登录验证
-    // --------------------------------------------------
+    // 2. 纯密码验证逻辑 (以输入的密码如 ZSY8888 作为数据库 KEY)
     function handleFirebaseLogin() {
-      const studentIdInput = document.getElementById('login-studentid').value.trim().toUpperCase();
-      const passwordInput = document.getElementById('login-password').value.trim();
+      const passwordInput = document.getElementById('login-password').value.trim().toUpperCase();
       const errorMsg = document.getElementById('login-error-msg');
 
       errorMsg.innerText = "";
-
-      // 验证格式：SLH + 4位数字 (如 SLH8888)
-      const slhPattern = /^SLH\d{4}$/;
-      if (!slhPattern.test(studentIdInput)) {
-        errorMsg.innerText = "⚠️ 学号格式不正确，请输入 SLH 加 4 位数字 (如 SLH8888)";
-        return;
-      }
 
       if (!passwordInput) {
         errorMsg.innerText = "⚠️ 请输入密码！";
         return;
       }
 
-      // 查询 Firebase 节点 users/SLH8888
-      db.ref('users/' + studentIdInput).once('value')
+      // 在 users/{密码} 路径查找用户信息
+      db.ref('users/' + passwordInput).once('value')
         .then((snapshot) => {
           if (snapshot.exists()) {
             const userData = snapshot.val();
-            
-            // 兼容支持 password 或 pass 属性字段
-            const dbPassword = userData.password || userData.pass;
-            
-            if (dbPassword && String(dbPassword) === String(passwordInput)) {
-              // 密码正确：提取名字并显示
-              const studentName = userData.name || userData.username || studentIdInput;
-              loginSuccess(studentName);
-            } else {
-              errorMsg.innerText = "❌ 密码错误，请重新输入";
-            }
+            // 获取用户显示名字
+            const studentName = userData.name || userData.username || passwordInput;
+            loginSuccess(studentName);
           } else {
-            errorMsg.innerText = "❌ 数据库中未找到学号 " + studentIdInput;
+            errorMsg.innerText = "❌ 密码错误或无效，请重新输入！";
           }
         })
         .catch((error) => {
           console.error("Firebase 读取错误:", error);
-          errorMsg.innerText = "⚠️ 无法连接到数据库，请检查网络或 Realtime Database 规则。";
+          errorMsg.innerText = "⚠️ 无法连接服务器，请检查网络设置。";
         });
     }
 
@@ -655,9 +629,7 @@
       switchTab('login');
     }
 
-    // --------------------------------------------------
-    // 3. UI 交互控制
-    // --------------------------------------------------
+    // 3. 页面抽屉与 TAB 导航逻辑
     function openDrawer() {
       document.getElementById('drawer-overlay').classList.add('open');
     }
