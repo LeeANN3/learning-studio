@@ -1,94 +1,81 @@
-// Google Sheet API / CSV 配置
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSjE_fJvP2A87Xj5S4-7NlD9bQpA-4y21nC_r9R/pub?output=csv"; 
+// 设置固定秘密密码
+const SECRET_CODE = "ZSY8888";
 
-let studentsData = {};
-
-// 初始化：检查登录状态与拉取学生数据
+// 初始化页面状态
 document.addEventListener("DOMContentLoaded", () => {
-  checkLoginState();
-  fetchStudentList();
+  updateUIState();
 });
 
-// 从 Google Sheets 异步拉取学生与密码数据
-async function fetchStudentList() {
-  const select = document.getElementById("student-select");
-  try {
-    const res = await fetch(SHEET_CSV_URL);
-    const csvText = await res.text();
-    
-    // 解析 CSV 行
-    const rows = csvText.split("\n").map(row => row.split(","));
-    studentsData = {};
-    
-    // 清空下拉框
-    select.innerHTML = '<option value="">-- 请选择你的名字 --</option>';
+// 点击顶部登录/解锁按钮
+function handleAuthClick() {
+  const isUnlocked = sessionStorage.getItem("isUnlocked");
 
-    // 从第 2 行开始解析（第 1 行为表头）
-    for (let i = 1; i < rows.length; i++) {
-      if (!rows[i] || rows[i].length < 2) continue;
-      const name = rows[i][0].trim();
-      const pass = rows[i][1].trim();
-
-      if (name) {
-        studentsData[name] = pass;
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
-      }
+  if (isUnlocked === "true") {
+    // 如果已经解锁，点击则是“锁定/退出”
+    if (confirm("确定要锁定页面并退出吗？")) {
+      sessionStorage.removeItem("isUnlocked");
+      updateUIState();
     }
-  } catch (err) {
-    console.error("无法加载学生名单:", err);
-    select.innerHTML = '<option value="">加载失败，请刷新页面</option>';
-  }
-}
-
-// 登录验证逻辑
-function handleLogin() {
-  const selectName = document.getElementById("student-select").value;
-  const inputPass = document.getElementById("student-pass").value.trim();
-  const errorMsg = document.getElementById("login-error");
-
-  if (!selectName) {
-    errorMsg.innerText = "请先选择你的名字！";
-    return;
-  }
-
-  const correctPass = studentsData[selectName];
-
-  if (inputPass === correctPass) {
-    // 保存登录状态
-    sessionStorage.setItem("currentUser", selectName);
-    errorMsg.innerText = "";
-    
-    // 更新页面展示
-    document.getElementById("user-display-name").innerText = selectName;
-    
-    // 隐藏登录弹窗
-    const modal = document.getElementById("login-modal");
-    if (modal) modal.style.display = "none";
   } else {
-    errorMsg.innerText = "密码不对哦，再试一次吧！";
+    // 未解锁，弹出 prompt 提示框要求输入密码
+    promptForPassword();
   }
 }
 
-// 检查 sessionStorage 中的登录状态
-function checkLoginState() {
-  const currentUser = sessionStorage.getItem("currentUser");
-  const modal = document.getElementById("login-modal");
-  
-  if (currentUser) {
-    if (modal) modal.style.display = "none";
-    document.getElementById("user-display-name").innerText = currentUser;
+// 弹出输入框验证密码
+function promptForPassword() {
+  const userInput = prompt("请输入解锁秘密 (ZSY8888)：");
+
+  if (userInput === null) {
+    return; // 用户点击取消
+  }
+
+  // 忽略大小写转换比较
+  if (userInput.trim().toUpperCase() === SECRET_CODE.toUpperCase()) {
+    sessionStorage.setItem("isUnlocked", "true");
+    alert("✨ 验证成功！欢迎解锁学习空间。");
+    updateUIState();
+    return true;
   } else {
-    if (modal) modal.style.display = "flex";
+    alert("❌ 密码错误！请重试。");
+    return false;
   }
 }
 
-// 退出登录
-function handleLogout() {
-  sessionStorage.removeItem("currentUser");
-  location.reload();
+// 保护某些操作：如果没解锁，就先弹窗要求填密码
+function checkAuthAndRun(callback) {
+  const isUnlocked = sessionStorage.getItem("isUnlocked") === "true";
+  if (isUnlocked) {
+    if (callback) callback();
+  } else {
+    const success = promptForPassword();
+    if (success && callback) {
+      callback();
+    }
+  }
+}
+
+// 更新顶部的按钮和文字状态
+function updateUIState() {
+  const isUnlocked = sessionStorage.getItem("isUnlocked") === "true";
+  const authBtn = document.getElementById("auth-btn");
+  const userDisplay = document.getElementById("user-display-name");
+
+  if (isUnlocked) {
+    if (authBtn) {
+      authBtn.innerText = "🔒 退出解锁";
+      authBtn.style.background = "#FFE5EC";
+      authBtn.style.color = "#D90429";
+    }
+    if (userDisplay) userDisplay.innerText = "VIP 同学";
+  } else {
+    if (authBtn) {
+      authBtn.innerText = "🔑 输入密码解锁";
+      authBtn.style.background = "#E8F0FE";
+      authBtn.style.color = "#4A4E69";
+    }
+    if (userDisplay) userDisplay.innerText = "同学";
+  }
 }
 
 /* ================= UI 交互逻辑 ================= */
