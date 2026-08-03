@@ -1,690 +1,116 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Learning Studio - 学习小屋</title>
-
-  <!-- Firebase Web SDK (v9+/v10 兼容版) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <style>
-    /* --------------------------------------------------
-       1. 全局设置：马卡龙柔和背景
-       -------------------------------------------------- */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", sans-serif;
-      user-select: none;
-    }
-
-    body {
-      background-color: #FAFAF5; /* 极其柔和的轻奶油色 */
-      color: #383336; /* 暖深灰，代替僵硬的纯黑 */
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    .app-container {
-      width: 100%;
-      max-width: 480px; /* 居中限制 */
-      background-color: #FAFAF5;
-      padding: 24px 20px 100px 20px;
-      position: relative;
-    }
-
-    /* --------------------------------------------------
-       2. 轻盈卡片：无粗边框 + 弥散软阴影 + 超大圆角
-       -------------------------------------------------- */
-    .light-card {
-      background-color: #FFFFFF;
-      border-radius: 30px; /* 大圆角显得特别温柔、自由 */
-      box-shadow: 0 10px 25px rgba(180, 170, 160, 0.12);
-      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-      margin-bottom: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.8);
-    }
-
-    .light-card:active {
-      transform: scale(0.98); /* 轻盈的缩放按压反馈 */
-      box-shadow: 0 4px 12px rgba(180, 170, 160, 0.08);
-    }
-
-    .highlight-macaron {
-      background: linear-gradient(120deg, #FDFFB6 0%, #FFD6A5 100%);
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-weight: bold;
-    }
-
-    /* --------------------------------------------------
-       3. Header 顶部区域
-       -------------------------------------------------- */
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #4A4E69;
-      cursor: pointer;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .date-badge {
-      background: #E8F0FE;
-      color: #5C677D;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .logout-btn {
-      background: #FFE5EC;
-      color: #D90429;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .welcome-bar {
-      padding: 20px;
-      background: #F0F7F4; /* 极浅薄荷风 */
-    }
-
-    .welcome-title {
-      font-size: 19px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .slogan {
-      font-size: 13px;
-      color: #7D8597;
-      line-height: 1.4;
-    }
-
-    /* --------------------------------------------------
-       4. 核心功能区 (马卡龙渐变大卡片)
-       -------------------------------------------------- */
-    .main-task-card {
-      background: linear-gradient(135deg, #FFC6FF 0%, #FFD6A5 100%);
-      padding: 24px;
-      color: #4A3E3D;
-    }
-
-    .task-tag {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(4px);
-      color: #5C415D;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 14px;
-      display: inline-block;
-      margin-bottom: 12px;
-    }
-
-    .task-title {
-      font-size: 22px;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .task-desc {
-      font-size: 13px;
-      color: #6C586E;
-      margin-bottom: 20px;
-    }
-
-    .start-btn {
-      background-color: #FFFFFF;
-      color: #4A3E3D;
-      padding: 12px 28px;
-      border-radius: 25px;
-      font-size: 15px;
-      font-weight: 800;
-      box-shadow: 0 6px 16px rgba(255, 198, 255, 0.4);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-    }
-
-    /* --------------------------------------------------
-       5. 双列中型卡片 (柔和单一色块)
-       -------------------------------------------------- */
-    .grid-two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .sub-card {
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 110px;
-      position: relative;
-    }
-
-    .card-homework { background-color: #E7C6FF; color: #4A3E5C; } 
-    .card-achievement { background-color: #CAFFBF; color: #2D5033; } 
-    .card-test { background-color: #FFD6A5; color: #5C412D; } 
-    .card-review { background-color: #BEE1E6; color: #2A4859; } 
-
-    .card-icon { font-size: 32px; }
-    .card-title { font-size: 16px; font-weight: 700; }
-
-    .badge-count {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      background: #FFADAD;
-      color: #6B2D2D;
-      font-size: 12px;
-      font-weight: 800;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 8px rgba(255, 173, 173, 0.4);
-    }
-
-    /* --------------------------------------------------
-       6. 悬浮胶囊底部导航栏
-       -------------------------------------------------- */
-    .bottom-nav {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 40px);
-      max-width: 440px;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(12px);
-      border-radius: 35px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 8px;
-      z-index: 100;
-      border: 1px solid rgba(255, 255, 255, 0.6);
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #9A8C98;
-      cursor: pointer;
-      padding: 6px 16px;
-      border-radius: 20px;
-      transition: all 0.2s ease;
-    }
-
-    .nav-item.active {
-      color: #4A4E69;
-      background-color: #FDFFB6;
-    }
-
-    .nav-icon { font-size: 20px; }
-
-    /* --------------------------------------------------
-       7. 左侧滑出抽屉 (Drawer Sidebar)
-       -------------------------------------------------- */
-    .drawer-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(4px);
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .drawer-overlay.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .drawer-content {
-      position: fixed;
-      top: 0; left: -280px;
-      width: 280px; height: 100%;
-      background: #FAFAF5;
-      z-index: 201;
-      padding: 30px 20px;
-      box-shadow: 10px 0 30px rgba(0,0,0,0.08);
-      transition: left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .drawer-overlay.open .drawer-content {
-      left: 0;
-    }
-
-    .drawer-header {
-      font-size: 18px;
-      font-weight: 800;
-      color: #4A4E69;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .grade-item {
-      background: #FFFFFF;
-      padding: 14px 20px;
-      border-radius: 20px;
-      font-size: 15px;
-      font-weight: 700;
-      color: #5C677D;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(180, 170, 160, 0.08);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .grade-item:active {
-      transform: scale(0.96);
-      background-color: #FDFFB6;
-    }
-
-    /* --------------------------------------------------
-       8. 搜索与消息视图组件
-       -------------------------------------------------- */
-    .search-box, .macaron-input {
-      width: 100%;
-      padding: 14px 20px;
-      border-radius: 25px;
-      border: 2px solid #E7C6FF;
-      background: #FFFFFF;
-      font-size: 14px;
-      outline: none;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 12px rgba(180,170,160,0.06);
-    }
-
-    .msg-item {
-      padding: 16px;
-      margin-bottom: 12px;
-      border-left: 4px solid #FFC6FF;
-    }
-    .msg-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-    .msg-time { font-size: 11px; color: #9A8C98; margin-top: 6px; }
-
-    .tab-view { display: none; }
-    .tab-view.active-view { display: block; }
-
-    /* --------------------------------------------------
-       9. 极简密码登录界面样式
-       -------------------------------------------------- */
-    #view-login {
-      padding-top: 50px;
-    }
-    .login-card {
-      background: #FFFFFF;
-      padding: 35px 24px;
-      border-radius: 35px;
-      box-shadow: 0 15px 35px rgba(180, 170, 160, 0.15);
-      text-align: center;
-    }
-    .login-title {
-      font-size: 24px;
-      font-weight: 800;
-      color: #4A4E69;
-      margin-bottom: 8px;
-    }
-    .login-subtitle {
-      font-size: 13px;
-      color: #9A8C98;
-      margin-bottom: 24px;
-    }
-    .input-group {
-      text-align: left;
-      margin-bottom: 16px;
-    }
-    .input-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: #6C586E;
-      margin-left: 12px;
-      margin-bottom: 6px;
-      display: block;
-    }
-    .primary-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #FFC6FF 0%, #FFD6A5 100%);
-      color: #4A3E3D;
-      padding: 14px;
-      border-radius: 25px;
-      font-size: 16px;
-      font-weight: 800;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(255, 198, 255, 0.4);
-      margin-top: 8px;
-    }
-    .primary-btn:active {
-      transform: scale(0.98);
-    }
-    .login-tips {
-      font-size: 12px;
-      color: #E63946;
-      margin-top: 8px;
-      min-height: 18px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老师的学习小屋 ✏️ Teacher Studio</title>
+    <!-- 手绘可爱字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="app-container">
+    <!-- 🔒 登录弹窗 Overlay -->
+    <div id="login-modal" class="login-modal-overlay">
+        <div class="login-card">
+            <div class="login-icon">🔑</div>
+            <h2>学习小屋登录</h2>
+            <p class="login-subtitle">请输入你的通行密码进入</p>
+            
+            <div class="input-group">
+                <input type="password" id="login-password" placeholder="请输入密码 (如 ZSY8888)" style="text-transform: uppercase;">
+            </div>
+            
+            <div id="login-error-msg" class="error-msg"></div>
+            
+            <button class="login-btn" onclick="handleLogin()">🚀 开启学习之旅</button>
+        </div>
+    </div>
+
+    <!-- 顶栏：Logo + 年级导航 + 搜索 -->
+    <header class="doodle-header">
+        <div class="logo">✏️ 学习小屋 Studio</div>
+        
+        <!-- 年级切换 Tab -->
+        <nav class="grade-nav">
+            <button class="grade-btn active" data-grade="1">一年级</button>
+            <button class="grade-btn" data-grade="2">二年级</button>
+            <button class="grade-btn" data-grade="3">三年级</button>
+            <button class="grade-btn" data-grade="4">四年级</button>
+            <button class="grade-btn" data-grade="5">五年级</button>
+            <button class="grade-btn" data-grade="6">六年级</button>
+        </nav>
+
+        <!-- 搜索框与退出按钮 -->
+        <div class="header-right">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="🔍 搜索单元/词汇...">
+            </div>
+            <button class="logout-btn" id="logout-btn" onclick="handleLogout()" style="display: none;">退出</button>
+        </div>
+    </header>
+
+    <!-- 主体区域：左侧单元目录 + 右侧内容卡片 -->
+    <main class="main-container">
+
+        <!-- 左侧目录 (侧边栏) -->
+        <aside class="sidebar">
+            <div class="subject-tag">📚 华文科</div>
+            <ul class="lesson-menu" id="lesson-menu">
+                <!-- 动态生成单元列表 -->
+            </ul>
+        </aside>
+
+        <!-- 右侧内容区块 -->
+        <section class="content-area">
+            <h2 id="current-lesson-title" class="lesson-title">单元加载中...</h2>
+
+            <!-- 🌟 欢迎语区 -->
+            <div id="welcome-bar" class="welcome-tag">👋 欢迎你！</div>
+
+            <!-- 📢 最新消息区块 -->
+            <div class="announcement-block" id="announcement-block">
+                <div class="announcement-header">
+                    <span class="announcement-title">📢 最新消息</span>
+                    <span class="teacher-tag">老师发布</span>
+                </div>
+                <div class="announcement-content" id="announcement-content">
+                    欢迎来到学习小屋！请选择左侧单元开始学习与测评～
+                </div>
+            </div>
+
+            <!-- 3. 三大分类区块 (测验 / 复习 / 游戏) -->
+            <div class="cards-grid">
+                
+                <!-- 1. 测验区 -->
+                <div class="category-block bg-pink">
+                    <h3 class="category-title">📝 测验 (Quiz)</h3>
+                    <div class="card-list" id="quiz-list"></div>
+                </div>
+
+                <!-- 2. 复习区 -->
+                <div class="category-block bg-yellow">
+                    <h3 class="category-title">🎴 复习 (Review)</h3>
+                    <div class="card-list" id="review-list"></div>
+                </div>
+
+                <!-- 3. 游戏区 -->
+                <div class="category-block bg-blue">
+                    <h3 class="category-title">🎮 游戏 (Games)</h3>
+                    <div class="card-list" id="game-list"></div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
     
-    <!-- Header 顶部品牌与时间 (登录成功后显示) -->
-    <div class="header-top" id="main-header" style="display: none;">
-      <div class="logo" onclick="switchTab('home')">🎈 学习工作室</div>
-      <div class="header-right">
-        <div class="date-badge">📅 今天也要加油</div>
-        <div class="logout-btn" onclick="logout()">退出</div>
-      </div>
-    </div>
+    <!-- 1. 引入 Firebase 核心 SDK (v8 兼容版) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <!-- 2. 引入 Firestore 数据库 SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- ==================== TAB 0: 纯密码登录视图 ==================== -->
-    <div id="view-login" class="tab-view active-view">
-      <div class="login-card light-card">
-        <div style="font-size: 40px; margin-bottom: 10px;">🔑</div>
-        <div class="login-title">学习工作室登录</div>
-        <div class="login-subtitle">请输入你的专属密码进入</div>
-
-        <div class="input-group">
-          <label class="input-label">🔒 通行密码</label>
-          <input type="password" class="macaron-input" id="login-password" placeholder="例如: ZSY8888" value="ZSY8888" style="text-transform: uppercase;">
-        </div>
-
-        <div id="login-error-msg" class="login-tips"></div>
-
-        <button class="primary-btn" onclick="handleFirebaseLogin()">🚀 进入工作室</button>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 1: 首页视图 ==================== -->
-    <div id="view-home" class="tab-view">
-      <div class="light-card welcome-bar">
-        <div class="welcome-title">👋 嗨，<span class="highlight-macaron" id="user-display-name">同学</span></div>
-        <div class="slogan">今天也要像小树苗一样吸收新知识哦！🌱</div>
-      </div>
-
-      <div class="light-card main-task-card">
-        <span class="task-tag">✨ 今日建议</span>
-        <div class="task-title">三年级 - 认识分数</div>
-        <div class="task-desc">已经完成 2/5 关，随时可以继续哦！</div>
-        <div class="start-btn">
-          <span>▶ 马上开始</span>
-        </div>
-      </div>
-
-      <div class="grid-two-col">
-        <div class="light-card sub-card card-homework" onclick="switchTab('message')">
-          <div class="badge-count" id="homework-badge">2</div>
-          <div class="card-icon">📚</div>
-          <div class="card-title">我的作业</div>
-        </div>
-
-        <div class="light-card sub-card card-achievement">
-          <div class="card-icon">🏆</div>
-          <div class="card-title">勋章馆</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 2: 年级详情视图 ==================== -->
-    <div id="view-grade-detail" class="tab-view">
-      <div class="light-card welcome-bar" style="background: #FFF4E6;">
-        <div class="welcome-title">📚 <span id="current-grade-title" class="highlight-macaron">三年级</span> 学习空间</div>
-        <div class="slogan">探索专属知识单元，闯关提升吧！⭐</div>
-      </div>
-
-      <div class="grid-two-col">
-        <div class="light-card sub-card card-homework">
-          <div class="card-icon">📖</div>
-          <div class="card-title">单元课程</div>
-        </div>
-
-        <div class="light-card sub-card card-test">
-          <div class="card-icon">✏️</div>
-          <div class="card-title">单元测验</div>
-        </div>
-
-        <div class="light-card sub-card card-review">
-          <div class="card-icon">🔄</div>
-          <div class="card-title">错题复习</div>
-        </div>
-
-        <div class="light-card sub-card card-achievement">
-          <div class="card-icon">🎮</div>
-          <div class="card-title">趣味游戏</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 3: 消息视图 ==================== -->
-    <div id="view-message" class="tab-view">
-      <div class="welcome-title" style="margin-bottom:16px;">💌 消息中心</div>
-      
-      <div class="light-card msg-item">
-        <div class="msg-title">📢 老师批改了你的作业</div>
-        <div class="slogan">“认识分数”第二关做得非常好，继续保持！</div>
-        <div class="msg-time">刚刚</div>
-      </div>
-
-      <div class="light-card msg-item" style="border-left-color: #CAFFBF;">
-        <div class="msg-title">🏆 获得了新勋章！</div>
-        <div class="slogan">恭喜获得“连续学习 3 天”小能手勋章！</div>
-        <div class="msg-time">昨天</div>
-      </div>
-    </div>
-
-    <!-- ==================== TAB 4: 搜寻视图 ==================== -->
-    <div id="view-search" class="tab-view">
-      <input type="text" class="search-box" id="search-input" placeholder="🔍 搜索单元、知识点或游戏..." oninput="handleSearch()">
-      
-      <div id="search-results">
-        <div class="light-card welcome-bar">
-          <div class="slogan">💡 尝试输入“分数”、“乘法”或“测验”搜索内容吧！</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 底部悬浮胶囊导航栏 (登录成功后显示) -->
-    <div class="bottom-nav" id="main-bottom-nav" style="display: none;">
-      <div class="nav-item active" onclick="switchTab('home', this)">
-        <span class="nav-icon">🏠</span>
-        <span>首页</span>
-      </div>
-      <div class="nav-item" onclick="openDrawer()">
-        <span class="nav-icon">📖</span>
-        <span id="nav-grade-label">年级</span>
-      </div>
-      <div class="nav-item" onclick="switchTab('message', this)">
-        <span class="nav-icon">💌</span>
-        <span>消息</span>
-      </div>
-      <div class="nav-item" onclick="switchTab('search', this)">
-        <span class="nav-icon">🔍</span>
-        <span>搜寻</span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- 年级侧边栏 (Drawer Sidebar) -->
-  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer(event)">
-    <div class="drawer-content" onclick="event.stopPropagation()">
-      <div class="drawer-header">
-        <span>🏫 选择年级</span>
-        <span style="cursor:pointer;" onclick="closeDrawer()">✕</span>
-      </div>
-      <div class="grade-item" onclick="selectGrade('一年级')">🌱 一年级 <span>➔</span></div>
-      <div class="grade-item" onclick="selectGrade('二年级')">🌿 二年级 <span>➔</span></div>
-      <div class="grade-item" onclick="selectGrade('三年级')">☘️ 三年级 <span>➔</span></div>
-      <div class="grade-item" onclick="selectGrade('四年级')">🍀 四年级 <span>➔</span></div>
-      <div class="grade-item" onclick="selectGrade('五年级')">🌳 五年级 <span>➔</span></div>
-      <div class="grade-item" onclick="selectGrade('六年级')">🌴 六年级 <span>➔</span></div>
-    </div>
-  </div>
-
-  <!-- 逻辑交互（使用密码直接检索 Firebase 用户） -->
-  <script>
-    // 1. Firebase 官方密钥配置
-    const firebaseConfig = {
-      apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
-      authDomain: "my-teacher-studio.firebaseapp.com",
-      databaseURL: "https://my-teacher-studio-default-rtdb.firebaseio.com",
-      projectId: "my-teacher-studio",
-      storageBucket: "my-teacher-studio.firebasestorage.app",
-      messagingSenderId: "82774284780",
-      appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
-    };
-
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
-
-    // 2. 纯密码验证逻辑 (以输入的密码如 ZSY8888 作为数据库 KEY)
-    function handleFirebaseLogin() {
-      const passwordInput = document.getElementById('login-password').value.trim().toUpperCase();
-      const errorMsg = document.getElementById('login-error-msg');
-
-      errorMsg.innerText = "";
-
-      if (!passwordInput) {
-        errorMsg.innerText = "⚠️ 请输入密码！";
-        return;
-      }
-
-      // 在 users/{密码} 路径查找用户信息
-      db.ref('users/' + passwordInput).once('value')
-        .then((snapshot) => {
-          if (snapshot.exists()) {
-            const userData = snapshot.val();
-            // 获取用户显示名字
-            const studentName = userData.name || userData.username || passwordInput;
-            loginSuccess(studentName);
-          } else {
-            errorMsg.innerText = "❌ 密码错误或无效，请重新输入！";
-          }
-        })
-        .catch((error) => {
-          console.error("Firebase 读取错误:", error);
-          errorMsg.innerText = "⚠️ 无法连接服务器，请检查网络设置。";
-        });
-    }
-
-    function loginSuccess(displayName) {
-      document.getElementById('user-display-name').innerText = displayName;
-      document.getElementById('main-header').style.display = 'flex';
-      document.getElementById('main-bottom-nav').style.display = 'flex';
-      switchTab('home');
-    }
-
-    function logout() {
-      document.getElementById('main-header').style.display = 'none';
-      document.getElementById('main-bottom-nav').style.display = 'none';
-      document.getElementById('login-password').value = "";
-      switchTab('login');
-    }
-
-    // 3. 页面抽屉与 TAB 导航逻辑
-    function openDrawer() {
-      document.getElementById('drawer-overlay').classList.add('open');
-    }
-
-    function closeDrawer(e) {
-      document.getElementById('drawer-overlay').classList.remove('open');
-    }
-
-    function selectGrade(gradeName) {
-      closeDrawer();
-      document.getElementById('current-grade-title').innerText = gradeName;
-      document.getElementById('nav-grade-label').innerText = gradeName;
-      switchTab('grade-detail');
-    }
-
-    function switchTab(tabName, el) {
-      document.querySelectorAll('.tab-view').forEach(view => {
-        view.classList.remove('active-view');
-      });
-
-      if (el) {
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        el.classList.add('active');
-      }
-
-      const targetView = document.getElementById('view-' + tabName);
-      if (targetView) {
-        targetView.classList.add('active-view');
-      }
-
-      if (tabName === 'message') {
-        const badge = document.getElementById('homework-badge');
-        if (badge) badge.style.display = 'none';
-      }
-    }
-
-    function handleSearch() {
-      const query = document.getElementById('search-input').value.trim();
-      const resultsContainer = document.getElementById('search-results');
-      
-      if (!query) {
-        resultsContainer.innerHTML = `
-          <div class="light-card welcome-bar">
-            <div class="slogan">💡 尝试输入“分数”、“乘法”或“测验”搜索内容吧！</div>
-          </div>`;
-        return;
-      }
-
-      resultsContainer.innerHTML = `
-        <div class="light-card sub-card card-homework" style="height: auto; margin-bottom:12px;">
-          <div class="card-title">🔍 搜索结果：“${query}”</div>
-          <div class="slogan" style="margin-top:6px;">为你找到与 “${query}” 相关的 3 个课程与练习</div>
-        </div>
-      `;
-    }
-  </script>
+    <!-- 3. 业务逻辑脚本 -->
+    <script src="script.js"></script>
 </body>
 </html>
