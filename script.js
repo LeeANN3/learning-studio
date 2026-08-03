@@ -7,7 +7,7 @@ const firebaseConfig = {
     projectId: "my-teacher-studio",
     storageBucket: "my-teacher-studio.firebasestorage.app",
     messagingSenderId: "82774284780",
-    appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9" // 修正了这里的多余引号
+    appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9" 
 };
 
 // 如果 Firebase 尚未初始化，进行初始化
@@ -142,26 +142,48 @@ async function loginStudio() {
             sessionStorage.setItem("current_student", JSON.stringify(studentObj));
             alert(`🎉 登录成功！欢迎你，${studentData.name}同学！`);
 
-            showWelcomeBar(studentObj);
-            initPage(); // 初始化渲染游戏卡片
+            setupStudentView(studentObj);
 
         } catch (error) {
             console.error("登录详细报错日志:", error);
             alert(`❌ 连接数据库失败！错误原因: ${error.message}`);
         }
     } else {
-        showWelcomeBar(JSON.parse(studentInfo));
-        initPage(); // 已登录则直接初始化渲染
+        setupStudentView(JSON.parse(studentInfo));
     }
 }
 
-// 2. 顶栏显示“欢迎，张丽丽同学！”
-function showWelcomeBar(student) {
-const welcomeDiv = document.getElementById("welcome-bar");
-    if (welcomeDiv) {
-        welcomeDiv.innerHTML = `👋 欢迎，${student.name}同学 (${student.grade}年级)`;
-        welcomeDiv.style.display = "inline-block"; // 登录成功后显示气泡
+// 辅助函数：根据学生信息更新界面及切换对应年级
+function setupStudentView(student) {
+    showWelcomeBar(student);
+    
+    // 自动切到该学生的当前年级
+    if (student.grade && studioData[student.grade]) {
+        currentGrade = student.grade;
+        updateActiveGradeButton(currentGrade);
     }
+    
+    initPage(); // 初始化渲染
+}
+
+// 顶栏更新学生姓名和年级信息
+function showWelcomeBar(student) {
+    // 兼容新版 HTML 中的欢迎卡片
+    const welcomeTitle = document.querySelector(".welcome-title");
+    if (welcomeTitle) {
+        welcomeTitle.innerHTML = `👋 嗨，<span class="highlight-macaron">${student.name}同学</span> (${student.grade}年级)`;
+    }
+}
+
+// 更新年级按钮的选中高亮样式
+function updateActiveGradeButton(grade) {
+    gradeBtns.forEach(btn => {
+        if (btn.dataset.grade === String(grade)) {
+            btn.classList.add("active");
+        } else {
+            btn.classList.remove("active");
+        }
+    });
 }
 
 // ==========================================
@@ -171,7 +193,6 @@ const welcomeDiv = document.getElementById("welcome-bar");
 // 初始化主页内容
 function initPage() {
     renderLessons();
-    setupEvents();
 }
 
 // 渲染侧边栏单元菜单
@@ -182,10 +203,15 @@ function renderLessons() {
     lessonMenu.innerHTML = "";
 
     if (lessons.length === 0) {
-        lessonMenu.innerHTML = "<li>暂无课程</li>";
+        lessonMenu.innerHTML = "<li style='color:#888;'>暂无课程</li>";
         if (lessonTitle) lessonTitle.textContent = "该年级暂无内容";
         clearCards();
         return;
+    }
+
+    // 防错机制：防止索引越界
+    if (currentLessonIndex >= lessons.length) {
+        currentLessonIndex = 0;
     }
 
     lessons.forEach((lesson, index) => {
@@ -206,7 +232,10 @@ function renderLessons() {
 
 // 渲染右侧内容卡片
 function renderContent(lessonData) {
-    if (!lessonData) return;
+    if (!lessonData) {
+        clearCards();
+        return;
+    }
 
     if (lessonTitle) lessonTitle.textContent = lessonData.title;
 
@@ -221,13 +250,22 @@ function renderCardGroup(container, items) {
     container.innerHTML = "";
 
     if (!items || items.length === 0) {
-        container.innerHTML = "<p style='color:#777; font-size:14px;'>暂未添加内容</p>";
+        container.innerHTML = "<p style='color:#888; font-size:13px; padding: 4px 0;'>暂未添加内容</p>";
         return;
     }
 
     items.forEach(item => {
         const a = document.createElement("a");
         a.className = "activity-card";
+        a.style.display = "block";
+        a.style.padding = "10px 14px";
+        a.style.marginBottom = "8px";
+        a.style.backgroundColor = "#FFFFFF";
+        a.style.borderRadius = "14px";
+        a.style.textDecoration = "none";
+        a.style.color = "#4A4E69";
+        a.style.fontWeight = "bold";
+        a.style.boxShadow = "0 2px 6px rgba(0,0,0,0.04)";
         a.href = "#"; // 阻止默认跳转，由 JS 控制判断
         a.textContent = item.name;
 
@@ -251,7 +289,11 @@ function renderCardGroup(container, items) {
             }
 
             // 年级匹配无误，放行跳转
-            window.location.href = item.url;
+            if (item.url && item.url !== "#") {
+                window.location.href = item.url;
+            } else {
+                alert("🚧 该内容正在准备中，敬请期待！");
+            }
         });
 
         container.appendChild(a);
@@ -259,12 +301,12 @@ function renderCardGroup(container, items) {
 }
 
 function clearCards() {
-    if (quizList) quizList.innerHTML = "";
-    if (reviewList) reviewList.innerHTML = "";
-    if (gameList) gameList.innerHTML = "";
+    if (quizList) quizList.innerHTML = "<p style='color:#888; font-size:13px;'>暂无测验</p>";
+    if (reviewList) reviewList.innerHTML = "<p style='color:#888; font-size:13px;'>暂无复习</p>";
+    if (gameList) gameList.innerHTML = "<p style='color:#888; font-size:13px;'>暂无游戏</p>";
 }
 
-// 事件绑定 (年级切换 & 搜索)
+// 事件绑定 (绑定年级切换与搜索)
 function setupEvents() {
     gradeBtns.forEach(btn => {
         btn.onclick = () => {
@@ -293,7 +335,8 @@ function setupEvents() {
     }
 }
 
-// 页面加载完成后启动登录流程
+// 页面加载完成后启动流程
 window.addEventListener("DOMContentLoaded", () => {
-    loginStudio();
+    setupEvents();   // 1. 初始化事件监听（只绑定一次）
+    loginStudio();    // 2. 启动验证与数据渲染
 });
