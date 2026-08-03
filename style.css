@@ -1,6 +1,4 @@
-/* --------------------------------------------------
-   1. 马卡龙全局基础设置
-   -------------------------------------------------- */
+/* 马卡龙设计全套 CSS */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -11,28 +9,25 @@
 }
 
 body {
-  background-color: #FAFAF5; /* 极浅奶油马卡龙底色 */
+  background-color: #FAFAF5;
   color: #4A4E69;
   display: flex;
   justify-content: center;
   min-height: 100vh;
 }
 
-/* 居中核心容器 (Mobile-First / 平板居中) */
 .app-container {
   width: 100%;
   max-width: 500px;
   background-color: #FAFAF5;
-  padding: 18px 16px 100px 16px;
+  padding: 18px 16px 110px 16px;
   position: relative;
 }
 
-/* --------------------------------------------------
-   2. 马卡龙卡片设计 (无粗框 + 软微阴影 + 大圆角)
-   -------------------------------------------------- */
+/* 卡片基础样式 */
 .macaron-card {
   background-color: #FFFFFF;
-  border-radius: 26px;
+  border-radius: 24px;
   box-shadow: 0 8px 20px rgba(180, 170, 160, 0.12);
   margin-bottom: 16px;
   padding: 16px;
@@ -45,9 +40,7 @@ body {
   border-radius: 10px;
 }
 
-/* --------------------------------------------------
-   3. Header & 欢迎区
-   -------------------------------------------------- */
+/* 顶部与欢迎 */
 .doodle-header {
   display: flex;
   justify-content: space-between;
@@ -69,24 +62,11 @@ body {
   font-size: 12px;
 }
 
-.welcome-card {
-  background: #F0F7F4;
-}
+.welcome-card { background: #F0F7F4; }
+.welcome-title { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+.slogan { font-size: 12px; color: #7D8597; }
 
-.welcome-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.slogan {
-  font-size: 12px;
-  color: #7D8597;
-}
-
-/* --------------------------------------------------
-   4. 年级选择器 (可横向滚动的轻盈按键排)
-   -------------------------------------------------- */
+/* 年级选择 */
 .section-title {
   font-size: 14px;
   font-weight: bold;
@@ -100,12 +80,9 @@ body {
   overflow-x: auto;
   padding-bottom: 8px;
   margin-bottom: 12px;
-  scrollbar-width: none; /* 隐藏滚动条 */
+  scrollbar-width: none;
 }
-
-.grade-nav::-webkit-scrollbar {
-  display: none;
-}
+.grade-nav::-webkit-scrollbar { display: none; }
 
 .grade-btn {
   flex: 0 0 auto;
@@ -122,15 +99,13 @@ body {
 }
 
 .grade-btn.active {
-  background-color: #FFD6A5; /* 马卡龙蜜桃黄 */
+  background-color: #FFD6A5;
   color: #4A3E3D;
   box-shadow: 0 6px 14px rgba(255, 214, 165, 0.5);
   transform: scale(1.05);
 }
 
-/* --------------------------------------------------
-   5. 左侧单元目录 & 三大分类卡片
-   -------------------------------------------------- */
+/* 单元目录与分类 */
 .subject-tag {
   font-size: 15px;
   font-weight: bold;
@@ -155,7 +130,7 @@ body {
 }
 
 .lesson-menu li.active, .lesson-menu li:hover {
-  background: #CAFFBF; /* 嫩绿高亮 */
+  background: #CAFFBF;
   color: #2D5033;
   font-weight: bold;
 }
@@ -165,12 +140,9 @@ body {
   text-align: center;
 }
 
-.lesson-title {
-  font-size: 18px;
-  color: #4A3E3D;
-}
+.lesson-title { font-size: 18px; color: #4A3E3D; }
 
-/* 三大分类区 */
+/* 测验/复习/游戏 三大区块 */
 .cards-grid {
   display: flex;
   flex-direction: column;
@@ -183,18 +155,30 @@ body {
   box-shadow: 0 8px 20px rgba(0,0,0,0.04);
 }
 
-.category-title {
-  font-size: 16px;
-  margin-bottom: 12px;
+.category-title { font-size: 16px; margin-bottom: 12px; }
+
+.bg-pink { background-color: #FFC6FF; color: #5C415D; }
+.bg-yellow { background-color: #FDFFB6; color: #5C5233; }
+.bg-blue { background-color: #9BF6FF; color: #2B4E52; }
+
+/* 动态生成的测验/复习卡片按钮 */
+.activity-card-item {
+  display: block;
+  background: #FFFFFF;
+  padding: 12px 16px;
+  border-radius: 16px;
+  margin-bottom: 8px;
+  text-decoration: none;
+  color: #4A4E69;
+  font-weight: bold;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  transition: transform 0.15s;
 }
 
-.bg-pink { background-color: #FFC6FF; color: #5C415D; } /* 测验 */
-.bg-yellow { background-color: #FDFFB6; color: #5C5233; } /* 复习 */
-.bg-blue { background-color: #9BF6FF; color: #2B4E52; } /* 游戏 */
+.activity-card-item:active { transform: scale(0.98); }
 
-/* --------------------------------------------------
-   6. 底部悬浮胶囊导航栏 & 搜索弹窗
-   -------------------------------------------------- */
+/* 底部胶囊导航栏 */
 .bottom-nav {
   position: fixed;
   bottom: 16px;
@@ -202,7 +186,7 @@ body {
   transform: translateX(-50%);
   width: calc(100% - 32px);
   max-width: 460px;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   border-radius: 32px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
@@ -221,11 +205,13 @@ body {
   padding: 4px 14px;
   border-radius: 16px;
   cursor: pointer;
+  transition: all 0.2s;
 }
 
 .nav-item.active {
   color: #4A4E69;
   background-color: #FDFFB6;
+  font-weight: bold;
 }
 
 .nav-icon { font-size: 18px; }
@@ -240,7 +226,7 @@ body {
   border-radius: 50%;
 }
 
-/* 搜索弹窗 */
+/* 模态弹窗 */
 .search-modal {
   display: none;
   position: fixed;
@@ -274,10 +260,7 @@ body {
   margin-bottom: 12px;
 }
 
-.close-modal {
-  font-size: 24px;
-  cursor: pointer;
-}
+.close-modal { font-size: 24px; cursor: pointer; }
 
 .search-box input {
   width: 100%;
