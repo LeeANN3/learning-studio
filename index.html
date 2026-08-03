@@ -10,22 +10,30 @@
 </head>
 <body>
 
-    <!-- 🔒 登录弹窗 Overlay -->
-    <div id="login-modal" class="login-modal-overlay">
-        <div class="login-card">
-            <div class="login-icon">🔑</div>
-            <h2>学习小屋登录</h2>
-            <p class="login-subtitle">请输入你的通行密码进入</p>
-            
-            <div class="input-group">
-                <input type="password" id="login-password" placeholder="请输入密码 (如 ZSY8888)" style="text-transform: uppercase;">
-            </div>
-            
-            <div id="login-error-msg" class="error-msg"></div>
-            
-            <button class="login-btn" onclick="handleLogin()">🚀 开启学习之旅</button>
+<!-- 🔒 登录弹窗 Overlay -->
+<div id="login-modal" class="login-modal-overlay">
+    <div class="login-card">
+        <div class="login-icon">🔑</div>
+        <h2>学习小屋登录</h2>
+        <p class="login-subtitle">请输入你的通行密码进入</p>
+        
+        <div class="input-group">
+            <!-- 1. type 改为 text 避免小黑点遮挡 -->
+            <!-- 2. 加上 oninput 确保输入的字母实时变成真正的【大写】 -->
+            <input 
+                type="text" 
+                id="login-password" 
+                placeholder="请输入密码 (如 ZSY8888)" 
+                style="text-transform: uppercase;"
+                oninput="this.value = this.value.toUpperCase();"
+            >
         </div>
+        
+        <div id="login-error-msg" class="error-msg" style="color: #ff4d4f; margin: 10px 0; font-size: 14px; min-height: 20px;"></div>
+        
+        <button class="login-btn" onclick="handleLogin()">🚀 开启学习之旅</button>
     </div>
+</div>
 
     <!-- 顶栏：Logo + 年级导航 + 搜索 -->
     <header class="doodle-header">
