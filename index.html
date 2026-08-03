@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Learning Studio - 学习小屋</title>
+
+  <!-- Firebase Web SDK (v9+/v10 兼容版) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <style>
     /* --------------------------------------------------
        1. 全局设置：马卡龙柔和背景
@@ -183,7 +188,6 @@
       justify-content: space-between;
       height: 110px;
       position: relative;
-      cursor: pointer;
     }
 
     .card-homework { background-color: #E7C6FF; color: #4A3E5C; } 
@@ -321,7 +325,7 @@
     }
 
     /* --------------------------------------------------
-       8. 搜索与消息组件
+       8. 搜索与消息视图组件
        -------------------------------------------------- */
     .search-box, .macaron-input {
       width: 100%;
@@ -347,7 +351,7 @@
     .tab-view.active-view { display: block; }
 
     /* --------------------------------------------------
-       9. 补充：登录系统界面样式 (保持马卡龙视觉)
+       9. 登录系统界面样式 (SLH8888 专用)
        -------------------------------------------------- */
     #view-login {
       padding-top: 40px;
@@ -368,7 +372,7 @@
     .login-subtitle {
       font-size: 13px;
       color: #9A8C98;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
     .input-group {
       text-align: left;
@@ -393,60 +397,16 @@
       border: none;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(255, 198, 255, 0.4);
-      margin-top: 10px;
+      margin-top: 8px;
     }
     .primary-btn:active {
       transform: scale(0.98);
     }
-
-    /* --------------------------------------------------
-       10. 补充：测验交互弹窗 (Quiz Modal)
-       -------------------------------------------------- */
-    .quiz-modal {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(6px);
-      z-index: 300;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-    .quiz-modal.open {
-      display: flex;
-    }
-    .quiz-card {
-      background: #FAFAF5;
-      width: 100%;
-      max-width: 400px;
-      border-radius: 30px;
-      padding: 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-      position: relative;
-    }
-    .quiz-option {
-      background: #FFFFFF;
-      padding: 14px 18px;
-      border-radius: 20px;
-      margin-bottom: 10px;
-      font-weight: 700;
-      font-size: 14px;
-      color: #4A3E3D;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .quiz-option:hover {
-      border-color: #FFC6FF;
-    }
-    .quiz-option.correct {
-      background: #CAFFBF !important;
-      color: #2D5033 !important;
-    }
-    .quiz-option.wrong {
-      background: #FFADAD !important;
-      color: #6B2D2D !important;
+    .login-tips {
+      font-size: 12px;
+      color: #E63946;
+      margin-top: 8px;
+      min-height: 18px;
     }
   </style>
 </head>
@@ -454,40 +414,42 @@
 
   <div class="app-container">
     
-    <!-- Header 顶部品牌与时间 (登录后展示) -->
+    <!-- 1. Header 顶部品牌与时间 (登录成功后显示) -->
     <div class="header-top" id="main-header" style="display: none;">
       <div class="logo" onclick="switchTab('home')">🎈 学习工作室</div>
       <div class="header-right">
-        <div class="date-badge">📅 8月3日</div>
+        <div class="date-badge">📅 今天也要加油</div>
         <div class="logout-btn" onclick="logout()">退出</div>
       </div>
     </div>
 
-    <!-- ==================== PAGE 0: 登录/注册页面 ==================== -->
+    <!-- ==================== TAB 0: 登录视图 (my-teacher-studio 识别) ==================== -->
     <div id="view-login" class="tab-view active-view">
       <div class="login-card light-card">
         <div style="font-size: 40px; margin-bottom: 10px;">🎈</div>
-        <div class="login-title">学习小屋登录</div>
-        <div class="login-subtitle">输入账号密码，开启今天的学习之旅吧！🌱</div>
+        <div class="login-title">学生身份验证</div>
+        <div class="login-subtitle">请输入学号与密码登录工作室</div>
 
         <div class="input-group">
-          <label class="input-label">👤 学号 / 用户名</label>
-          <input type="text" class="macaron-input" id="login-username" placeholder="请输入你的名字（如：小明）" value="小明同学">
+          <label class="input-label">🆔 学号 (格式: SLH8888)</label>
+          <input type="text" class="macaron-input" id="login-studentid" placeholder="例如: SLH8888" value="SLH8888" style="text-transform: uppercase;">
         </div>
 
         <div class="input-group">
           <label class="input-label">🔒 密码</label>
-          <input type="password" class="macaron-input" id="login-password" placeholder="请输入密码" value="123456">
+          <input type="password" class="macaron-input" id="login-password" placeholder="请输入密码">
         </div>
 
-        <button class="primary-btn" onclick="handleLogin()">🚀 立即进入</button>
+        <div id="login-error-msg" class="login-tips"></div>
+
+        <button class="primary-btn" onclick="handleFirebaseLogin()">🚀 验证身份并进入</button>
       </div>
     </div>
 
     <!-- ==================== TAB 1: 首页视图 ==================== -->
     <div id="view-home" class="tab-view">
       <div class="light-card welcome-bar">
-        <div class="welcome-title">👋 嗨，<span class="highlight-macaron" id="user-display-name">小明同学</span></div>
+        <div class="welcome-title">👋 嗨，<span class="highlight-macaron" id="user-display-name">同学</span></div>
         <div class="slogan">今天也要像小树苗一样吸收新知识哦！🌱</div>
       </div>
 
@@ -495,7 +457,7 @@
         <span class="task-tag">✨ 今日建议</span>
         <div class="task-title">三年级 - 认识分数</div>
         <div class="task-desc">已经完成 2/5 关，随时可以继续哦！</div>
-        <div class="start-btn" onclick="startQuiz('三年级 - 认识分数')">
+        <div class="start-btn">
           <span>▶ 马上开始</span>
         </div>
       </div>
@@ -521,14 +483,13 @@
         <div class="slogan">探索专属知识单元，闯关提升吧！⭐</div>
       </div>
 
-      <!-- 四大核心功能板块 -->
       <div class="grid-two-col">
         <div class="light-card sub-card card-homework">
           <div class="card-icon">📖</div>
           <div class="card-title">单元课程</div>
         </div>
 
-        <div class="light-card sub-card card-test" onclick="startQuiz('单元巩固测试')">
+        <div class="light-card sub-card card-test">
           <div class="card-icon">✏️</div>
           <div class="card-title">单元测验</div>
         </div>
@@ -550,15 +511,15 @@
       <div class="welcome-title" style="margin-bottom:16px;">💌 消息中心</div>
       
       <div class="light-card msg-item">
-        <div class="msg-title">📢 数学老师批改了你的作业</div>
+        <div class="msg-title">📢 老师批改了你的作业</div>
         <div class="slogan">“认识分数”第二关做得非常好，继续保持！</div>
-        <div class="msg-time">10 分钟前</div>
+        <div class="msg-time">刚刚</div>
       </div>
 
       <div class="light-card msg-item" style="border-left-color: #CAFFBF;">
         <div class="msg-title">🏆 获得了新勋章！</div>
         <div class="slogan">恭喜获得“连续学习 3 天”小能手勋章！</div>
-        <div class="msg-time">昨天 16:30</div>
+        <div class="msg-time">昨天</div>
       </div>
     </div>
 
@@ -573,7 +534,7 @@
       </div>
     </div>
 
-    <!-- 悬浮胶囊底部导航栏 (登录后展示) -->
+    <!-- 底部悬浮胶囊导航栏 (登录成功后显示) -->
     <div class="bottom-nav" id="main-bottom-nav" style="display: none;">
       <div class="nav-item active" onclick="switchTab('home', this)">
         <span class="nav-icon">🏠</span>
@@ -611,54 +572,97 @@
     </div>
   </div>
 
-  <!-- 单元测验互动弹窗 Modal -->
-  <div class="quiz-modal" id="quiz-modal">
-    <div class="quiz-card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <span class="task-tag" id="quiz-tag">📝 单元小测验</span>
-        <span style="cursor: pointer; font-weight: 800;" onclick="closeQuiz()">✕</span>
-      </div>
-      <div id="quiz-body">
-        <div style="font-size: 16px; font-weight: 800; margin-bottom: 16px; color: #4A3E3D;" id="quiz-question">
-          题目加载中...
-        </div>
-        <div id="quiz-options"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 交互逻辑 JavaScript -->
+  <!-- 交互逻辑 (已集成 my-teacher-studio 真实配置) -->
   <script>
-    // 1. 登录逻辑
-    function handleLogin() {
-      const username = document.getElementById('login-username').value.trim();
-      const password = document.getElementById('login-password').value.trim();
+    // --------------------------------------------------
+    // 1. 你的 Firebase 真实配置已写入
+    // --------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+      authDomain: "my-teacher-studio.firebaseapp.com",
+      databaseURL: "https://my-teacher-studio-default-rtdb.firebaseio.com", // 自动适配默认 Realtime Database
+      projectId: "my-teacher-studio",
+      storageBucket: "my-teacher-studio.firebasestorage.app",
+      messagingSenderId: "82774284780",
+      appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+    };
 
-      if (!username || !password) {
-        alert('请输入用户名和密码！');
+    // 初始化 Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.database();
+
+    // --------------------------------------------------
+    // 2. SLH8888 格式识别与 Firebase 登录验证
+    // --------------------------------------------------
+    function handleFirebaseLogin() {
+      const studentIdInput = document.getElementById('login-studentid').value.trim().toUpperCase();
+      const passwordInput = document.getElementById('login-password').value.trim();
+      const errorMsg = document.getElementById('login-error-msg');
+
+      errorMsg.innerText = "";
+
+      // 验证格式：SLH + 4位数字 (如 SLH8888)
+      const slhPattern = /^SLH\d{4}$/;
+      if (!slhPattern.test(studentIdInput)) {
+        errorMsg.innerText = "⚠️ 学号格式不正确，请输入 SLH 加 4 位数字 (如 SLH8888)";
         return;
       }
 
-      // 切换视图：隐藏登录页，显示顶部与底部导航栏
-      document.getElementById('user-display-name').innerText = username;
+      if (!passwordInput) {
+        errorMsg.innerText = "⚠️ 请输入密码！";
+        return;
+      }
+
+      // 查询 Firebase 节点 users/SLH8888
+      db.ref('users/' + studentIdInput).once('value')
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            
+            // 兼容支持 password 或 pass 属性字段
+            const dbPassword = userData.password || userData.pass;
+            
+            if (dbPassword && String(dbPassword) === String(passwordInput)) {
+              // 密码正确：提取名字并显示
+              const studentName = userData.name || userData.username || studentIdInput;
+              loginSuccess(studentName);
+            } else {
+              errorMsg.innerText = "❌ 密码错误，请重新输入";
+            }
+          } else {
+            errorMsg.innerText = "❌ 数据库中未找到学号 " + studentIdInput;
+          }
+        })
+        .catch((error) => {
+          console.error("Firebase 读取错误:", error);
+          errorMsg.innerText = "⚠️ 无法连接到数据库，请检查网络或 Realtime Database 规则。";
+        });
+    }
+
+    function loginSuccess(displayName) {
+      document.getElementById('user-display-name').innerText = displayName;
       document.getElementById('main-header').style.display = 'flex';
       document.getElementById('main-bottom-nav').style.display = 'flex';
-
       switchTab('home');
     }
 
     function logout() {
       document.getElementById('main-header').style.display = 'none';
       document.getElementById('main-bottom-nav').style.display = 'none';
+      document.getElementById('login-password').value = "";
       switchTab('login');
     }
 
-    // 2. 抽屉控制
+    // --------------------------------------------------
+    // 3. UI 交互控制
+    // --------------------------------------------------
     function openDrawer() {
       document.getElementById('drawer-overlay').classList.add('open');
     }
 
-    function closeDrawer() {
+    function closeDrawer(e) {
       document.getElementById('drawer-overlay').classList.remove('open');
     }
 
@@ -669,7 +673,6 @@
       switchTab('grade-detail');
     }
 
-    // 3. Tab 视图切换
     function switchTab(tabName, el) {
       document.querySelectorAll('.tab-view').forEach(view => {
         view.classList.remove('active-view');
@@ -691,81 +694,6 @@
       }
     }
 
-    // 4. 测验系统 (真正的测验题目与交互)
-    const mockQuizData = {
-      title: "三年级 - 认识分数测验",
-      questions: [
-        {
-          q: "1. 把一块蛋糕平均分成 4 份，小明吃了 1 份，他吃了这块蛋糕的多少？",
-          options: ["1/2", "1/3", "1/4", "2/4"],
-          answer: 2
-        },
-        {
-          q: "2. 分号下面的数字被称为？",
-          options: ["分子", "分母", "整体", "余数"],
-          answer: 1
-        }
-      ]
-    };
-
-    let currentQIndex = 0;
-    let score = 0;
-
-    function startQuiz(title) {
-      document.getElementById('quiz-tag').innerText = "✏️ " + title;
-      currentQIndex = 0;
-      score = 0;
-      renderQuestion();
-      document.getElementById('quiz-modal').classList.add('open');
-    }
-
-    function closeQuiz() {
-      document.getElementById('quiz-modal').classList.remove('open');
-    }
-
-    function renderQuestion() {
-      if (currentQIndex >= mockQuizData.questions.length) {
-        // 完成答题
-        document.getElementById('quiz-body').innerHTML = `
-          <div style="text-align: center; padding: 20px 0;">
-            <div style="font-size: 40px; margin-bottom: 10px;">🎉</div>
-            <div style="font-size: 18px; font-weight: 800; margin-bottom: 6px;">测验完成！</div>
-            <div class="slogan" style="margin-bottom: 20px;">你答对了 ${score} / ${mockQuizData.questions.length} 题！</div>
-            <button class="primary-btn" onclick="closeQuiz()">太棒了，收下奖章</button>
-          </div>
-        `;
-        return;
-      }
-
-      const q = mockQuizData.questions[currentQIndex];
-      document.getElementById('quiz-question').innerText = q.q;
-
-      let optionsHTML = '';
-      q.options.forEach((opt, idx) => {
-        optionsHTML += `<div class="quiz-option" onclick="checkAnswer(${idx}, ${q.answer}, this)">${opt}</div>`;
-      });
-      document.getElementById('quiz-options').innerHTML = optionsHTML;
-    }
-
-    function checkAnswer(selectedIdx, correctIdx, btn) {
-      const options = document.querySelectorAll('.quiz-option');
-      options.forEach(opt => opt.style.pointerEvents = 'none'); // 防止重复点击
-
-      if (selectedIdx === correctIdx) {
-        btn.classList.add('correct');
-        score++;
-      } else {
-        btn.classList.add('wrong');
-        options[correctIdx].classList.add('correct');
-      }
-
-      setTimeout(() => {
-        currentQIndex++;
-        renderQuestion();
-      }, 1200);
-    }
-
-    // 5. 搜寻响应
     function handleSearch() {
       const query = document.getElementById('search-input').value.trim();
       const resultsContainer = document.getElementById('search-results');
