@@ -4,29 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>我的学习小屋 ✏️ My Learning Studio</title>
-    <!-- 引入手绘可爱字体 -->
+    <!-- 手绘可爱字体 -->
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- 中央核心应用容器 (适合手机，平板/电脑居中) -->
+    <!-- 主容器 (移动端居中单列布局) -->
     <div class="app-container">
 
-        <!-- 1. 顶部 Header 区 (Logo + Welcome) -->
+        <!-- 1. 顶部 Header 区 -->
         <header class="doodle-header">
             <div class="logo">🎈 学习小屋</div>
-            <div class="date-badge">📅 8月3日 周一</div>
+            <div class="date-badge" id="current-date">📅 8月3日</div>
         </header>
 
-        <!-- 欢迎卡片 & 标语 -->
+        <!-- 欢迎卡片 (动态显示学生姓名) -->
         <div class="macaron-card welcome-card">
-            <div class="welcome-title">👋 嗨，<span class="highlight-macaron">小明同学</span>！</div>
+            <div class="welcome-title" id="welcome-title">👋 嗨，<span class="highlight-macaron">同学</span>！</div>
             <div class="slogan">🌟 每天进步一点点，开启奇妙知识之旅！</div>
         </div>
 
-        <!-- 2. 年级选择区域 (水平滑动滚条，对触屏极友好) -->
-        <div class="section-title">🎒 选择你的年级</div>
+        <!-- 2. 年级选择区域 -->
+        <div class="section-title" id="grade-section-anchor">🎒 选择你的年级</div>
         <nav class="grade-nav">
             <button class="grade-btn active" data-grade="1">一年级</button>
             <button class="grade-btn" data-grade="2">二年级</button>
@@ -54,22 +54,22 @@
                     <h2 id="current-lesson-title" class="lesson-title">单元加载中...</h2>
                 </div>
 
-                <!-- 三大分类区块 (垂直排列，极大按键区) -->
+                <!-- 三大分类区块 -->
                 <div class="cards-grid">
                     
-                    <!-- 1. 测验区 (马卡龙柔粉) -->
+                    <!-- 1. 测验区 (柔粉) -->
                     <div class="category-block bg-pink">
                         <h3 class="category-title">📝 测验 (Quiz)</h3>
                         <div class="card-list" id="quiz-list"></div>
                     </div>
 
-                    <!-- 2. 复习区 (马卡龙杏黄) -->
+                    <!-- 2. 复习区 (杏黄) -->
                     <div class="category-block bg-yellow">
                         <h3 class="category-title">🎴 复习 (Review)</h3>
                         <div class="card-list" id="review-list"></div>
                     </div>
 
-                    <!-- 3. 游戏区 (马卡龙薄荷蓝) -->
+                    <!-- 3. 游戏区 (薄荷蓝) -->
                     <div class="category-block bg-blue">
                         <h3 class="category-title">🎮 游戏 (Games)</h3>
                         <div class="card-list" id="game-list"></div>
@@ -84,26 +84,26 @@
 
     <!-- 4. 底部吸顶胶囊导航栏 (Bottom Nav Bar) -->
     <div class="bottom-nav">
-        <div class="nav-item active">
+        <div class="nav-item active" id="nav-home">
             <span class="nav-icon">🏠</span>
             <span>首页</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" id="nav-grade">
             <span class="nav-icon">📖</span>
             <span>年级</span>
         </div>
-        <div class="nav-item" style="position: relative;">
+        <div class="nav-item" id="nav-msg" style="position: relative;">
             <span class="nav-icon">💌</span>
             <span>新消息</span>
             <div class="badge-dot"></div>
         </div>
-        <div class="nav-item" id="nav-search-btn">
+        <div class="nav-item" id="nav-search">
             <span class="nav-icon">🔍</span>
             <span>搜寻</span>
         </div>
     </div>
 
-    <!-- 5. 搜索模态弹窗 (点击底部搜寻时展开) -->
+    <!-- 5. 搜索模态弹窗 -->
     <div class="search-modal" id="search-modal">
         <div class="search-modal-content">
             <div class="search-modal-header">
@@ -111,32 +111,29 @@
                 <span class="close-modal" id="close-search">&times;</span>
             </div>
             <div class="search-box">
-                <input type="text" id="search-input" placeholder="搜索单元/词汇...">
+                <input type="text" id="search-input" placeholder="输入关键字搜索单元/题目...">
             </div>
         </div>
     </div>
 
-    <!-- Firebase 核心 SDK (v8 兼容版) -->
+    <!-- 6. 新消息弹窗 -->
+    <div class="search-modal" id="msg-modal">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <h3>💌 老师的留言板</h3>
+                <span class="close-modal" id="close-msg">&times;</span>
+            </div>
+            <div style="padding: 10px 0; color: #555; line-height: 1.6;">
+                📢 欢迎来到华文学习小屋！记得每天完成对应的单元测验和练习哦！加油！✨
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (v8 兼容版) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- 业务逻辑脚本 (完全保留原代码) -->
+    <!-- 主业务逻辑 -->
     <script src="script.js"></script>
-    
-    <!-- 模态框极简辅助小脚本 -->
-    <script>
-        // 搜寻弹窗控制脚本（不破坏原生 script.js）
-        const searchBtn = document.getElementById('nav-search-btn');
-        const searchModal = document.getElementById('search-modal');
-        const closeSearch = document.getElementById('close-search');
-
-        if(searchBtn && searchModal) {
-            searchBtn.addEventListener('click', () => {
-                searchModal.classList.add('show');
-                document.getElementById('search-input').focus();
-            });
-            closeSearch.addEventListener('click', () => searchModal.classList.remove('show'));
-        }
-    </script>
 </body>
 </html>
