@@ -18,20 +18,19 @@
         <p class="login-subtitle">请输入你的通行密码进入</p>
         
         <div class="input-group">
-            <!-- 1. type 改为 text 避免小黑点遮挡 -->
-            <!-- 2. 加上 oninput 确保输入的字母实时变成真正的【大写】 -->
             <input 
                 type="text" 
                 id="login-password" 
                 placeholder="请输入密码 (如 ZSY8888)" 
                 style="text-transform: uppercase;"
                 oninput="this.value = this.value.toUpperCase();"
+                autocomplete="off"
             >
         </div>
         
         <div id="login-error-msg" class="error-msg" style="color: #ff4d4f; margin: 10px 0; font-size: 14px; min-height: 20px;"></div>
         
-        <button class="login-btn" onclick="handleLogin()">🚀 开启学习之旅</button>
+        <button class="login-btn" id="login-submit-btn" onclick="handleLogin()">🚀 开启学习之旅</button>
     </div>
 </div>
 
@@ -74,7 +73,7 @@
             <h2 id="current-lesson-title" class="lesson-title">单元加载中...</h2>
 
             <!-- 🌟 欢迎语区 -->
-            <div id="welcome-bar" class="welcome-tag">👋 欢迎你！</div>
+            <div id="welcome-bar" class="welcome-tag" style="display:none;">👋 欢迎你！</div>
 
             <!-- 📢 最新消息区块 -->
             <div class="announcement-block" id="announcement-block">
