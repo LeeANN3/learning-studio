@@ -1,123 +1,176 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>老师的学习小屋 ✏️ Teacher Studio</title>
-    <!-- 手绘可爱字体 -->
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learning Studio - 学习小屋</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- 🔒 登录弹窗 Overlay -->
-<div id="login-modal" class="login-modal-overlay">
+  <!-- ==================== 0. 全局登录弹窗遮罩 ==================== -->
+  <div class="login-modal-overlay" id="login-modal">
     <div class="login-card">
-        <div class="login-icon">🔑</div>
-        <h2>学习小屋登录</h2>
-        <p class="login-subtitle">请输入你的通行密码进入</p>
-        
-        <div class="input-group">
-            <input 
-                type="text" 
-                id="login-password" 
-                placeholder="请输入密码 (如 ZSY8888)" 
-                style="text-transform: uppercase;"
-                oninput="this.value = this.value.toUpperCase();"
-                autocomplete="off"
-            >
-        </div>
-        
-        <div id="login-error-msg" class="error-msg" style="color: #ff4d4f; margin: 10px 0; font-size: 14px; min-height: 20px;"></div>
-        
-        <button class="login-btn" id="login-submit-btn" onclick="handleLogin()">🚀 开启学习之旅</button>
+      <div class="login-icon">🎈</div>
+      <h2>欢迎来到学习小屋</h2>
+      <div class="login-subtitle">请选择你的账户并输入密码</div>
+      
+      <!-- 学生选择下拉框 -->
+      <div class="input-group">
+        <select id="student-select" class="login-select">
+          <option value="">加载学生列表中...</option>
+        </select>
+      </div>
+
+      <!-- 密码输入框 -->
+      <div class="input-group" style="margin-top: 12px;">
+        <input type="password" id="student-pass" placeholder="请输入密码" onkeydown="if(event.key==='Enter') handleLogin()">
+      </div>
+
+      <div id="login-error" class="error-msg"></div>
+
+      <button class="login-btn" onclick="handleLogin()">解锁学习空间 ✨</button>
     </div>
-</div>
+  </div>
 
-    <!-- 顶栏：Logo + 年级导航 + 搜索 -->
-    <header class="doodle-header">
-        <div class="logo">✏️ 学习小屋 Studio</div>
-        
-        <!-- 年级切换 Tab -->
-        <nav class="grade-nav">
-            <button class="grade-btn active" data-grade="1">一年级</button>
-            <button class="grade-btn" data-grade="2">二年级</button>
-            <button class="grade-btn" data-grade="3">三年级</button>
-            <button class="grade-btn" data-grade="4">四年级</button>
-            <button class="grade-btn" data-grade="5">五年级</button>
-            <button class="grade-btn" data-grade="6">六年级</button>
-        </nav>
-
-        <!-- 搜索框与退出按钮 -->
-        <div class="header-right">
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="🔍 搜索单元/词汇...">
-            </div>
-            <button class="logout-btn" id="logout-btn" onclick="handleLogout()" style="display: none;">退出</button>
-        </div>
-    </header>
-
-    <!-- 主体区域：左侧单元目录 + 右侧内容卡片 -->
-    <main class="main-container">
-
-        <!-- 左侧目录 (侧边栏) -->
-        <aside class="sidebar">
-            <div class="subject-tag">📚 华文科</div>
-            <ul class="lesson-menu" id="lesson-menu">
-                <!-- 动态生成单元列表 -->
-            </ul>
-        </aside>
-
-        <!-- 右侧内容区块 -->
-        <section class="content-area">
-            <h2 id="current-lesson-title" class="lesson-title">单元加载中...</h2>
-
-            <!-- 🌟 欢迎语区 -->
-            <div id="welcome-bar" class="welcome-tag" style="display:none;">👋 欢迎你！</div>
-
-            <!-- 📢 最新消息区块 -->
-            <div class="announcement-block" id="announcement-block">
-                <div class="announcement-header">
-                    <span class="announcement-title">📢 最新消息</span>
-                    <span class="teacher-tag">老师发布</span>
-                </div>
-                <div class="announcement-content" id="announcement-content">
-                    欢迎来到学习小屋！请选择左侧单元开始学习与测评～
-                </div>
-            </div>
-
-            <!-- 3. 三大分类区块 (测验 / 复习 / 游戏) -->
-            <div class="cards-grid">
-                
-                <!-- 1. 测验区 -->
-                <div class="category-block bg-pink">
-                    <h3 class="category-title">📝 测验 (Quiz)</h3>
-                    <div class="card-list" id="quiz-list"></div>
-                </div>
-
-                <!-- 2. 复习区 -->
-                <div class="category-block bg-yellow">
-                    <h3 class="category-title">🎴 复习 (Review)</h3>
-                    <div class="card-list" id="review-list"></div>
-                </div>
-
-                <!-- 3. 游戏区 -->
-                <div class="category-block bg-blue">
-                    <h3 class="category-title">🎮 游戏 (Games)</h3>
-                    <div class="card-list" id="game-list"></div>
-                </div>
-
-            </div>
-        </section>
-
-    </main>
+  <!-- ==================== 移动端主体 App 容器 ==================== -->
+  <div class="app-container">
     
-    <!-- 1. 引入 Firebase 核心 SDK (v8 兼容版) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <!-- 2. 引入 Firestore 数据库 SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- 1. Header 顶部品牌与时间 -->
+    <div class="header-top">
+      <div class="logo" onclick="switchTab('home')">🎈 学习工作室</div>
+      <div class="header-right-tools">
+        <div class="date-badge">📅 8月3日 周一</div>
+        <button class="logout-btn" onclick="handleLogout()">退出</button>
+      </div>
+    </div>
 
-    <!-- 3. 业务逻辑脚本 -->
-    <script src="script.js"></script>
+    <!-- ==================== TAB 1: 首页视图 ==================== -->
+    <div id="view-home" class="tab-view active-view">
+      <div class="light-card welcome-bar">
+        <div class="welcome-title">👋 嗨，<span class="highlight-macaron" id="user-display-name">同学</span></div>
+        <div class="slogan">今天也要像小树苗一样吸收新知识哦！🌱</div>
+      </div>
+
+      <div class="light-card main-task-card">
+        <span class="task-tag">✨ 今日建议</span>
+        <div class="task-title">三年级 - 认识分数</div>
+        <div class="task-desc">已经完成 2/5 关，随时可以继续哦！</div>
+        <div class="start-btn">
+          <span>▶ 马上开始</span>
+        </div>
+      </div>
+
+      <div class="grid-two-col">
+        <div class="light-card sub-card card-homework" onclick="switchTab('message')">
+          <div class="badge-count" id="homework-badge">2</div>
+          <div class="card-icon">📚</div>
+          <div class="card-title">我的作业</div>
+        </div>
+
+        <div class="light-card sub-card card-achievement">
+          <div class="card-icon">🏆</div>
+          <div class="card-title">勋章馆</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: 年级详情视图 ==================== -->
+    <div id="view-grade-detail" class="tab-view">
+      <div class="light-card welcome-bar" style="background: #FFF4E6;">
+        <div class="welcome-title">📚 <span id="current-grade-title" class="highlight-macaron">三年级</span> 学习空间</div>
+        <div class="slogan">探索专属知识单元，闯关提升吧！⭐</div>
+      </div>
+
+      <div class="grid-two-col">
+        <div class="light-card sub-card card-homework">
+          <div class="card-icon">📖</div>
+          <div class="card-title">单元课程</div>
+        </div>
+
+        <div class="light-card sub-card card-test">
+          <div class="card-icon">✏️</div>
+          <div class="card-title">单元测验</div>
+        </div>
+
+        <div class="light-card sub-card card-review">
+          <div class="card-icon">🔄</div>
+          <div class="card-title">错题复习</div>
+        </div>
+
+        <div class="light-card sub-card card-achievement">
+          <div class="card-icon">🎮</div>
+          <div class="card-title">趣味游戏</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: 消息视图 ==================== -->
+    <div id="view-message" class="tab-view">
+      <div class="welcome-title" style="margin-bottom:16px;">💌 消息中心</div>
+      
+      <div class="light-card msg-item">
+        <div class="msg-title">📢 数学老师批改了你的作业</div>
+        <div class="slogan">“认识分数”第二关做得非常好，继续保持！</div>
+        <div class="msg-time">10 分钟前</div>
+      </div>
+
+      <div class="light-card msg-item" style="border-left-color: #CAFFBF;">
+        <div class="msg-title">🏆 获得了新勋章！</div>
+        <div class="slogan">恭喜获得“连续学习 3 天”小能手勋章！</div>
+        <div class="msg-time">昨天 16:30</div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 4: 搜寻视图 ==================== -->
+    <div id="view-search" class="tab-view">
+      <input type="text" class="search-box" id="search-input" placeholder="🔍 搜索单元、知识点或游戏..." oninput="handleSearch()">
+      
+      <div id="search-results">
+        <div class="light-card welcome-bar">
+          <div class="slogan">💡 尝试输入“分数”、“乘法”或“测验”搜索内容吧！</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部悬浮毛玻璃胶囊导航栏 -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('home', this)">
+        <span class="nav-icon">🏠</span>
+        <span>首页</span>
+      </div>
+      <div class="nav-item" onclick="openDrawer()">
+        <span class="nav-icon">📖</span>
+        <span id="nav-grade-label">年级</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('message', this)">
+        <span class="nav-icon">💌</span>
+        <span>消息</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('search', this)">
+        <span class="nav-icon">🔍</span>
+        <span>搜寻</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 年级侧边抽屉 (Drawer) -->
+  <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer(event)">
+    <div class="drawer-content" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <span>🏫 选择年级</span>
+        <span style="cursor:pointer;" onclick="closeDrawer()">✕</span>
+      </div>
+      <div class="grade-item" onclick="selectGrade('一年级')">🌱 一年级 <span>➔</span></div>
+      <div class="grade-item" onclick="selectGrade('二年级')">🌿 二年级 <span>➔</span></div>
+      <div class="grade-item" onclick="selectGrade('三年级')">☘️ 三年级 <span>➔</span></div>
+      <div class="grade-item" onclick="selectGrade('四年级')">🍀 四年级 <span>➔</span></div>
+      <div class="grade-item" onclick="selectGrade('五年级')">🌳 五年级 <span>➔</span></div>
+      <div class="grade-item" onclick="selectGrade('六年级')">🌴 六年级 <span>➔</span></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
