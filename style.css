@@ -1,273 +1,232 @@
-/* 马卡龙设计全套 CSS */
+/* --------------------------------------------------
+   1. 基础全局样式（马卡龙柔和风）
+   -------------------------------------------------- */
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'ZCOOL KuaiLe', -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'ZCOOL KuaiLe', -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
 }
 
 body {
-  background-color: #FAFAF5;
-  color: #4A4E69;
-  display: flex;
-  justify-content: center;
-  min-height: 100vh;
+    background-color: #FAFAF5;
+    color: #383336;
+    min-height: 100vh;
 }
 
-.app-container {
-  width: 100%;
-  max-width: 500px;
-  background-color: #FAFAF5;
-  padding: 18px 16px 110px 16px;
-  position: relative;
+/* --------------------------------------------------
+   2. 登录弹窗遮罩层与卡片
+   -------------------------------------------------- */
+.login-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(6px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-/* 卡片基础样式 */
-.macaron-card {
-  background-color: #FFFFFF;
-  border-radius: 24px;
-  box-shadow: 0 8px 20px rgba(180, 170, 160, 0.12);
-  margin-bottom: 16px;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+.login-card {
+    background: #FFFFFF;
+    width: 90%;
+    max-width: 380px;
+    padding: 32px 24px;
+    border-radius: 30px;
+    box-shadow: 0 15px 35px rgba(180, 170, 160, 0.2);
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
-.highlight-macaron {
-  background: linear-gradient(120deg, #FDFFB6 0%, #FFD6A5 100%);
-  padding: 2px 8px;
-  border-radius: 10px;
+.login-icon { font-size: 40px; margin-bottom: 8px; }
+
+.login-subtitle {
+    font-size: 13px;
+    color: #8C8C8C;
+    margin-top: 4px;
+    margin-bottom: 20px;
 }
 
-/* 顶部与欢迎 */
+.input-group input {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 20px;
+    border: 2px solid #E7C6FF;
+    outline: none;
+    font-size: 15px;
+    text-align: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.error-msg {
+    color: #E63946;
+    font-size: 12px;
+    margin-top: 8px;
+    min-height: 18px;
+}
+
+.login-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #FFC6FF 0%, #FFD6A5 100%);
+    color: #4A3E3D;
+    padding: 12px;
+    border-radius: 20px;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    box-shadow: 0 6px 16px rgba(255, 198, 255, 0.4);
+    transition: transform 0.1s;
+}
+
+.login-btn:active { transform: scale(0.97); }
+
+/* --------------------------------------------------
+   3. 顶栏样式
+   -------------------------------------------------- */
 .doodle-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .logo {
-  font-size: 22px;
-  font-weight: bold;
-  color: #383336;
+    font-size: 20px;
+    font-weight: bold;
+    color: #4A4E69;
 }
 
-.date-badge {
-  background: #E8F0FE;
-  color: #5C677D;
-  padding: 5px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-}
-
-.welcome-card { background: #F0F7F4; }
-.welcome-title { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
-.slogan { font-size: 12px; color: #7D8597; }
-
-/* 年级选择 */
-.section-title {
-  font-size: 14px;
-  font-weight: bold;
-  margin: 12px 0 8px 4px;
-  color: #6C586E;
-}
-
-.grade-nav {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  margin-bottom: 12px;
-  scrollbar-width: none;
-}
-.grade-nav::-webkit-scrollbar { display: none; }
+.grade-nav { display: flex; gap: 8px; }
 
 .grade-btn {
-  flex: 0 0 auto;
-  background-color: #FFFFFF;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: bold;
-  color: #7D8597;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  cursor: pointer;
-  transition: all 0.2s ease;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 16px;
+    background: #F0F0F0;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
 }
 
-.grade-btn.active {
-  background-color: #FFD6A5;
-  color: #4A3E3D;
-  box-shadow: 0 6px 14px rgba(255, 214, 165, 0.5);
-  transform: scale(1.05);
+.grade-btn.active, .grade-btn:hover {
+    background: #FDFFB6;
+    font-weight: bold;
 }
 
-/* 单元目录与分类 */
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+.search-box input {
+    padding: 6px 14px;
+    border-radius: 16px;
+    border: 1px solid #DDD;
+    font-size: 13px;
+    outline: none;
+}
+
+.logout-btn {
+    background: #FFE5EC;
+    color: #D90429;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+/* --------------------------------------------------
+   4. 主内容布局与卡片
+   -------------------------------------------------- */
+.main-container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+}
+
+.sidebar {
+    width: 200px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+
 .subject-tag {
-  font-size: 15px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #4A4E69;
+    font-weight: bold;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed #EEE;
 }
 
-.lesson-menu {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
+.lesson-menu { list-style: none; }
 .lesson-menu li {
-  padding: 10px 14px;
-  background: #FAFAF5;
-  border-radius: 16px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 6px;
 }
 
 .lesson-menu li.active, .lesson-menu li:hover {
-  background: #CAFFBF;
-  color: #2D5033;
-  font-weight: bold;
+    background: #E8F0FE;
+    color: #1A73E8;
 }
 
-.lesson-header-card {
-  background: linear-gradient(135deg, #FFC6FF, #FFD6A5);
-  text-align: center;
+.content-area { flex: 1; }
+
+.welcome-tag {
+    background: #E8F0FE;
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 16px;
+    font-size: 13px;
+    margin: 10px 0;
+    color: #3C4043;
 }
 
-.lesson-title { font-size: 18px; color: #4A3E3D; }
+.announcement-block {
+    background: #FFF9E6;
+    border-left: 4px solid #FFD6A5;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
 
-/* 测验/复习/游戏 三大区块 */
+.announcement-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+.teacher-tag {
+    background: #FFD6A5;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
 .cards-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
 }
 
 .category-block {
-  border-radius: 24px;
-  padding: 16px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+    border-radius: 20px;
+    padding: 16px;
 }
 
-.category-title { font-size: 16px; margin-bottom: 12px; }
+.bg-pink { background: #FFE5EC; }
+.bg-yellow { background: #FFF4E6; }
+.bg-blue { background: #E8F0FE; }
 
-.bg-pink { background-color: #FFC6FF; color: #5C415D; }
-.bg-yellow { background-color: #FDFFB6; color: #5C5233; }
-.bg-blue { background-color: #9BF6FF; color: #2B4E52; }
-
-/* 动态生成的测验/复习卡片按钮 */
-.activity-card-item {
-  display: block;
-  background: #FFFFFF;
-  padding: 12px 16px;
-  border-radius: 16px;
-  margin-bottom: 8px;
-  text-decoration: none;
-  color: #4A4E69;
-  font-weight: bold;
-  font-size: 14px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-  transition: transform 0.15s;
-}
-
-.activity-card-item:active { transform: scale(0.98); }
-
-/* 底部胶囊导航栏 */
-.bottom-nav {
-  position: fixed;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 32px);
-  max-width: 460px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  border-radius: 32px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-  display: flex;
-  justify-content: space-around;
-  padding: 8px 0;
-  z-index: 100;
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 11px;
-  color: #9A8C98;
-  padding: 4px 14px;
-  border-radius: 16px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.nav-item.active {
-  color: #4A4E69;
-  background-color: #FDFFB6;
-  font-weight: bold;
-}
-
-.nav-icon { font-size: 18px; }
-
-.badge-dot {
-  position: absolute;
-  top: 4px;
-  right: 12px;
-  width: 8px;
-  height: 8px;
-  background-color: #FFADAD;
-  border-radius: 50%;
-}
-
-/* 模态弹窗 */
-.search-modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.3);
-  backdrop-filter: blur(4px);
-  z-index: 200;
-  justify-content: center;
-  align-items: flex-end;
-}
-
-.search-modal.show { display: flex; }
-
-.search-modal-content {
-  width: 100%;
-  max-width: 500px;
-  background: #FFF;
-  border-radius: 28px 28px 0 0;
-  padding: 20px;
-  animation: slideUp 0.25s ease-out;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-.search-modal-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.close-modal { font-size: 24px; cursor: pointer; }
-
-.search-box input {
-  width: 100%;
-  padding: 12px 18px;
-  border-radius: 20px;
-  border: 2px solid #E8F0FE;
-  outline: none;
-  font-size: 15px;
-  background-color: #FAFAF5;
+.category-title {
+    font-size: 16px;
+    margin-bottom: 12px;
 }
