@@ -8,32 +8,7 @@
 </head>
 <body>
 
-  <!-- ==================== 0. 全局登录弹窗遮罩 ==================== -->
-  <div class="login-modal-overlay" id="login-modal">
-    <div class="login-card">
-      <div class="login-icon">🎈</div>
-      <h2>欢迎来到学习小屋</h2>
-      <div class="login-subtitle">请选择你的账户并输入密码</div>
-      
-      <!-- 学生选择下拉框 -->
-      <div class="input-group">
-        <select id="student-select" class="login-select">
-          <option value="">加载学生列表中...</option>
-        </select>
-      </div>
-
-      <!-- 密码输入框 -->
-      <div class="input-group" style="margin-top: 12px;">
-        <input type="password" id="student-pass" placeholder="请输入密码" onkeydown="if(event.key==='Enter') handleLogin()">
-      </div>
-
-      <div id="login-error" class="error-msg"></div>
-
-      <button class="login-btn" onclick="handleLogin()">解锁学习空间 ✨</button>
-    </div>
-  </div>
-
-  <!-- ==================== 移动端主体 App 容器 ==================== -->
+  <!-- 移动端主体 App 容器 -->
   <div class="app-container">
     
     <!-- 1. Header 顶部品牌与时间 -->
@@ -41,7 +16,7 @@
       <div class="logo" onclick="switchTab('home')">🎈 学习工作室</div>
       <div class="header-right-tools">
         <div class="date-badge">📅 8月3日 周一</div>
-        <button class="logout-btn" onclick="handleLogout()">退出</button>
+        <button class="logout-btn" id="auth-btn" onclick="handleAuthClick()">🔑 输入密码解锁</button>
       </div>
     </div>
 
@@ -56,19 +31,19 @@
         <span class="task-tag">✨ 今日建议</span>
         <div class="task-title">三年级 - 认识分数</div>
         <div class="task-desc">已经完成 2/5 关，随时可以继续哦！</div>
-        <div class="start-btn">
+        <div class="start-btn" onclick="checkAuthAndRun(() => alert('开始学习认识分数！'))">
           <span>▶ 马上开始</span>
         </div>
       </div>
 
       <div class="grid-two-col">
-        <div class="light-card sub-card card-homework" onclick="switchTab('message')">
+        <div class="light-card sub-card card-homework" onclick="checkAuthAndRun(() => switchTab('message'))">
           <div class="badge-count" id="homework-badge">2</div>
           <div class="card-icon">📚</div>
           <div class="card-title">我的作业</div>
         </div>
 
-        <div class="light-card sub-card card-achievement">
+        <div class="light-card sub-card card-achievement" onclick="checkAuthAndRun(() => alert('打开勋章馆'))">
           <div class="card-icon">🏆</div>
           <div class="card-title">勋章馆</div>
         </div>
