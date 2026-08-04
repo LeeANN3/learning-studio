@@ -79,10 +79,11 @@
         <h2 id="final-score"></h2>
         <h3 id="final-time"></h3>
 
-        <!-- 成绩提交表单 -->
+        <!-- 自动成绩保存提示状态 -->
         <div style="text-align: center; margin: 20px 0;">
-            <input type="text" id="player-name" placeholder="输入你的名字" readonly style="padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; background-color: #f5f5f5;">
-            <button id="save-score-btn" style="padding: 10px 20px; font-size: 16px; background: #2196F3; color: white; border: none; border-radius: 8px; margin-left: 10px; cursor: pointer;">保存成绩</button>
+            <p id="save-status-text" style="font-size: 16px; color: #2196F3; font-weight: bold;">
+                ⏳ 正在自动保存成绩...
+            </p>
         </div>
 
         <button id="restart-btn">Play Again</button>
@@ -162,28 +163,29 @@
         }
     }
 
-    // 5. 保存成绩至 Firebase Firestore
-    document.getElementById('save-score-btn').addEventListener('click', async () => {
+    // 5. 自动保存成绩至 Firebase Firestore（无需手动点击）
+    async function autoSaveScore() {
+        const statusEl = document.getElementById('save-status-text');
+
         if (!currentUser) {
-            alert("用户未登录，无法保存成绩！");
+            statusEl.innerHTML = '⚠️ 未登录账号，成绩未记录。';
             return;
         }
 
-        const btn = document.getElementById('save-score-btn');
-        btn.disabled = true;
-        btn.innerText = "保存中...";
+        const displayName = currentUser.displayName || currentUser.email.split('@')[0] || "匿名学生";
+        statusEl.innerHTML = `⏳ 正在为 <strong>${displayName}</strong> 自动录入成绩...`;
 
         // 自动提取页面上的成绩与用时文本
         const scoreText = document.getElementById('final-score').innerText;
         const timeText = document.getElementById('final-time').innerText;
         
-        // 解析分数值（例如将 "Score: 80" 或 "80 / 100" 提取为纯数字 80）
+        // 解析分数值（例如将 "Score: 80" 提取为纯数字 80）
         const scoreMatch = scoreText.match(/\d+/);
         const numericScore = scoreMatch ? parseInt(scoreMatch[0]) : 0;
 
         const recordData = {
             uid: currentUser.uid,
-            studentName: document.getElementById('player-name').value,
+            studentName: displayName,
             score: numericScore,
             scoreRawText: scoreText,
             timeSpent: timeText,
@@ -192,17 +194,27 @@
 
         try {
             await db.collection("leaderboard").add(recordData);
-            alert("🎉 成绩保存成功！已更新至排行榜。");
-            btn.innerText = "已保存";
+            statusEl.innerHTML = `🎉 成绩已自动为 <strong>${displayName}</strong> 成功保存并更新至排行榜！`;
             // 重新刷新排行榜
             loadLeaderboard();
         } catch (err) {
             console.error("保存成绩失败：", err);
-            alert("保存失败：" + err.message);
-            btn.disabled = false;
-            btn.innerText = "保存成绩";
+            statusEl.innerHTML = `❌ 成绩保存失败：${err.message}`;
         }
+    }
+
+    // 6. 监听游戏结束结算界面的弹出，自动触发保存
+    const resultScreen = document.getElementById('result-screen');
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class') {
+                if (!resultScreen.classList.contains('hidden')) {
+                    autoSaveScore();
+                }
+            }
+        });
     });
+    observer.observe(resultScreen, { attributes: true });
 </script>
 
 <!-- 原有的答题逻辑与题库 JS -->
