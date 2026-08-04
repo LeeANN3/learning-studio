@@ -42,6 +42,7 @@
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
             font-size: 22px;
             font-weight: 700;
+            white-space: nowrap;
         }
 
         .brand-logo i {
@@ -55,23 +56,29 @@
         .user-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .user-info-badge {
             background: #f4f4f5;
             border: 2px solid #1a1a1a;
             border-radius: 12px;
-            padding: 6px 14px;
+            padding: 6px 12px;
             font-size: 15px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
         }
 
         .btn-ui {
             background: #ffffff;
             border: 2px solid #1a1a1a;
             border-radius: 12px;
-            padding: 6px 14px;
+            padding: 6px 12px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
             font-size: 14px;
             font-weight: 600;
@@ -81,6 +88,7 @@
             align-items: center;
             gap: 6px;
             transition: all 0.15s ease;
+            white-space: nowrap;
         }
 
         .btn-ui:hover {
@@ -92,6 +100,52 @@
         .btn-logout:hover {
             background: #ff4d4d;
             color: #ffffff;
+        }
+
+        /* 📱 手机移动端自适应优化样式 */
+        @media (max-width: 640px) {
+            .navbar {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+
+            .brand-logo {
+                font-size: 17px;
+                gap: 6px;
+            }
+
+            .brand-logo i {
+                padding: 5px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+
+            .user-actions {
+                gap: 6px;
+            }
+
+            .user-info-badge {
+                padding: 4px 8px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+
+            .btn-ui {
+                padding: 4px 8px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+
+            .tag-class-type {
+                font-size: 10px;
+                padding: 1px 4px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .brand-logo span {
+                display: none; /* 超小屏幕隐藏系统标题文字，仅保留图标，为按钮留出空间 */
+            }
         }
 
         .container {
@@ -224,7 +278,7 @@
             padding: 2px 8px;
             border-radius: 6px;
             border: 1px solid #1a1a1a;
-            margin-left: 6px;
+            margin-left: 4px;
             background: #e0f2fe;
         }
 
@@ -466,7 +520,6 @@
             document.getElementById('game-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
 
             try {
-                // 先根据科目查出所有资源
                 const snapshot = await db.collection("resources")
                     .where("subject", "==", subjectVal)
                     .get();
@@ -478,7 +531,6 @@
                 snapshot.forEach(doc => {
                     const item = doc.data();
 
-                    // 使用 loose equality (==) 进行匹配，自动兼容字符串 "1" 和 数字 1
                     const matchGrade = (item.grade == gradeVal);
                     const matchUnit = (item.unit == unitVal);
 
