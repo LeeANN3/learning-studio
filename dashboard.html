@@ -22,7 +22,6 @@
             padding-bottom: 40px;
         }
 
-        /* 顶栏 Header */
         .navbar {
             background-color: #ffffff;
             border-bottom: 2px solid #1a1a1a;
@@ -95,14 +94,12 @@
             color: #ffffff;
         }
 
-        /* 主体布局 Main Layout */
         .container {
             max-width: 900px;
             margin: 30px auto;
             padding: 0 20px;
         }
 
-        /* 顶部过滤器控制区 Selector Section */
         .dashboard-header-card {
             background: #ffffff;
             border: 2px solid #1a1a1a;
@@ -151,7 +148,6 @@
             box-shadow: 3px 3px 0px #ffe600;
         }
 
-        /* 三大板块链接区 Link Sections */
         .section-card {
             background: #ffffff;
             border: 2px solid #1a1a1a;
@@ -184,12 +180,10 @@
             box-shadow: 2px 2px 0px #1a1a1a;
         }
 
-        /* 颜色区分风格 */
         .icon-quiz { background-color: #ffe600; }
         .icon-review { background-color: #4da6ff; color: white; }
         .icon-game { background-color: #ff66b2; color: white; }
 
-        /* 链接列表 List Grid */
         .link-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -239,7 +233,6 @@
 </head>
 <body>
 
-    <!-- 顶部导航栏 Navbar -->
     <div class="navbar">
         <div class="brand-logo">
             <i class="fa-solid fa-gamepad"></i>
@@ -263,10 +256,8 @@
         </div>
     </div>
 
-    <!-- 主内容区域 Container -->
     <div class="container">
         
-        <!-- 头部过滤器卡片 Header Selector Card -->
         <div class="dashboard-header-card">
             <div class="title-grade">
                 <i class="fa-solid fa-graduation-cap"></i>
@@ -274,7 +265,6 @@
             </div>
 
             <div class="selectors-grid">
-                <!-- 切换年级 -->
                 <div class="form-group">
                     <label for="select-grade" id="lbl-select-grade">选择年级</label>
                     <select id="select-grade" class="form-select" onchange="onGradeChange()">
@@ -287,60 +277,49 @@
                     </select>
                 </div>
 
-                <!-- 选择科目 -->
                 <div class="form-group">
                     <label for="select-subject" id="lbl-select-subject">选择科目</label>
                     <select id="select-subject" class="form-select" onchange="onSubjectChange()">
-                        <!-- 动态生成 -->
                     </select>
                 </div>
 
-                <!-- 选择单元 -->
                 <div class="form-group">
                     <label for="select-unit" id="lbl-select-unit">选择单元</label>
                     <select id="select-unit" class="form-select" onchange="renderResources()">
-                        <!-- 动态生成 -->
                     </select>
                 </div>
             </div>
         </div>
 
-        <!-- 1. 测验板块 Quiz Section -->
         <div class="section-card">
             <div class="section-header">
                 <i class="fa-solid fa-file-pen icon-quiz"></i>
                 <span id="txt-sec-quiz">测验 (Quizzes)</span>
             </div>
             <div class="link-grid" id="quiz-list">
-                <!-- 动态嵌入链接 -->
             </div>
         </div>
 
-        <!-- 2. 复习板块 Review Section -->
         <div class="section-card">
             <div class="section-header">
                 <i class="fa-solid fa-book-open icon-review"></i>
                 <span id="txt-sec-review">复习 (Revision)</span>
             </div>
             <div class="link-grid" id="review-list">
-                <!-- 动态嵌入链接 -->
             </div>
         </div>
 
-        <!-- 3. 游戏板块 Games Section -->
         <div class="section-card">
             <div class="section-header">
                 <i class="fa-solid fa-dice icon-game"></i>
                 <span id="txt-sec-game">游戏 (Educational Games)</span>
             </div>
             <div class="link-grid" id="game-list">
-                <!-- 动态嵌入链接 -->
             </div>
         </div>
 
     </div>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -359,11 +338,9 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 当前状态数据 State
         let currentUserData = null;
         let currentLang = 'zh';
 
-        // 基础所有科目表
         const allSubjects = [
             { id: 'chinese', zh: '华文', en: 'Chinese' },
             { id: 'malay', zh: '马来文', en: 'Malay' },
@@ -389,7 +366,6 @@
             }
         };
 
-        // 页面初始化 Authentication Check
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = "index.html";
@@ -409,7 +385,6 @@
             }
         });
 
-        // 根据用户信息初始化 Dashboard 界面
         function setupDashboardUI() {
             document.getElementById('user-name-display').innerText = currentUserData.name || "学生";
             
@@ -429,7 +404,6 @@
             updateGradeTitle();
         }
 
-        // 初始化/更新 科目下拉菜单
         function initSubjectDropdown() {
             const subjectSelect = document.getElementById('select-subject');
             subjectSelect.innerHTML = '';
@@ -449,13 +423,11 @@
             onSubjectChange(); 
         }
 
-        // 年级切换响应
         function onGradeChange() {
             updateGradeTitle();
             renderResources();
         }
 
-        // 科目切换响应（生成 1 ~ 10 单元选项）
         function onSubjectChange() {
             const unitSelect = document.getElementById('select-unit');
             unitSelect.innerHTML = '';
@@ -471,7 +443,6 @@
             renderResources();
         }
 
-        // 更新年级标题
         function updateGradeTitle() {
             const gradeVal = document.getElementById('select-grade').value;
             const t = translations[currentLang];
@@ -483,25 +454,21 @@
             }
         }
 
-        // 核心修改：直接从 Firebase Firestore 查询真实测验/游戏资源
         async function renderResources() {
-            const grade = parseInt(document.getElementById('select-grade').value);
-            const subject = document.getElementById('select-subject').value;
-            const unit = parseInt(document.getElementById('select-unit').value);
+            const gradeVal = document.getElementById('select-grade').value;
+            const subjectVal = document.getElementById('select-subject').value;
+            const unitVal = document.getElementById('select-unit').value;
 
             const t = translations[currentLang];
 
-            // 先显示加载提示
             document.getElementById('quiz-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
             document.getElementById('review-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
             document.getElementById('game-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
 
             try {
-                // 向 Firestore 提取当前选中的【年级 + 科目 + 单元】数据
+                // 先根据科目查出所有资源
                 const snapshot = await db.collection("resources")
-                    .where("grade", "==", grade)
-                    .where("subject", "==", subject)
-                    .where("unit", "==", unit)
+                    .where("subject", "==", subjectVal)
                     .get();
 
                 const quizzes = [];
@@ -510,12 +477,18 @@
 
                 snapshot.forEach(doc => {
                     const item = doc.data();
-                    if (item.type === 'quiz') quizzes.push(item);
-                    else if (item.type === 'review') reviews.push(item);
-                    else if (item.type === 'game') games.push(item);
+
+                    // 使用 loose equality (==) 进行匹配，自动兼容字符串 "1" 和 数字 1
+                    const matchGrade = (item.grade == gradeVal);
+                    const matchUnit = (item.unit == unitVal);
+
+                    if (matchGrade && matchUnit) {
+                        if (item.type === 'quiz') quizzes.push(item);
+                        else if (item.type === 'review') reviews.push(item);
+                        else if (item.type === 'game') games.push(item);
+                    }
                 });
 
-                // 渲染到对应板块
                 renderLinkGrid('quiz-list', quizzes, 'fa-circle-question');
                 renderLinkGrid('review-list', reviews, 'fa-file-lines');
                 renderLinkGrid('game-list', games, 'fa-gamepad');
@@ -539,18 +512,17 @@
 
             items.forEach(item => {
                 const a = document.createElement('a');
-                a.href = item.url;
+                a.href = item.url || '#';
                 a.className = 'link-item';
                 a.target = '_blank';
                 a.innerHTML = `
-                    <span><i class="fa-solid ${iconClass}" style="margin-right:8px;"></i>${item.title}</span>
+                    <span><i class="fa-solid ${iconClass}" style="margin-right:8px;"></i>${item.title || 'Untitled'}</span>
                     <i class="fa-solid fa-chevron-right" style="font-size:12px; opacity:0.6;"></i>
                 `;
                 container.appendChild(a);
             });
         }
 
-        // 多语言切换
         function toggleLanguage() {
             currentLang = (currentLang === 'zh') ? 'en' : 'zh';
             const t = translations[currentLang];
@@ -570,7 +542,6 @@
             }
         }
 
-        // 登出逻辑
         function handleLogout() {
             auth.signOut().then(() => {
                 window.location.href = "index.html";
