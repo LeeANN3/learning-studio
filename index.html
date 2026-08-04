@@ -161,7 +161,7 @@
                 <label for="display-name" id="lbl-name">姓名 / 昵称</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="display-name" class="form-control" placeholder="例如：小明 / Alex">
+                    <input type="text" id="display-name" class="form-control" placeholder="例如：李小明 / Alex">
                 </div>
             </div>
 
@@ -195,7 +195,7 @@
                 <label for="teacher-key" id="lbl-teacher-key">教师验证口令 (Teacher Key)</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-key"></i>
-                    <input type="password" id="teacher-key" class="form-control" placeholder="请输入教师注册密钥（默认 TEACHER888）">
+                    <input type="password" id="teacher-key" class="form-control" placeholder="请输入教师注册密钥">
                 </div>
             </div>
 
@@ -247,7 +247,7 @@
         const db = firebase.firestore();
 
         // 默认教师密码口令
-        const DEFAULT_TEACHER_KEY = "TEACHER888";
+        const DEFAULT_TEACHER_KEY = "SLH888";
 
         let currentMode = 'login';
         let selectedRole = 'student';
