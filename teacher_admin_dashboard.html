@@ -170,7 +170,6 @@
                         
                         <select id="filter-class-select" onchange="filterStudents()" class="neo-input bg-white font-fun">
                             <option value="ALL">所有班级 (All Classes)</option>
-                            <!-- Dynamically filled with classes -->
                         </select>
                     </div>
 
@@ -193,7 +192,6 @@
                             </tr>
                         </thead>
                         <tbody id="student-table-body" class="divide-y border-slate-200 text-sm font-sans">
-                            <!-- Dynamically loaded rows -->
                             <tr>
                                 <td colspan="5" class="p-8 text-center text-slate-400 font-fun text-lg">
                                     <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在获取学生名册...
@@ -252,6 +250,7 @@
                         <thead>
                             <tr class="bg-slate-100 border-b-2 border-slate-900 font-fun text-sm">
                                 <th class="p-3">做题学生</th>
+                                <th class="p-3">测验/单元</th>
                                 <th class="p-3">得分</th>
                                 <th class="p-3">用时</th>
                                 <th class="p-3">提交时间</th>
@@ -267,8 +266,9 @@
 
     </div>
 
+    <!-- Modals -->
     <div id="delete-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4 animate-bounce-in">
+        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <div class="flex items-center gap-3 text-red-600">
                 <div class="bg-red-100 p-3 rounded-xl border-2 border-red-600">
                     <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
@@ -359,12 +359,13 @@
         </div>
     </div>
 
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // 1. Firebase Config (Please make sure your real config is placed here)
+        // 1. Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
             authDomain: "my-teacher-studio.firebaseapp.com",
@@ -385,7 +386,23 @@
         let studentTargetToDelete = null;
         let studentTargetToEdit = null;
 
-        // 2. Authentication Check & Role Guard
+        // 2. Navigation Tab Control
+        function switchTab(tabName) {
+            const tabs = ['students', 'classes', 'unlock', 'scores'];
+            tabs.forEach(t => {
+                const section = document.getElementById(`section-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabName) {
+                    section.classList.remove('hidden');
+                    btn.classList.add('active');
+                } else {
+                    section.classList.add('hidden');
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // 3. Authentication Check & Role Guard
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = "index.html";
@@ -397,7 +414,6 @@
                 if (userDoc.exists) {
                     const userData = userDoc.data();
                     
-                    // Verify if current user is indeed a Teacher
                     if (userData.role !== 'teacher') {
                         alert("⚠️ 只有教师账号才可以访问管理后台！");
                         window.location.href = "dashboard.html";
@@ -407,7 +423,6 @@
                     document.getElementById('teacher-name').innerText = (userData.name || "老师") + " (Admin)";
                     currentAdminUser = userData;
                     
-                    // Load Initial Data
                     loadAllData();
                 } else {
                     window.location.href = "index.html";
@@ -417,7 +432,7 @@
             }
         });
 
-        // 3. Load all Students, Classes, and Resources
+        // 4. Load all Data
         async function loadAllData() {
             await Promise.all([
                 fetchClasses(),
@@ -505,7 +520,7 @@
             renderStudentTable(filtered);
         }
 
-        // --- DELETE STUDENT ACCOUNT FEATURE ---
+        // --- DELETE STUDENT ---
         function openDeleteModal(uid, name, email) {
             studentTargetToDelete = { uid, name, email };
             document.getElementById('modal-delete-student-name').innerText = name;
@@ -525,14 +540,10 @@
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 删除中...`;
 
             try {
-                // Delete user document from Firestore
                 await db.collection("users").doc(studentTargetToDelete.uid).delete();
-                
                 closeDeleteModal();
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-trash-can"></i> 确认彻底删除`;
-
-                // Refresh Student Table
                 fetchStudents();
             } catch (err) {
                 console.error("删除学生数据失败:", err);
@@ -580,15 +591,12 @@
                 const snapshot = await db.collection("classes").get();
                 allClassCodesList = [];
                 container.innerHTML = '';
-
-                // Default filter options
                 filterSelect.innerHTML = `<option value="ALL">所有班级 (All Classes)</option>`;
 
                 snapshot.forEach(doc => {
                     const c = { id: doc.id, ...doc.data() };
                     allClassCodesList.push(c);
 
-                    // Append card
                     const card = document.createElement('div');
                     card.className = "neo-card p-4 bg-white hover:bg-amber-50/50 transition-colors";
                     card.innerHTML = `
@@ -601,7 +609,6 @@
                     `;
                     container.appendChild(card);
 
-                    // Append filter option
                     const opt = document.createElement('option');
                     opt.value = c.id;
                     opt.innerText = `${c.id} - ${c.className || ''}`;
@@ -645,10 +652,8 @@
                 });
 
                 closeCreateClassModal();
-                // Reset form
                 document.getElementById('new-code-input').value = '';
                 document.getElementById('new-name-input').value = '';
-                
                 fetchClasses();
             } catch (err) {
                 alert("⚠️ 创建失败：" + err.message);
@@ -680,19 +685,18 @@
                     `).join(' ');
 
                     tr.innerHTML = `
-                        <td class="p-3 font-semibold text-slate-900">${r.title || '无标题'}</td>
-                        <td class="p-3 text-slate-600 text-xs">${r.subject || ''} / ${r.grade || 1}年级 / 单元${r.unit || 1}</td>
-                        <td class="p-3"><span class="bg-amber-200 border border-slate-900 text-xs font-bold px-2 py-0.5 rounded">${r.type || 'quiz'}</span></td>
-                        <td class="p-3"><div class="flex flex-wrap gap-1">${classCheckboxes || '<span class="text-xs text-slate-400">请先创建班级</span>'}</div></td>
+                        <td class="p-3 font-semibold text-slate-900">${r.title || '未命名资源'}</td>
+                        <td class="p-3 text-xs text-slate-600">${r.subject || '全科'} / ${r.grade || 0}年级</td>
+                        <td class="p-3 text-xs"><span class="bg-slate-200 border border-slate-400 px-2 py-0.5 rounded">${r.type || '测验'}</span></td>
+                        <td class="p-3"><div class="flex flex-wrap gap-1.5">${classCheckboxes || '<span class="text-xs text-slate-400">暂无班级可配</span>'}</div></td>
                         <td class="p-3 text-center">
-                            <button onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2 py-1 text-xs ${r.isPublished ? 'bg-emerald-200 text-emerald-900' : 'bg-slate-200 text-slate-600'}">
-                                ${r.isPublished ? '已发布 (Published)' : '已隐藏 (Draft)'}
+                            <button onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2.5 py-1 text-xs ${r.isPublished ? 'bg-emerald-200 hover:bg-emerald-300' : 'bg-slate-200 hover:bg-slate-300'}">
+                                ${r.isPublished ? '已发布公开' : '已下架/隐藏'}
                             </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
-
             } catch (err) {
                 console.error("读取资源库失败:", err);
             }
@@ -700,18 +704,14 @@
 
         async function toggleResourceClass(resourceId, classCode, isChecked) {
             try {
-                const docRef = db.collection("resources").doc(resourceId);
+                const resRef = db.collection("resources").doc(resourceId);
                 if (isChecked) {
-                    await docRef.update({
-                        unlockedClasses: firebase.firestore.FieldValue.arrayUnion(classCode)
-                    });
+                    await resRef.update({ unlockedClasses: firebase.firestore.FieldValue.arrayUnion(classCode) });
                 } else {
-                    await docRef.update({
-                        unlockedClasses: firebase.firestore.FieldValue.arrayRemove(classCode)
-                    });
+                    await resRef.update({ unlockedClasses: firebase.firestore.FieldValue.arrayRemove(classCode) });
                 }
             } catch (err) {
-                console.error("更新资源可见班级失败:", err);
+                alert("⚠️ 更新解锁设定失败: " + err.message);
             }
         }
 
@@ -720,7 +720,7 @@
                 await db.collection("resources").doc(resourceId).update({ isPublished: newStatus });
                 fetchResources();
             } catch (err) {
-                console.error("修改发布状态失败:", err);
+                alert("⚠️ 修改发布状态失败: " + err.message);
             }
         }
 
@@ -728,45 +728,39 @@
         async function fetchScores() {
             const tbody = document.getElementById('score-table-body');
             try {
-                const snapshot = await db.collection("leaderboard").orderBy("timestamp", "desc").limit(20).get();
+                const snapshot = await db.collection("scores").orderBy("createdAt", "desc").limit(50).get();
                 tbody.innerHTML = '';
 
                 if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">暂无学生提交测验成绩记录</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">暂无学生提交答题记录</td></tr>`;
                     return;
                 }
 
                 snapshot.forEach(doc => {
-                    const data = doc.data();
+                    const sc = doc.data();
+                    const dateStr = sc.createdAt ? new Date(sc.createdAt.seconds * 1000).toLocaleString('zh-CN') : '-';
                     const tr = document.createElement('tr');
-                    const timeStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('zh-CN') : '-';
+                    tr.className = "hover:bg-slate-50";
                     tr.innerHTML = `
-                        <td class="p-3 font-semibold text-slate-900">${data.playerName || '匿名'}</td>
-                        <td class="p-3 font-bold text-red-600">${data.score} 分</td>
-                        <td class="p-3 text-slate-600 text-xs">${data.timeText || '-'}</td>
-                        <td class="p-3 text-slate-500 text-xs">${timeStr}</td>
+                        <td class="p-3 font-semibold">${sc.studentName || '未知学生'}</td>
+                        <td class="p-3 text-xs text-slate-600">${sc.quizTitle || '练习测验'}</td>
+                        <td class="p-3 font-bold text-amber-600">${sc.score} 分</td>
+                        <td class="p-3 text-xs font-mono">${sc.timeSpent || '--'}s</td>
+                        <td class="p-3 text-xs text-slate-500">${dateStr}</td>
                     `;
                     tbody.appendChild(tr);
                 });
             } catch (err) {
-                console.error("加载成绩榜失败:", err);
+                console.error("加载成绩看板失败:", err);
             }
         }
 
-        // --- TAB SWITCHING ---
-        function switchTab(tabName) {
-            const tabs = ['students', 'classes', 'unlock', 'scores'];
-            tabs.forEach(t => {
-                document.getElementById(`tab-${t}`).classList.toggle('active', t === tabName);
-                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tabName);
-            });
-        }
-
         // --- LOGOUT ---
-        function handleLogout() {
-            auth.signOut().then(() => {
+        async function handleLogout() {
+            if (confirm("确定要退出教师管理后台吗？")) {
+                await auth.signOut();
                 window.location.href = "index.html";
-            });
+            }
         }
     </script>
 </body>
