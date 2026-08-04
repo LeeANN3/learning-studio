@@ -1,25 +1,3 @@
-🚀 3 步完成 Quiz 页面的自动登录与成绩保存
-
-很多刚接触网页开发的朋友会以为需要一行行去插入代码，其实不需要！只需遵循以下简单 3 步：
-
-第一步：确认您的文件夹结构
-
-请检查您电脑或 GitHub 仓库中的文件夹，确保结构如下：
-
-根目录/
-├── index.html          (登录和注册页面)
-├── dashboard.html      (学生仪表盘)
-└── quiz/               (测验文件夹)
-    ├── index.html      👈 (就是我们要修改的这个文件)
-    ├── style.css       (样式文件)
-    ├── lesson1.js      (您的题目数据)
-    └── script.js       (您的测验逻辑)
-
-
-第二步：将 quiz/index.html 的内容【全选覆盖】
-
-不用一行行找代码！直接把下面代码框里的全部内容复制，然后打开您项目里的 quiz/index.html，清空原有内容，直接全选粘贴进去：
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -96,12 +74,12 @@
     // ⚠️ 步骤：请把你在 index.html 用过的 Firebase 配置原封不动复制到这里
     // =========================================================
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+        authDomain: "my-teacher-studio.firebaseapp.com",
+        projectId: "my-teacher-studio",
+        storageBucket: "my-teacher-studio.firebasestorage.app",
+        messagingSenderId: "82774284780",
+        appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
     };
 
     // 初始化 Firebase
@@ -247,28 +225,3 @@
 
 </body>
 </html>
-
-
-第三步：唯一需要改动的地方 (firebaseConfig)
-
-在上面的代码中找到第 75~83 行的这一段：
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
-    authDomain: "my-teacher-studio.firebaseapp.com",
-    projectId: "my-teacher-studio",
-    storageBucket: "my-teacher-studio.firebasestorage.app",
-    messagingSenderId: "82774284780",
-    appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
-};
-
-
-操作方法：把您在主页 index.html 或 dashboard.html 里面使用过的真正 Firebase 密钥复制过来，替换掉双引号里的占位符文字（例如 apiKey: "AIzaSy..."）即可！
-
-🌟 运行效果
-
-学生从 Dashboard 点击进入做题页，顶部会自动显示 👤 当前做题学生: [小明]。
-
-如果未登录，会提示并跳转回到登录界面。
-
-答题结束后，界面会提示 🎉 成绩已自动为 [小明] 成功保存！，同时排行榜会自动更新。
