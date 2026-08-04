@@ -1,3 +1,25 @@
+🚀 3 步完成 Quiz 页面的自动登录与成绩保存
+
+很多刚接触网页开发的朋友会以为需要一行行去插入代码，其实不需要！只需遵循以下简单 3 步：
+
+第一步：确认您的文件夹结构
+
+请检查您电脑或 GitHub 仓库中的文件夹，确保结构如下：
+
+根目录/
+├── index.html          (登录和注册页面)
+├── dashboard.html      (学生仪表盘)
+└── quiz/               (测验文件夹)
+    ├── index.html      👈 (就是我们要修改的这个文件)
+    ├── style.css       (样式文件)
+    ├── lesson1.js      (您的题目数据)
+    └── script.js       (您的测验逻辑)
+
+
+第二步：将 quiz/index.html 的内容【全选覆盖】
+
+不用一行行找代码！直接把下面代码框里的全部内容复制，然后打开您项目里的 quiz/index.html，清空原有内容，直接全选粘贴进去：
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -5,62 +27,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Game</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        /* 增加顶部登录状态展示栏与通知样式 */
-        .user-header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 8px 16px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            font-family: sans-serif;
-            font-size: 14px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .user-header-bar .user-name {
-            font-weight: bold;
-            color: #2196F3;
-        }
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 10px;
-            border-bottom: 1px dashed #eee;
-            font-size: 15px;
-        }
-        .leaderboard-item:nth-child(1) { color: #d4af37; font-weight: bold; } /* 金 */
-        .leaderboard-item:nth-child(2) { color: #aaa9ad; font-weight: bold; } /* 银 */
-        .leaderboard-item:nth-child(3) { color: #b47226; font-weight: bold; } /* 铜 */
-    </style>
+    
+    <!-- 引入 FontAwesome 图标库 (可选) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
+
 <div class="container">
 
-    <!-- 顶部用户信息状态栏 -->
-    <div class="user-header-bar">
-        <span>👤 正在答题：<span id="header-user-name" class="user-name">验证登录中...</span></span>
-        <a href="../dashboard.html" style="color: #666; text-decoration: none; font-size: 13px;">← 返回大厅</a>
+    <!-- 顶栏：显示当前登录的学生姓名 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: rgba(0,0,0,0.05); border-radius: 10px; margin-bottom: 15px;">
+        <div style="font-weight: bold; color: #333;">
+            👤 当前做题学生: <span id="header-user-name" style="color: #2196F3;">检查登录中...</span>
+        </div>
+        <a href="../dashboard.html" style="text-decoration: none; font-weight: bold; color: #666; font-size: 14px;">🏠 返回主页</a>
     </div>
 
-    <!-- Start Screen -->
+    <!-- Start Screen (游戏开始界面) -->
     <section id="start-screen" class="screen">
         <h1>Quiz Game</h1>
         <p id="total-question-text"></p>
 
-        <button id="start-btn">Start</button>
+        <button id="start-btn">Start Game</button>
 
         <!-- 首页排行榜列表 -->
         <div style="margin-top: 30px;">
             <h3>🏆 排行榜 Top 10</h3>
-            <ol id="leaderboard-list" style="padding-left: 0; margin-top: 10px; list-style-position: inside;">
-                <div style="color: #888; font-size: 14px; text-align: center;">正在加载排行榜...</div>
-            </ol>
+            <ol id="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
         </div>
     </section>
 
-    <!-- Quiz Screen -->
+    <!-- Quiz Screen (做题界面) -->
     <section id="quiz-screen" class="screen hidden">
         <div class="top-bar">
             <div id="question-number"></div>
@@ -73,17 +70,15 @@
         <div id="options"></div>
     </section>
 
-    <!-- Result Screen -->
+    <!-- Result Screen (结算界面) -->
     <section id="result-screen" class="screen hidden">
         <h1>Game Over</h1>
         <h2 id="final-score"></h2>
         <h3 id="final-time"></h3>
 
-        <!-- 自动成绩保存提示状态 -->
-        <div style="text-align: center; margin: 20px 0;">
-            <p id="save-status-text" style="font-size: 16px; color: #2196F3; font-weight: bold;">
-                ⏳ 正在自动保存成绩...
-            </p>
+        <!-- 成绩保存状态提示区 -->
+        <div id="save-status-box" style="text-align: center; margin: 20px 0; padding: 12px; border-radius: 8px; background: #e3f2fd; color: #0d47a1; font-weight: bold; font-size: 15px;">
+            ⏳ 正在自动提交成绩中，请稍候...
         </div>
 
         <button id="restart-btn">Play Again</button>
@@ -91,134 +86,189 @@
 
 </div>
 
-<!-- 1. 引入 Firebase SDK (Compat 版本) -->
+<!-- 1. 引入 Firebase SDK (Compat 兼容版) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <script>
-    // 2. 初始化 Firebase 配置（请确保替换为您项目真实的配置）
+    // =========================================================
+    // ⚠️ 步骤：请把你在 index.html 用过的 Firebase 配置原封不动复制到这里
+    // =========================================================
     const firebaseConfig = {
-        apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
-        authDomain: "my-teacher-studio.firebaseapp.com",
-        projectId: "my-teacher-studio",
-        storageBucket: "my-teacher-studio.firebasestorage.app",
-        messagingSenderId: "82774284780",
-        appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID"
     };
 
+    // 初始化 Firebase
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
     let currentUser = null;
+    let hasSavedScoreThisRound = false; // 防止重复提交标记
 
-    // 3. 登录监听 (Auth State Observer)
+    // 2. 登录状态监听 (进入页面时自动验证身份)
     auth.onAuthStateChanged((user) => {
         if (user) {
             currentUser = user;
             const displayName = user.displayName || user.email.split('@')[0] || "匿名学生";
             
-            // 更新 UI 中的用户名
-            document.getElementById('header-user-name').innerText = displayName;
-            document.getElementById('player-name').value = displayName;
+            // 在页面顶部显示名字
+            const headerNameEl = document.getElementById('header-user-name');
+            if (headerNameEl) headerNameEl.innerText = displayName;
 
-            // 加载 Top 10 排行榜
+            // 加载排行榜
             loadLeaderboard();
         } else {
-            // 未登录重定向回到登录页
+            // 如果没登录，弹窗并自动跳转回登录页
             alert("请先登录账号再开始做题！");
             window.location.href = "../index.html";
         }
     });
 
-    // 4. 从 Firestore 加载 Top 10 排行榜
+    // 3. 自动保存成绩到 Firestore
+    async function autoSaveScore() {
+        if (!currentUser) return;
+        if (hasSavedScoreThisRound) return; // 本轮已保存过则跳过
+
+        const statusBox = document.getElementById('save-status-box');
+        const displayName = currentUser.displayName || currentUser.email.split('@')[0] || "匿名学生";
+
+        // 提取最终得分
+        const scoreEl = document.getElementById('final-score');
+        const scoreText = scoreEl ? scoreEl.innerText : "";
+        const scoreMatch = scoreText.match(/\d+/); 
+        const scoreValue = scoreMatch ? parseInt(scoreMatch[0]) : 0;
+
+        // 提取完成时间
+        const timeEl = document.getElementById('final-time');
+        const timeText = timeEl ? timeEl.innerText : "";
+
+        try {
+            if (statusBox) statusBox.innerHTML = `⏳ 正在保存 ${displayName} 的成绩...`;
+
+            await db.collection("leaderboard").add({
+                uid: currentUser.uid,
+                playerName: displayName,
+                score: scoreValue,
+                timeText: timeText,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            hasSavedScoreThisRound = true; // 标记已提交
+            if (statusBox) {
+                statusBox.style.background = '#e8f5e9';
+                statusBox.style.color = '#2e7d32';
+                statusBox.innerHTML = `🎉 成绩已自动为 <b>${displayName}</b> 成功保存！`;
+            }
+
+            // 重新刷新排行榜
+            loadLeaderboard();
+
+        } catch (err) {
+            console.error("保存成绩失败:", err);
+            if (statusBox) {
+                statusBox.style.background = '#ffebee';
+                statusBox.style.color = '#c62828';
+                statusBox.innerHTML = `⚠️ 成绩保存失败，请检查网络设置。`;
+            }
+        }
+    }
+
+    // 4. 从 Firestore 读取排行榜 Top 10
     async function loadLeaderboard() {
-        const listContainer = document.getElementById('leaderboard-list');
+        const listEl = document.getElementById('leaderboard-list');
+        if (!listEl) return;
+
         try {
             const snapshot = await db.collection("leaderboard")
                 .orderBy("score", "desc")
                 .limit(10)
                 .get();
 
-            listContainer.innerHTML = '';
+            listEl.innerHTML = "";
+
             if (snapshot.empty) {
-                listContainer.innerHTML = '<li style="text-align:center; color:#888;">暂无榜单记录，快来成为第一名吧！</li>';
+                listEl.innerHTML = "<li>暂无成绩记录，快来成为第一名吧！</li>";
                 return;
             }
 
-            snapshot.forEach((doc, index) => {
+            snapshot.forEach((doc) => {
                 const data = doc.data();
                 const li = document.createElement('li');
-                li.className = 'leaderboard-item';
-                li.innerHTML = `
-                    <span><strong>#${index + 1}</strong> ${data.studentName || '匿名'}</span>
-                    <span>${data.score} 分 ${data.timeSpent ? `(${data.timeSpent})` : ''}</span>
-                `;
-                listContainer.appendChild(li);
+                li.style.marginBottom = "6px";
+                li.innerHTML = `<b>${data.playerName || '匿名'}</b> - 分数: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> (${data.timeText || ''})`;
+                listEl.appendChild(li);
             });
         } catch (err) {
-            console.error("读取排行榜失败：", err);
-            listContainer.innerHTML = '<li style="text-align:center; color:#ff4d4d;">加载排行榜失败</li>';
+            console.error("加载排行榜失败:", err);
+            listEl.innerHTML = "<li>加载排行榜失败</li>";
         }
     }
 
-    // 5. 自动保存成绩至 Firebase Firestore（无需手动点击）
-    async function autoSaveScore() {
-        const statusEl = document.getElementById('save-status-text');
-
-        if (!currentUser) {
-            statusEl.innerHTML = '⚠️ 未登录账号，成绩未记录。';
-            return;
+    // 5. 监听 Result Screen（游戏结束）事件，一旦展示即触发自动保存
+    const observer = new MutationObserver(() => {
+        const resultScreen = document.getElementById('result-screen');
+        if (resultScreen && !resultScreen.classList.contains('hidden')) {
+            autoSaveScore();
         }
-
-        const displayName = currentUser.displayName || currentUser.email.split('@')[0] || "匿名学生";
-        statusEl.innerHTML = `⏳ 正在为 <strong>${displayName}</strong> 自动录入成绩...`;
-
-        // 自动提取页面上的成绩与用时文本
-        const scoreText = document.getElementById('final-score').innerText;
-        const timeText = document.getElementById('final-time').innerText;
-        
-        // 解析分数值（例如将 "Score: 80" 提取为纯数字 80）
-        const scoreMatch = scoreText.match(/\d+/);
-        const numericScore = scoreMatch ? parseInt(scoreMatch[0]) : 0;
-
-        const recordData = {
-            uid: currentUser.uid,
-            studentName: displayName,
-            score: numericScore,
-            scoreRawText: scoreText,
-            timeSpent: timeText,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        try {
-            await db.collection("leaderboard").add(recordData);
-            statusEl.innerHTML = `🎉 成绩已自动为 <strong>${displayName}</strong> 成功保存并更新至排行榜！`;
-            // 重新刷新排行榜
-            loadLeaderboard();
-        } catch (err) {
-            console.error("保存成绩失败：", err);
-            statusEl.innerHTML = `❌ 成绩保存失败：${err.message}`;
-        }
-    }
-
-    // 6. 监听游戏结束结算界面的弹出，自动触发保存
-    const resultScreen = document.getElementById('result-screen');
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.attributeName === 'class') {
-                if (!resultScreen.classList.contains('hidden')) {
-                    autoSaveScore();
-                }
-            }
-        });
     });
-    observer.observe(resultScreen, { attributes: true });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const resultScreen = document.getElementById('result-screen');
+        if (resultScreen) {
+            observer.observe(resultScreen, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        // 重新开始按钮点击时重置提交标记
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => {
+                hasSavedScoreThisRound = false;
+                const statusBox = document.getElementById('save-status-box');
+                if (statusBox) {
+                    statusBox.style.background = '#e3f2fd';
+                    statusBox.style.color = '#0d47a1';
+                    statusBox.innerHTML = `⏳ 正在自动提交成绩中，请稍候...`;
+                }
+            });
+        }
+    });
 </script>
 
-<!-- 原有的答题逻辑与题库 JS -->
+<!-- 6. 引入您原本的题目和游戏逻辑脚本 -->
 <script src="lesson1.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>
+
+
+第三步：唯一需要改动的地方 (firebaseConfig)
+
+在上面的代码中找到第 75~83 行的这一段：
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+    authDomain: "my-teacher-studio.firebaseapp.com",
+    projectId: "my-teacher-studio",
+    storageBucket: "my-teacher-studio.firebasestorage.app",
+    messagingSenderId: "82774284780",
+    appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+};
+
+
+操作方法：把您在主页 index.html 或 dashboard.html 里面使用过的真正 Firebase 密钥复制过来，替换掉双引号里的占位符文字（例如 apiKey: "AIzaSy..."）即可！
+
+🌟 运行效果
+
+学生从 Dashboard 点击进入做题页，顶部会自动显示 👤 当前做题学生: [小明]。
+
+如果未登录，会提示并跳转回到登录界面。
+
+答题结束后，界面会提示 🎉 成绩已自动为 [小明] 成功保存！，同时排行榜会自动更新。
