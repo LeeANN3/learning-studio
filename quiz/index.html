@@ -1,13 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Game</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* 增加顶部登录状态展示栏与通知样式 */
+        .user-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-family: sans-serif;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .user-header-bar .user-name {
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-bottom: 1px dashed #eee;
+            font-size: 15px;
+        }
+        .leaderboard-item:nth-child(1) { color: #d4af37; font-weight: bold; } /* 金 */
+        .leaderboard-item:nth-child(2) { color: #aaa9ad; font-weight: bold; } /* 银 */
+        .leaderboard-item:nth-child(3) { color: #b47226; font-weight: bold; } /* 铜 */
+    </style>
 </head>
 <body>
 <div class="container">
+
+    <!-- 顶部用户信息状态栏 -->
+    <div class="user-header-bar">
+        <span>👤 正在答题：<span id="header-user-name" class="user-name">验证登录中...</span></span>
+        <a href="../dashboard.html" style="color: #666; text-decoration: none; font-size: 13px;">← 返回大厅</a>
+    </div>
 
     <!-- Start Screen -->
     <section id="start-screen" class="screen">
@@ -19,7 +54,9 @@
         <!-- 首页排行榜列表 -->
         <div style="margin-top: 30px;">
             <h3>🏆 排行榜 Top 10</h3>
-            <ol id="leaderboard-list" style="padding-left: 20px; margin-top: 10px;"></ol>
+            <ol id="leaderboard-list" style="padding-left: 0; margin-top: 10px; list-style-position: inside;">
+                <div style="color: #888; font-size: 14px; text-align: center;">正在加载排行榜...</div>
+            </ol>
         </div>
     </section>
 
@@ -44,8 +81,8 @@
 
         <!-- 成绩提交表单 -->
         <div style="text-align: center; margin: 20px 0;">
-            <input type="text" id="player-name" placeholder="输入你的名字" style="padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc;">
-            <button id="save-score-btn" style="padding: 10px 20px; font-size: 16px; background: #2196F3; color: white; border-radius: 8px; margin-left: 10px;">保存成绩</button>
+            <input type="text" id="player-name" placeholder="输入你的名字" readonly style="padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; background-color: #f5f5f5;">
+            <button id="save-score-btn" style="padding: 10px 20px; font-size: 16px; background: #2196F3; color: white; border: none; border-radius: 8px; margin-left: 10px; cursor: pointer;">保存成绩</button>
         </div>
 
         <button id="restart-btn">Play Again</button>
@@ -53,6 +90,122 @@
 
 </div>
 
+<!-- 1. 引入 Firebase SDK (Compat 版本) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+    // 2. 初始化 Firebase 配置（请确保替换为您项目真实的配置）
+    const firebaseConfig = {
+        apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+        authDomain: "my-teacher-studio.firebaseapp.com",
+        projectId: "my-teacher-studio",
+        storageBucket: "my-teacher-studio.firebasestorage.app",
+        messagingSenderId: "82774284780",
+        appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+
+    // 3. 登录监听 (Auth State Observer)
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            currentUser = user;
+            const displayName = user.displayName || user.email.split('@')[0] || "匿名学生";
+            
+            // 更新 UI 中的用户名
+            document.getElementById('header-user-name').innerText = displayName;
+            document.getElementById('player-name').value = displayName;
+
+            // 加载 Top 10 排行榜
+            loadLeaderboard();
+        } else {
+            // 未登录重定向回到登录页
+            alert("请先登录账号再开始做题！");
+            window.location.href = "../index.html";
+        }
+    });
+
+    // 4. 从 Firestore 加载 Top 10 排行榜
+    async function loadLeaderboard() {
+        const listContainer = document.getElementById('leaderboard-list');
+        try {
+            const snapshot = await db.collection("leaderboard")
+                .orderBy("score", "desc")
+                .limit(10)
+                .get();
+
+            listContainer.innerHTML = '';
+            if (snapshot.empty) {
+                listContainer.innerHTML = '<li style="text-align:center; color:#888;">暂无榜单记录，快来成为第一名吧！</li>';
+                return;
+            }
+
+            snapshot.forEach((doc, index) => {
+                const data = doc.data();
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                li.innerHTML = `
+                    <span><strong>#${index + 1}</strong> ${data.studentName || '匿名'}</span>
+                    <span>${data.score} 分 ${data.timeSpent ? `(${data.timeSpent})` : ''}</span>
+                `;
+                listContainer.appendChild(li);
+            });
+        } catch (err) {
+            console.error("读取排行榜失败：", err);
+            listContainer.innerHTML = '<li style="text-align:center; color:#ff4d4d;">加载排行榜失败</li>';
+        }
+    }
+
+    // 5. 保存成绩至 Firebase Firestore
+    document.getElementById('save-score-btn').addEventListener('click', async () => {
+        if (!currentUser) {
+            alert("用户未登录，无法保存成绩！");
+            return;
+        }
+
+        const btn = document.getElementById('save-score-btn');
+        btn.disabled = true;
+        btn.innerText = "保存中...";
+
+        // 自动提取页面上的成绩与用时文本
+        const scoreText = document.getElementById('final-score').innerText;
+        const timeText = document.getElementById('final-time').innerText;
+        
+        // 解析分数值（例如将 "Score: 80" 或 "80 / 100" 提取为纯数字 80）
+        const scoreMatch = scoreText.match(/\d+/);
+        const numericScore = scoreMatch ? parseInt(scoreMatch[0]) : 0;
+
+        const recordData = {
+            uid: currentUser.uid,
+            studentName: document.getElementById('player-name').value,
+            score: numericScore,
+            scoreRawText: scoreText,
+            timeSpent: timeText,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            await db.collection("leaderboard").add(recordData);
+            alert("🎉 成绩保存成功！已更新至排行榜。");
+            btn.innerText = "已保存";
+            // 重新刷新排行榜
+            loadLeaderboard();
+        } catch (err) {
+            console.error("保存成绩失败：", err);
+            alert("保存失败：" + err.message);
+            btn.disabled = false;
+            btn.innerText = "保存成绩";
+        }
+    });
+</script>
+
+<!-- 原有的答题逻辑与题库 JS -->
 <script src="lesson1.js"></script>
 <script src="script.js"></script>
 </body>
