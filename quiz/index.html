@@ -54,20 +54,19 @@
         <h2 id="final-score"></h2>
         <h3 id="final-time"></h3>
 
-        <!-- 成绩保存状态提示区 -->
-        <div id="save-status-box" style="text-align: center; margin: 20px 0; padding: 12px; border-radius: 8px; background: #e3f2fd; color: #0d47a1; font-weight: bold; font-size: 15px;">
-            ⏳ 正在自动提交成绩中，请稍候...
-        </div>
+    <!-- Start Screen (游戏开始界面) -->
+    <section id="start-screen" class="screen">
+        <h1>Quiz Game</h1>
+        <p id="total-question-text"></p>
 
-        <!-- 结算界面排行榜列表 -->
-        <div style="margin-top: 25px; text-align: left; background: rgba(255,255,255,0.7); padding: 15px; border-radius: 12px;">
-            <h3 style="text-align: center; margin-bottom: 10px;">🏆 排行榜 Top 10</h3>
-            <ol class="leaderboard-list" style="padding-left: 25px; margin: 0;"></ol>
-        </div>
+        <button id="start-btn">Start Game</button>
 
-        <button id="restart-btn">Play Again</button>
+        <!-- 首页排行榜列表 (添加 class="leaderboard-list" 保持统一) -->
+        <div style="margin-top: 30px;">
+            <h3>🏆 排行榜 Top 10</h3>
+            <ol id="leaderboard-list" class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+        </div>
     </section>
-
 </div>
 
 <!-- 1. 引入 Firebase SDK (Compat 兼容版) -->
@@ -116,9 +115,12 @@
     });
 
     // 3. 自动保存成绩到 Firestore
-    async function autoSaveScore() {
+async function autoSaveScore() {
         if (!currentUser) return;
         if (hasSavedScoreThisRound) return; // 本轮已保存过则跳过
+
+        // ⏳ 稍微延迟 300ms，确保 script.js 已经把分数和时间填入了 #final-score / #final-time 元素中
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         const statusBox = document.getElementById('save-status-box');
         const displayName = currentUser.displayName || currentUser.email.split('@')[0] || "匿名学生";
@@ -159,14 +161,15 @@
             if (statusBox) {
                 statusBox.style.background = '#ffebee';
                 statusBox.style.color = '#c62828';
-                statusBox.innerHTML = `⚠️ 成绩保存失败，请检查网络设置。`;
+                statusBox.innerHTML = `⚠️ 成绩保存失败: ${err.message || '权限不足或网络异常'}`;
             }
         }
     }
 
     // 4. 从 Firestore 读取排行榜 Top 10
-    async function loadLeaderboard() {
-        const listEls = document.querySelectorAll('.leaderboard-list');
+ async function loadLeaderboard() {
+        // 兼容选取 class 或 id
+        const listEls = document.querySelectorAll('.leaderboard-list, #leaderboard-list');
         if (!listEls.length) return;
 
         try {
@@ -178,7 +181,7 @@
             listEls.forEach(el => el.innerHTML = "");
 
             if (snapshot.empty) {
-                listEls.forEach(el => el.innerHTML = "<li>暂无成绩记录，快来成为第一名吧！</li>");
+                listEls.forEach(el => el.innerHTML = "<li style='color:#666;'>暂无成绩记录，快来成为第一名吧！</li>");
                 return;
             }
 
@@ -193,7 +196,7 @@
             });
         } catch (err) {
             console.error("加载排行榜失败:", err);
-            listEls.forEach(el => el.innerHTML = "<li>加载排行榜失败</li>");
+            listEls.forEach(el => el.innerHTML = `<li style="color:#c62828;">⚠️ 加载排行榜失败: ${err.message}</li>`);
         }
     }
     
