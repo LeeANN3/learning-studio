@@ -274,7 +274,7 @@
             </div>
 
             <div class="selectors-grid">
-                <!-- 切换年级 (允许自由切换预览) -->
+                <!-- 切换年级 -->
                 <div class="form-group">
                     <label for="select-grade" id="lbl-select-grade">选择年级</label>
                     <select id="select-grade" class="form-select" onchange="onGradeChange()">
@@ -287,7 +287,7 @@
                     </select>
                 </div>
 
-                <!-- 选择科目 (根据班级类别自动过滤) -->
+                <!-- 选择科目 -->
                 <div class="form-group">
                     <label for="select-subject" id="lbl-select-subject">选择科目</label>
                     <select id="select-subject" class="form-select" onchange="onSubjectChange()">
@@ -347,12 +347,12 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+            authDomain: "my-teacher-studio.firebaseapp.com",
+            projectId: "my-teacher-studio",
+            storageBucket: "my-teacher-studio.firebasestorage.app",
+            messagingSenderId: "82774284780",
+            appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
         };
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -372,52 +372,27 @@
             { id: 'science', zh: '科学', en: 'Science' }
         ];
 
-        // 假数据：模拟不同年级、科目、单元下的链接资源（后续可连接 Firestore 动态查询）
-        const mockDatabase = {
-            chinese: {
-                units: ['单元一：美好的新开始', '单元二：温馨的家庭', '单元三：走进大自然'],
-                quizzes: [
-                    { title: '单元一 基础词汇测验', url: '#' },
-                    { title: '单元一 汉语拼音小测试', url: '#' }
-                ],
-                reviews: [
-                    { title: '单元一 知识点PPT复习', url: '#' },
-                    { title: '课文朗读录音与解析', url: '#' }
-                ],
-                games: [
-                    { title: '汉字消除大冒险', url: '#' },
-                    { title: '拼音连连看', url: '#' }
-                ]
-            },
-            math: {
-                units: ['单元一：100以内的整数', '单元二：基本加减法', '单元三：形状与空间'],
-                quizzes: [{ title: '加减法速算小测', url: '#' }],
-                reviews: [{ title: '常用公式记忆卡', url: '#' }],
-                games: [{ title: '数学赛车挑战赛', url: '#' }]
-            }
-        };
-
         const translations = {
             zh: {
                 langBtn: "English", appTitle: "趣味学习岛", logout: "退出",
                 lblGrade: "选择年级", lblSubject: "选择科目", lblUnit: "选择单元",
                 secQuiz: "测验", secReview: "复习", secGame: "游戏",
-                emptyTip: "暂无相关链接资源", gradeTitleSuffix: "年级学习区",
-                tagAll: "安亲班", tagCn: "中文班"
+                emptyTip: "暂无相关链接资源", loadingTip: "正在载入资源...", gradeTitleSuffix: "年级学习区",
+                tagAll: "安亲班", tagCn: "中文班", unitPrefix: "单元 "
             },
             en: {
                 langBtn: "中文", appTitle: "Fun Learning Island", logout: "Logout",
                 lblGrade: "Grade", lblSubject: "Subject", lblUnit: "Unit",
                 secQuiz: "Quizzes", secReview: "Revision", secGame: "Games",
-                emptyTip: "No resources available for now", gradeTitleSuffix: " Learning Area",
-                tagAll: "Daycare", tagCn: "Chinese Class"
+                emptyTip: "No resources available for now", loadingTip: "Loading resources...", gradeTitleSuffix: " Learning Area",
+                tagAll: "Daycare", tagCn: "Chinese Class", unitPrefix: "Unit "
             }
         };
 
         // 页面初始化 Authentication Check
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
-                window.location.href = "index.html"; // 未登录重定向
+                window.location.href = "index.html";
                 return;
             }
 
@@ -425,12 +400,10 @@
                 const doc = await db.collection("users").doc(user.uid).get();
                 if (doc.exists) {
                     currentUserData = doc.data();
-                    setupDashboardUI();
                 } else {
-                    // 如果 Firestore 没有找到用户记录，默认给初级数据
                     currentUserData = { name: user.displayName || "学生", grade: 1, classType: 'all_subjects' };
-                    setupDashboardUI();
                 }
+                setupDashboardUI();
             } catch (err) {
                 console.error("加载用户信息失败:", err);
             }
@@ -438,7 +411,6 @@
 
         // 根据用户信息初始化 Dashboard 界面
         function setupDashboardUI() {
-            // 设置姓名与班级类别标签
             document.getElementById('user-name-display').innerText = currentUserData.name || "学生";
             
             const badge = document.getElementById('class-type-badge');
@@ -450,11 +422,9 @@
                 badge.style.backgroundColor = '#e0f2fe';
             }
 
-            // 默认选中注册时选择的年级
             const userGrade = currentUserData.grade || 1;
             document.getElementById('select-grade').value = userGrade;
 
-            // 初始化科目菜单 (核心：受 classType 控制)
             initSubjectDropdown();
             updateGradeTitle();
         }
@@ -464,7 +434,6 @@
             const subjectSelect = document.getElementById('select-subject');
             subjectSelect.innerHTML = '';
 
-            // 过滤逻辑：如果是中文班，只保留华文；如果是安亲班，显示全科
             let filteredSubjects = allSubjects;
             if (currentUserData && currentUserData.classType === 'chinese_only') {
                 filteredSubjects = allSubjects.filter(sub => sub.id === 'chinese');
@@ -477,7 +446,7 @@
                 subjectSelect.appendChild(opt);
             });
 
-            onSubjectChange(); // 触发更新单元
+            onSubjectChange(); 
         }
 
         // 年级切换响应
@@ -486,20 +455,18 @@
             renderResources();
         }
 
-        // 科目切换响应
+        // 科目切换响应（生成 1 ~ 10 单元选项）
         function onSubjectChange() {
-            const subject = document.getElementById('select-subject').value;
             const unitSelect = document.getElementById('select-unit');
             unitSelect.innerHTML = '';
 
-            const subjectData = mockDatabase[subject] || { units: ['单元一：基础学习'] };
-
-            subjectData.units.forEach((unit, idx) => {
+            const t = translations[currentLang];
+            for (let i = 1; i <= 10; i++) {
                 const opt = document.createElement('option');
-                opt.value = idx;
-                opt.innerText = unit;
+                opt.value = i;
+                opt.innerText = `${t.unitPrefix}${i}`;
                 unitSelect.appendChild(opt);
-            });
+            }
 
             renderResources();
         }
@@ -516,14 +483,49 @@
             }
         }
 
-        // 渲染三大板块 (测验、复习、游戏) 链接列表
-        function renderResources() {
+        // 核心修改：直接从 Firebase Firestore 查询真实测验/游戏资源
+        async function renderResources() {
+            const grade = parseInt(document.getElementById('select-grade').value);
             const subject = document.getElementById('select-subject').value;
-            const data = mockDatabase[subject] || { quizzes: [], reviews: [], games: [] };
+            const unit = parseInt(document.getElementById('select-unit').value);
 
-            renderLinkGrid('quiz-list', data.quizzes || [], 'fa-circle-question');
-            renderLinkGrid('review-list', data.reviews || [], 'fa-file-lines');
-            renderLinkGrid('game-list', data.games || [], 'fa-gamepad');
+            const t = translations[currentLang];
+
+            // 先显示加载提示
+            document.getElementById('quiz-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
+            document.getElementById('review-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
+            document.getElementById('game-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
+
+            try {
+                // 向 Firestore 提取当前选中的【年级 + 科目 + 单元】数据
+                const snapshot = await db.collection("resources")
+                    .where("grade", "==", grade)
+                    .where("subject", "==", subject)
+                    .where("unit", "==", unit)
+                    .get();
+
+                const quizzes = [];
+                const reviews = [];
+                const games = [];
+
+                snapshot.forEach(doc => {
+                    const item = doc.data();
+                    if (item.type === 'quiz') quizzes.push(item);
+                    else if (item.type === 'review') reviews.push(item);
+                    else if (item.type === 'game') games.push(item);
+                });
+
+                // 渲染到对应板块
+                renderLinkGrid('quiz-list', quizzes, 'fa-circle-question');
+                renderLinkGrid('review-list', reviews, 'fa-file-lines');
+                renderLinkGrid('game-list', games, 'fa-gamepad');
+
+            } catch (error) {
+                console.error("读取 Firebase 资源失败:", error);
+                document.getElementById('quiz-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
+                document.getElementById('review-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
+                document.getElementById('game-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
+            }
         }
 
         function renderLinkGrid(elementId, items, iconClass) {
@@ -563,7 +565,9 @@
             document.getElementById('txt-sec-review').innerText = t.secReview;
             document.getElementById('txt-sec-game').innerText = t.secGame;
 
-            if (currentUserData) setupDashboardUI();
+            if (currentUserData) {
+                setupDashboardUI();
+            }
         }
 
         // 登出逻辑
