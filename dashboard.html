@@ -89,12 +89,23 @@
             gap: 6px;
             transition: all 0.15s ease;
             white-space: nowrap;
+            text-decoration: none;
+            color: #1a1a1a;
         }
 
         .btn-ui:hover {
             background: #ffe600;
             transform: translate(-1px, -1px);
             box-shadow: 3px 3px 0px #1a1a1a;
+        }
+
+        .btn-teacher-admin {
+            background: #ffe600;
+            border-color: #1a1a1a;
+            animation: pulse-border 2s infinite;
+        }
+        .btn-teacher-admin:hover {
+            background: #facc15;
         }
 
         .btn-logout:hover {
@@ -294,14 +305,20 @@
         </div>
 
         <div class="user-actions">
+            <!-- 教师专属管理后台入口按钮（仅教师账号可见） -->
+            <a href="admin.html" id="btn-admin-portal" class="btn-ui btn-teacher-admin hidden">
+                <i class="fa-solid fa-chalkboard-user"></i>
+                <span id="txt-admin-portal">教师管理后台</span>
+            </a>
+
             <button type="button" class="btn-ui" onclick="toggleLanguage()">
                 <i class="fa-solid fa-globe"></i>
                 <span id="lang-btn-text">English</span>
             </button>
             <div class="user-info-badge">
-                <i class="fa-solid fa-user-graduate"></i>
+                <i id="user-role-icon" class="fa-solid fa-user-graduate"></i>
                 <span id="user-name-display">加载中...</span>
-                <span id="class-type-badge" class="tag-class-type">安亲班</span>
+                <span id="class-type-badge" class="tag-class-type">学生</span>
             </div>
             <button type="button" class="btn-ui btn-logout" onclick="handleLogout()">
                 <i class="fa-solid fa-right-from-bracket"></i>
@@ -322,12 +339,12 @@
                 <div class="form-group">
                     <label for="select-grade" id="lbl-select-grade">选择年级</label>
                     <select id="select-grade" class="form-select" onchange="onGradeChange()">
-                        <option value="1">一年级 (Standard 1)</option>
-                        <option value="2">二年级 (Standard 2)</option>
-                        <option value="3">三年级 (Standard 3)</option>
-                        <option value="4">四年级 (Standard 4)</option>
-                        <option value="5">五年级 (Standard 5)</option>
-                        <option value="6">六年级 (Standard 6)</option>
+                        <option value="1">一年级 (Grade 1)</option>
+                        <option value="2">二年级 (Grade 2)</option>
+                        <option value="3">三年级 (Grade 3)</option>
+                        <option value="4">四年级 (Grade 4)</option>
+                        <option value="5">五年级 (Grade 5)</option>
+                        <option value="6">六年级 (Grade 6)</option>
                     </select>
                 </div>
 
@@ -405,18 +422,18 @@
 
         const translations = {
             zh: {
-                langBtn: "English", appTitle: "趣味学习岛", logout: "退出",
+                langBtn: "English", appTitle: "趣味学习岛", logout: "退出", adminPortal: "教师管理后台",
                 lblGrade: "选择年级", lblSubject: "选择科目", lblUnit: "选择单元",
                 secQuiz: "测验", secReview: "复习", secGame: "游戏",
                 emptyTip: "暂无相关链接资源", loadingTip: "正在载入资源...", gradeTitleSuffix: "年级学习区",
-                tagAll: "安亲班", tagCn: "中文班", unitPrefix: "单元 "
+                tagStudent: "学生", tagTeacher: "教师/管理员", unitPrefix: "单元 "
             },
             en: {
-                langBtn: "中文", appTitle: "Fun Learning Island", logout: "Logout",
+                langBtn: "中文", appTitle: "Fun Learning Island", logout: "Logout", adminPortal: "Teacher Admin",
                 lblGrade: "Grade", lblSubject: "Subject", lblUnit: "Unit",
                 secQuiz: "Quizzes", secReview: "Revision", secGame: "Games",
                 emptyTip: "No resources available for now", loadingTip: "Loading resources...", gradeTitleSuffix: " Learning Area",
-                tagAll: "Daycare", tagCn: "Chinese Class", unitPrefix: "Unit "
+                tagStudent: "Student", tagTeacher: "Teacher", unitPrefix: "Unit "
             }
         };
 
@@ -431,7 +448,7 @@
                 if (doc.exists) {
                     currentUserData = doc.data();
                 } else {
-                    currentUserData = { name: user.displayName || "学生", grade: 1, classType: 'all_subjects' };
+                    currentUserData = { name: user.displayName || "使用者", role: 'student', grade: 1 };
                 }
                 setupDashboardUI();
             } catch (err) {
@@ -440,15 +457,23 @@
         });
 
         function setupDashboardUI() {
-            document.getElementById('user-name-display').innerText = currentUserData.name || "学生";
+            document.getElementById('user-name-display').innerText = currentUserData.name || "使用者";
             
             const badge = document.getElementById('class-type-badge');
-            if (currentUserData.classType === 'chinese_only') {
-                badge.innerText = translations[currentLang].tagCn;
+            const adminBtn = document.getElementById('btn-admin-portal');
+            const roleIcon = document.getElementById('user-role-icon');
+
+            // 核心检测：如果是教师账号，显示教师专属按钮
+            if (currentUserData.role === 'teacher') {
+                adminBtn.classList.remove('hidden');
+                badge.innerText = translations[currentLang].tagTeacher;
                 badge.style.backgroundColor = '#fef3c7';
+                roleIcon.className = "fa-solid fa-user-shield text-amber-500";
             } else {
-                badge.innerText = translations[currentLang].tagAll;
+                adminBtn.classList.add('hidden');
+                badge.innerText = translations[currentLang].tagStudent;
                 badge.style.backgroundColor = '#e0f2fe';
+                roleIcon.className = "fa-solid fa-user-graduate";
             }
 
             const userGrade = currentUserData.grade || 1;
@@ -462,12 +487,7 @@
             const subjectSelect = document.getElementById('select-subject');
             subjectSelect.innerHTML = '';
 
-            let filteredSubjects = allSubjects;
-            if (currentUserData && currentUserData.classType === 'chinese_only') {
-                filteredSubjects = allSubjects.filter(sub => sub.id === 'chinese');
-            }
-
-            filteredSubjects.forEach(sub => {
+            allSubjects.forEach(sub => {
                 const opt = document.createElement('option');
                 opt.value = sub.id;
                 opt.innerText = currentLang === 'zh' ? sub.zh : sub.en;
@@ -582,6 +602,7 @@
             document.getElementById('lang-btn-text').innerText = t.langBtn;
             document.getElementById('txt-app-title').innerText = t.appTitle;
             document.getElementById('txt-logout').innerText = t.logout;
+            document.getElementById('txt-admin-portal').innerText = t.adminPortal;
             document.getElementById('lbl-select-grade').innerText = t.lblGrade;
             document.getElementById('lbl-select-subject').innerText = t.lblSubject;
             document.getElementById('lbl-select-unit').innerText = t.lblUnit;
