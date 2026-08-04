@@ -3,174 +3,281 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun Learning Island - Login & Register</title>
+    <title>学习乐园 - 登录与注册</title>
+    <!-- FontAwesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+    <!-- Firebase SDK (v8 兼容版) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        :root {
+            --bg-color: #FAF8F5;
+            --card-bg: #FFFFFF;
+            --text-main: #2C3E50;
+            --border-color: #2C3E50;
+            --accent-yellow: #FFEAA7;
+            --accent-blue: #74B9FF;
+            --accent-green: #55E6C1;
+            --danger-red: #FF7675;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft YaHei', sans-serif;
+        }
+
         body {
-            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
-            background-color: #fafafa;
-            background-image: radial-gradient(#e5e7eb 1.2px, transparent 1.2px);
-            background-size: 20px 20px;
-            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
+            min-height: 100vh;
             padding: 20px;
-            color: #1a1a1a;
         }
 
+        /* 涂鸦风格涂鸦容器 */
         .auth-card {
-            background-color: #ffffff;
-            border-radius: 20px;
-            border: 2px solid #1a1a1a;
-            box-shadow: 4px 4px 0px #1a1a1a;
+            background: var(--card-bg);
+            border: 3px solid var(--border-color);
+            border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+            box-shadow: 6px 6px 0px var(--border-color);
             width: 100%;
-            max-width: 460px;
-            padding: 32px 28px 28px;
+            max-width: 420px;
+            padding: 30px 25px;
             position: relative;
         }
 
-        .lang-switch-container { position: absolute; top: 18px; right: 20px; }
-        .btn-lang {
-            background: #ffffff;
-            border: 2px solid #1a1a1a;
-            border-radius: 12px;
-            padding: 4px 12px;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 2px 2px 0px #1a1a1a;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .btn-lang:hover { background: #ffe600; transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #1a1a1a; }
-
-        .auth-header { text-align: center; margin-bottom: 20px; margin-top: 6px; }
-        .auth-header .logo-badge {
-            background-color: #ffffff; border: 2px solid #1a1a1a;
-            width: 64px; height: 64px; border-radius: 18px;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 12px; font-size: 30px; color: #1a1a1a;
-            box-shadow: 3px 3px 0px #1a1a1a;
+        .auth-header {
+            text-align: center;
+            margin-bottom: 25px;
         }
 
-        .tab-switch { display: flex; gap: 10px; margin-bottom: 20px; }
+        .auth-header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .auth-header p {
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        /* Tab 切换 */
+        .tab-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
         .tab-btn {
-            flex: 1; padding: 10px; border: 2px solid #1a1a1a; background: #ffffff;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 15px; font-weight: 600;
-            border-radius: 14px; cursor: pointer; box-shadow: 2px 2px 0px #1a1a1a;
+            flex: 1;
+            padding: 10px;
+            background: transparent;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .tab-btn.active { background-color: #ffe600; box-shadow: 3px 3px 0px #1a1a1a; font-weight: 700; }
 
-        .role-selector {
-            display: flex; gap: 10px; margin-bottom: 16px;
-            background: #f4f4f5; padding: 6px; border-radius: 14px; border: 2px solid #1a1a1a;
+        .tab-btn.active {
+            background: var(--accent-yellow);
+            box-shadow: 3px 3px 0px var(--border-color);
+            transform: translate(-2px, -2px);
         }
-        .role-btn {
-            flex: 1; padding: 8px; text-align: center; border-radius: 10px; cursor: pointer;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 15px; font-weight: 600;
-            border: 2px solid transparent; transition: all 0.15s ease;
-        }
-        .role-btn.active { background: #ffffff; border-color: #1a1a1a; box-shadow: 2px 2px 0px #1a1a1a; }
 
-        .form-group { margin-bottom: 14px; text-align: left; }
-        .form-group label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 5px; }
-        .input-wrapper { position: relative; }
-        .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; }
-        
+        /* 表单区域 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.hidden {
+            display: none;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+
         .form-control, .form-select {
-            width: 100%; padding: 10px 14px 10px 38px;
-            border: 2px solid #1a1a1a; border-radius: 12px;
-            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive; font-size: 16px;
-            outline: none; background-color: #ffffff;
+            width: 100%;
+            padding: 12px 12px 12px 38px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: #FFF;
+            outline: none;
         }
-        .form-control:focus, .form-select:focus { box-shadow: 3px 3px 0px #ffe600; }
 
-        .btn-submit {
-            width: 100%; padding: 12px; background-color: #1a1a1a; color: #ffffff;
-            border: 2px solid #1a1a1a; border-radius: 14px;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 18px; font-weight: 700;
-            cursor: pointer; box-shadow: 3px 3px 0px #1a1a1a; margin-top: 6px;
+        .form-control:focus, .form-select:focus {
+            background: #F0F8FF;
         }
-        .btn-submit:hover { background-color: #ffe600; color: #1a1a1a; box-shadow: 4px 4px 0px #1a1a1a; }
 
-        .forgot-link-container { text-align: right; margin-top: 4px; margin-bottom: 10px; }
-        .forgot-link { font-size: 14px; text-decoration: underline; cursor: pointer; }
-
-        .message-box {
-            padding: 10px 14px; border-radius: 12px; font-size: 14px;
-            margin-bottom: 14px; display: none; text-align: center; border: 2px solid #1a1a1a;
+        /* 单选按钮组 (角色选择) */
+        .role-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
         }
-        .message-box.error { background-color: #ffffff; color: #d90429; border-color: #d90429; display: block; }
-        .message-box.success { background-color: #ffe600; color: #1a1a1a; display: block; }
 
-        .hidden { display: none !important; }
+        .role-option {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #FFF;
+        }
+
+        .role-option input[type="radio"] {
+            display: none;
+        }
+
+        .role-option.selected {
+            background: var(--accent-blue);
+            color: #FFF;
+        }
+
+        /* 提交按钮 */
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-green);
+            border: 2px solid var(--border-color);
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px var(--border-color);
+            margin-top: 10px;
+            transition: all 0.1s;
+        }
+
+        .submit-btn:active {
+            box-shadow: 1px 1px 0px var(--border-color);
+            transform: translate(3px, 3px);
+        }
+
+        /* 提示信息 */
+        .msg-box {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .msg-box.error {
+            display: block;
+            background: #FFE5E5;
+            color: var(--danger-red);
+            border: 1.5px solid var(--danger-red);
+        }
+
+        .msg-box.success {
+            display: block;
+            background: #E3FCEF;
+            color: #00875A;
+            border: 1.5px solid #00875A;
+        }
     </style>
 </head>
 <body>
 
     <div class="auth-card">
-        <div class="lang-switch-container">
-            <button type="button" class="btn-lang" onclick="toggleLanguage()">
-                <i class="fa-solid fa-globe"></i>
-                <span id="lang-btn-text">English</span>
-            </button>
-        </div>
-
         <div class="auth-header">
-            <div class="logo-badge"><i class="fa-solid fa-gamepad"></i></div>
-            <h1 id="txt-title" style="font-family:'Fredoka', 'ZCOOL KuaiLe'; font-size:24px;">趣味学习岛</h1>
-            <p id="txt-subtitle" style="font-size:15px; color:#666;">登录账号开启学习冒险！</p>
+            <h1>✏️ 学习乐园</h1>
+            <p>快乐学习，探索新知识！</p>
         </div>
 
-        <!-- 登录 / 注册 Tab -->
-        <div class="tab-switch">
-            <button type="button" class="tab-btn active" id="tab-login" onclick="switchTab('login')">
-                <span id="txt-tab-login">登录</span>
-            </button>
-            <button type="button" class="tab-btn" id="tab-register" onclick="switchTab('register')">
-                <span id="txt-tab-register">新用户注册</span>
-            </button>
+        <!-- 登录 / 注册 标签页切换 -->
+        <div class="tab-group">
+            <button class="tab-btn active" id="btn-tab-login" onclick="switchTab('login')">登录</button>
+            <button class="tab-btn" id="btn-tab-register" onclick="switchTab('register')">注册账号</button>
         </div>
 
-        <div id="message-box" class="message-box"></div>
+        <!-- 消息提示区域 -->
+        <div id="msg-box" class="msg-box"></div>
 
+        <!-- 表单内容 -->
         <form id="auth-form" onsubmit="handleAuth(event)">
             
-            <!-- 注册时选择：学生 or 老师 -->
-            <div class="form-group hidden" id="group-role-select">
-                <label id="lbl-identity">注册身份 / Identity:</label>
-                <div class="role-selector">
-                    <div class="role-btn active" id="role-student" onclick="selectRole('student')">
-                        <i class="fa-solid fa-user-graduate"></i> <span id="txt-role-student">我是学生</span>
-                    </div>
-                    <div class="role-btn" id="role-teacher" onclick="selectRole('teacher')">
-                        <i class="fa-solid fa-chalkboard-user"></i> <span id="txt-role-teacher">我是老师</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 姓名/昵称 (注册时可见) -->
-            <div class="form-group hidden" id="group-display-name">
-                <label for="display-name" id="lbl-name">姓名 / 昵称</label>
+            <!-- 姓名/昵称 (仅注册时可见) -->
+            <div class="form-group hidden" id="group-name">
+                <label for="user-name">你的名字 / 昵称</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="display-name" class="form-control" placeholder="例如：小明 / Alex">
+                    <input type="text" id="user-name" class="form-control" placeholder="例如：小明">
                 </div>
             </div>
 
-            <!-- 学生年级选择 (仅学生注册时可见) -->
-            <div class="form-group hidden" id="group-student-grade">
-                <label for="student-grade" id="lbl-select-grade-reg">所属年级</label>
+            <!-- 邮箱地址 -->
+            <div class="form-group">
+                <label for="user-email">电子邮箱 (Email)</label>
                 <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="user-email" class="form-control" placeholder="name@example.com" required>
+                </div>
+            </div>
+
+            <!-- 密码 -->
+            <div class="form-group">
+                <label for="user-password">密码</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="user-password" class="form-control" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <!-- 身份选择 (仅注册时可见) -->
+            <div class="form-group hidden" id="group-role">
+                <label>选择你的身份</label>
+                <div class="role-group">
+                    <label class="role-option selected" id="opt-student" onclick="selectRole('student')">
+                        <input type="radio" name="role" value="student" checked>
+                        <i class="fa-solid fa-child"></i> 我是学生
+                    </label>
+                    <label class="role-option" id="opt-teacher" onclick="selectRole('teacher')">
+                        <input type="radio" name="role" value="teacher">
+                        <i class="fa-solid fa-chalkboard-user"></i> 我是老师
+                    </label>
+                </div>
+            </div>
+
+            <!-- 学生专属字段：年级 与 班级类型 (仅学生注册时可见) -->
+            <div class="form-group hidden" id="group-student-grade">
+                <label for="student-grade">所属年级</label>
+                <div class="input-wrapper" style="margin-bottom: 12px;">
                     <i class="fa-solid fa-graduation-cap"></i>
-                    <select id="student-grade" class="form-select" style="padding-left:38px;">
+                    <select id="student-grade" class="form-select">
                         <option value="1">一年级 (Grade 1)</option>
                         <option value="2">二年级 (Grade 2)</option>
                         <option value="3">三年级 (Grade 3)</option>
@@ -179,207 +286,221 @@
                         <option value="6">六年级 (Grade 6)</option>
                     </select>
                 </div>
+
+                <label for="student-class-type">班级类别</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-school"></i>
+                    <select id="student-class-type" class="form-select">
+                        <option value="all_subjects">安亲班 (全科 - 华/马/英/数/科)</option>
+                        <option value="chinese_only">中文班 (仅华文)</option>
+                    </select>
+                </div>
             </div>
 
-            <!-- 教师验证口令 (仅老师注册时可见，防止学生乱注册) -->
+            <!-- 教师验证口令 (仅老师注册时可见) -->
             <div class="form-group hidden" id="group-teacher-key">
-                <label for="teacher-key" id="lbl-teacher-key">教师验证口令 (Teacher Key)</label>
+                <label for="teacher-key">教师验证口令</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-key"></i>
-                    <input type="password" id="teacher-key" class="form-control" placeholder="请输入教师注册密钥（默认 TEACHER888）">
+                    <input type="password" id="teacher-key" class="form-control" placeholder="请输入密钥（默认 TEACHER888）">
                 </div>
             </div>
 
-            <!-- 邮箱输入框 -->
-            <div class="form-group">
-                <label for="email" id="lbl-email">电子邮箱</label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="email" class="form-control" placeholder="student@school.com" required>
-                </div>
-            </div>
-
-            <!-- 密码输入框 -->
-            <div class="form-group">
-                <label for="password" id="lbl-password">密码</label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
-                </div>
-            </div>
-
-            <div class="forgot-link-container" id="forgot-password-container">
-                <span class="forgot-link" id="txt-forgot-password" onclick="handleForgotPassword()">忘记密码？</span>
-            </div>
-
-            <button type="submit" id="submit-btn" class="btn-submit">
-                <span id="txt-submit-btn">立即登录</span>
-            </button>
+            <button type="submit" class="submit-btn" id="btn-submit">立即登录</button>
         </form>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
     <script>
+        // ----------------------------------------------------
+        // 1. Firebase 初始化配置 (请替换为您自己的 Firebase 配置对象)
+        // ----------------------------------------------------
         const firebaseConfig = {
-            apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
-            authDomain: "my-teacher-studio.firebaseapp.com",
-            projectId: "my-teacher-studio",
-            storageBucket: "my-teacher-studio.firebasestorage.app",
-            messagingSenderId: "82774284780",
-            appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        // 初始化 Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 默认教师密码口令 (您可以自由设置)
+        // 预设默认教师密钥
         const DEFAULT_TEACHER_KEY = "TEACHER888";
 
+        // 当前模式: 'login' 或 'register'
         let currentMode = 'login';
-        let selectedRole = 'student'; // 'student' 或 'teacher'
-        let currentLang = 'zh';
+        let selectedRole = 'student';
 
-        const translations = {
-            zh: {
-                langBtn: "English", title: "趣味学习岛", subtitle: "登录账号开启学习冒险！",
-                tabLogin: "登录", tabRegister: "新用户注册",
-                lblIdentity: "注册身份：", roleStudent: "我是学生", roleTeacher: "我是老师",
-                lblName: "姓名 / 昵称", namePlaceholder: "例如：小明",
-                lblGradeReg: "所属年级", lblTeacherKey: "教师验证口令 (Teacher Key)",
-                lblEmail: "电子邮箱", lblPassword: "密码", pwdPlaceholder: "至少6位",
-                forgotPwd: "忘记密码？", btnLogin: "立即登录", btnRegister: "注册并登录",
-                processing: "处理中...", successLogin: "登录成功！", successRegister: "注册成功！",
-                errWrongTeacherKey: "教师验证口令错误！请联系管理员。", errRequireName: "请输入姓名！"
-            },
-            en: {
-                langBtn: "中文", title: "Fun Learning Island", subtitle: "Log in to start learning!",
-                tabLogin: "Log In", tabRegister: "Register",
-                lblIdentity: "Identity:", roleStudent: "Student", roleTeacher: "Teacher",
-                lblName: "Name / Nickname", namePlaceholder: "e.g., Alex",
-                lblGradeReg: "Grade", lblTeacherKey: "Teacher Security Key",
-                lblEmail: "Email", lblPassword: "Password", pwdPlaceholder: "Min 6 characters",
-                forgotPwd: "Forgot Password?", btnLogin: "Log In", btnRegister: "Register",
-                processing: "Processing...", successLogin: "Logged in!", successRegister: "Registered!",
-                errWrongTeacherKey: "Incorrect Teacher Security Key!", errRequireName: "Please enter your name!"
-            }
-        };
-
-        function toggleLanguage() {
-            currentLang = (currentLang === 'zh') ? 'en' : 'zh';
-            updatePageText();
-        }
-
-        function updatePageText() {
-            const t = translations[currentLang];
-            document.getElementById('lang-btn-text').innerText = t.langBtn;
-            document.getElementById('txt-title').innerText = t.title;
-            document.getElementById('txt-subtitle').innerText = t.subtitle;
-            document.getElementById('txt-tab-login').innerText = t.tabLogin;
-            document.getElementById('txt-tab-register').innerText = t.tabRegister;
-            document.getElementById('lbl-identity').innerText = t.lblIdentity;
-            document.getElementById('txt-role-student').innerText = t.roleStudent;
-            document.getElementById('txt-role-teacher').innerText = t.roleTeacher;
-            document.getElementById('lbl-name').innerText = t.lblName;
-            document.getElementById('display-name').placeholder = t.namePlaceholder;
-            document.getElementById('lbl-select-grade-reg').innerText = t.lblGradeReg;
-            document.getElementById('lbl-teacher-key').innerText = t.lblTeacherKey;
-            document.getElementById('lbl-email').innerText = t.lblEmail;
-            document.getElementById('lbl-password').innerText = t.lblPassword;
-            document.getElementById('password').placeholder = t.pwdPlaceholder;
-            document.getElementById('txt-forgot-password').innerText = t.forgotPwd;
-
-            const submitBtn = document.getElementById('submit-btn');
-            if (!submitBtn.disabled) {
-                document.getElementById('txt-submit-btn').innerText = currentMode === 'login' ? t.btnLogin : t.btnRegister;
-            }
-        }
-
-        auth.onAuthStateChanged((user) => {
-            if (user) window.location.href = "dashboard.html";
-        });
-
+        // ----------------------------------------------------
+        // 2. UI 交互控制函数
+        // ----------------------------------------------------
         function switchTab(mode) {
             currentMode = mode;
-            const t = translations[currentLang];
-            document.getElementById('tab-login').classList.toggle('active', mode === 'login');
-            document.getElementById('tab-register').classList.toggle('active', mode === 'register');
-            
-            document.getElementById('group-role-select').classList.toggle('hidden', mode === 'login');
-            document.getElementById('group-display-name').classList.toggle('hidden', mode === 'login');
-            document.getElementById('forgot-password-container').classList.toggle('hidden', mode === 'register');
+            hideMessage();
 
-            if (mode === 'register') {
-                selectRole(selectedRole);
-            } else {
+            const btnLogin = document.getElementById('btn-tab-login');
+            const btnRegister = document.getElementById('btn-tab-register');
+            const groupName = document.getElementById('group-name');
+            const groupRole = document.getElementById('group-role');
+            const btnSubmit = document.getElementById('btn-submit');
+
+            if (mode === 'login') {
+                btnLogin.classList.add('active');
+                btnRegister.classList.remove('active');
+                
+                groupName.classList.add('hidden');
+                groupRole.classList.add('hidden');
                 document.getElementById('group-student-grade').classList.add('hidden');
                 document.getElementById('group-teacher-key').classList.add('hidden');
-            }
 
-            document.getElementById('txt-submit-btn').innerText = mode === 'login' ? t.btnLogin : t.btnRegister;
+                btnSubmit.textContent = '立即登录';
+            } else {
+                btnRegister.classList.add('active');
+                btnLogin.classList.remove('active');
+
+                groupName.classList.remove('hidden');
+                groupRole.classList.remove('hidden');
+
+                updateRoleFields(); // 更新学生/教师专属输入框显示
+                btnSubmit.textContent = '注册账号';
+            }
         }
 
         function selectRole(role) {
             selectedRole = role;
-            document.getElementById('role-student').classList.toggle('active', role === 'student');
-            document.getElementById('role-teacher').classList.toggle('active', role === 'teacher');
+            const optStudent = document.getElementById('opt-student');
+            const optTeacher = document.getElementById('opt-teacher');
 
-            if (currentMode === 'register') {
-                document.getElementById('group-student-grade').classList.toggle('hidden', role !== 'student');
-                document.getElementById('group-teacher-key').classList.toggle('hidden', role !== 'teacher');
+            if (role === 'student') {
+                optStudent.classList.add('selected');
+                optTeacher.classList.remove('selected');
+            } else {
+                optTeacher.classList.add('selected');
+                optStudent.classList.remove('selected');
+            }
+
+            updateRoleFields();
+        }
+
+        function updateRoleFields() {
+            if (currentMode !== 'register') return;
+
+            const groupStudent = document.getElementById('group-student-grade');
+            const groupTeacher = document.getElementById('group-teacher-key');
+
+            if (selectedRole === 'student') {
+                groupStudent.classList.remove('hidden');
+                groupTeacher.classList.add('hidden');
+            } else {
+                groupStudent.classList.add('hidden');
+                groupTeacher.classList.remove('hidden');
             }
         }
 
+        function showMessage(msg, isError = true) {
+            const box = document.getElementById('msg-box');
+            box.textContent = msg;
+            box.className = isError ? 'msg-box error' : 'msg-box success';
+        }
+
+        function hideMessage() {
+            const box = document.getElementById('msg-box');
+            box.style.display = 'none';
+        }
+
+        // ----------------------------------------------------
+        // 3. 登录与注册提交逻辑
+        // ----------------------------------------------------
         async function handleAuth(event) {
             event.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const displayName = document.getElementById('display-name').value.trim();
-            const studentGrade = parseInt(document.getElementById('student-grade').value);
-            const teacherKey = document.getElementById('teacher-key').value.trim();
-            const t = translations[currentLang];
+            hideMessage();
 
-            const submitBtn = document.getElementById('submit-btn');
-            submitBtn.disabled = true;
-            document.getElementById('txt-submit-btn').innerText = t.processing;
+            const email = document.getElementById('user-email').value.trim();
+            const password = document.getElementById('user-password').value;
 
-            try {
-                if (currentMode === 'login') {
+            if (currentMode === 'login') {
+                // 执行登录操作
+                try {
                     await auth.signInWithEmailAndPassword(email, password);
-                } else {
-                    if (!displayName) throw { message: t.errRequireName };
-
-                    // 校验老师密钥
-                    if (selectedRole === 'teacher' && teacherKey !== DEFAULT_TEACHER_KEY) {
-                        throw { message: t.errWrongTeacherKey };
-                    }
-
-                    const cred = await auth.createUserWithEmailAndPassword(email, password);
-                    await cred.user.updateProfile({ displayName: displayName });
-
-                    // 将角色与年级写入 Firestore 云端数据库
-                    await db.collection("users").doc(cred.user.uid).set({
-                        name: displayName,
-                        email: email,
-                        role: selectedRole, // 'student' 或 'teacher'
-                        grade: selectedRole === 'student' ? studentGrade : 0,
-                        enrollYear: new Date().getFullYear()
-                    });
+                    showMessage('登录成功！正在跳转...', false);
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                } catch (error) {
+                    console.error("登录失败:", error);
+                    showMessage('登录失败：' + getErrorMessage(error.code));
                 }
-            } catch (err) {
-                showMessage(err.message, 'error');
-                submitBtn.disabled = false;
-                document.getElementById('txt-submit-btn').innerText = currentMode === 'login' ? t.btnLogin : t.btnRegister;
+            } else {
+                // 执行注册操作
+                const name = document.getElementById('user-name').value.trim();
+                if (!name) {
+                    showMessage('请输入你的名字或昵称');
+                    return;
+                }
+
+                // 校验教师密钥
+                if (selectedRole === 'teacher') {
+                    const inputKey = document.getElementById('teacher-key').value.trim();
+                    if (inputKey !== DEFAULT_TEACHER_KEY) {
+                        showMessage('教师验证口令错误，无法注册为老师！');
+                        return;
+                    }
+                }
+
+                const grade = document.getElementById('student-grade').value;
+                const classType = document.getElementById('student-class-type').value;
+
+                try {
+                    // 1. 创建 Firebase Auth 用户
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    const user = userCredential.user;
+
+                    // 2. 写入 Firestore 数据库
+                    await db.collection("users").doc(user.uid).set({
+                        uid: user.uid,
+                        name: name,
+                        email: email,
+                        role: selectedRole,
+                        grade: selectedRole === 'student' ? parseInt(grade) : 0,
+                        classType: selectedRole === 'student' ? classType : 'all_subjects',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    showMessage('注册成功！正在进入大厅...', false);
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1200);
+
+                } catch (error) {
+                    console.error("注册失败:", error);
+                    showMessage('注册失败：' + getErrorMessage(error.code));
+                }
             }
         }
 
-        function showMessage(msg, type) {
-            const msgBox = document.getElementById('message-box');
-            msgBox.innerText = msg;
-            msgBox.className = `message-box ${type}`;
+        // 自动登录检测：如果已经登录过，直接跳到 dashboard.html
+        auth.onAuthStateChanged((user) => {
+            if (user && currentMode === 'login') {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        // 错误提示翻译
+        function getErrorMessage(code) {
+            switch (code) {
+                case 'auth/user-not-found': return '找不到该账号，请先注册';
+                case 'auth/wrong-password': return '密码错误，请重新输入';
+                case 'auth/email-already-in-use': return '该邮箱已经被注册过了';
+                case 'auth/weak-password': return '密码强度太弱，至少需要6位字符';
+                case 'auth/invalid-email': return '邮箱格式不正确';
+                default: return '网络错误或未知异常，请重试';
+            }
         }
     </script>
 </body>
