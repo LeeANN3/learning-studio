@@ -84,13 +84,13 @@
         .input-wrapper { position: relative; }
         .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; }
         
-        .form-control, .form-select {
+        .form-control {
             width: 100%; padding: 10px 14px 10px 38px;
             border: 2px solid #1a1a1a; border-radius: 12px;
             font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive; font-size: 16px;
             outline: none; background-color: #ffffff;
         }
-        .form-control:focus, .form-select:focus { box-shadow: 3px 3px 0px #ffe600; }
+        .form-control:focus { box-shadow: 3px 3px 0px #ffe600; }
 
         .btn-submit {
             width: 100%; padding: 12px; background-color: #1a1a1a; color: #ffffff;
@@ -161,41 +161,25 @@
                 <label for="display-name" id="lbl-name">姓名 / 昵称</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="display-name" class="form-control" placeholder="例如：李小明 / Alex">
+                    <input type="text" id="display-name" class="form-control" placeholder="例如：小明 / Alex">
                 </div>
             </div>
 
-            <!-- 学生专属选项：年级与班级类型 (仅学生注册时可见) -->
-            <div class="form-group hidden" id="group-student-grade">
-                <label for="student-grade" id="lbl-select-grade-reg">所属年级</label>
-                <div class="input-wrapper" style="margin-bottom: 12px;">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                    <select id="student-grade" class="form-select" style="padding-left:38px;">
-                        <option value="1">一年级 (Standard 1)</option>
-                        <option value="2">二年级 (Standard 2)</option>
-                        <option value="3">三年级 (Standard 3)</option>
-                        <option value="4">四年级 (Standard 4)</option>
-                        <option value="5">五年级 (Standard 5)</option>
-                        <option value="6">六年级 (Standard 6)</option>
-                    </select>
-                </div>
-
-                <label for="student-class-type" id="lbl-select-classtype-reg">班级类别</label>
+            <!-- 班级邀请码 (仅学生注册时可见，推荐使用) -->
+            <div class="form-group hidden" id="group-class-code">
+                <label for="class-code" id="lbl-class-code">班级邀请码 (选填/老师提供)</label>
                 <div class="input-wrapper">
-                    <i class="fa-solid fa-school"></i>
-                    <select id="student-class-type" class="form-select" style="padding-left:38px;">
-                        <option value="all_subjects" id="opt-class-all">安亲班 (全科 - 华/马/英/数/科)</option>
-                        <option value="chinese_only" id="opt-class-cn">中文班 (仅华文)</option>
-                    </select>
+                    <i class="fa-solid fa-ticket"></i>
+                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01、M1-01（未填可后续分配）">
                 </div>
             </div>
 
-            <!-- 教师验证口令 (仅老师注册时可见) -->
+            <!-- 教师验证口令 (仅老师注册时可见，防止学生乱注册) -->
             <div class="form-group hidden" id="group-teacher-key">
                 <label for="teacher-key" id="lbl-teacher-key">教师验证口令 (Teacher Key)</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-key"></i>
-                    <input type="password" id="teacher-key" class="form-control" placeholder="请输入教师注册密钥">
+                    <input type="password" id="teacher-key" class="form-control" placeholder="请输入教师注册密钥（默认 TEACHER888）">
                 </div>
             </div>
 
@@ -227,7 +211,6 @@
         </form>
     </div>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -246,8 +229,8 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 默认教师密码口令
-        const DEFAULT_TEACHER_KEY = "SLH888";
+        // 默认教师注册验证码
+        const DEFAULT_TEACHER_KEY = "TEACHER888";
 
         let currentMode = 'login';
         let selectedRole = 'student';
@@ -259,8 +242,7 @@
                 tabLogin: "登录", tabRegister: "新用户注册",
                 lblIdentity: "注册身份：", roleStudent: "我是学生", roleTeacher: "我是老师",
                 lblName: "姓名 / 昵称", namePlaceholder: "例如：小明",
-                lblGradeReg: "所属年级", lblClassTypeReg: "班级类别",
-                optClassAll: "安亲班 (全科 - 华/马/英/数/科)", optClassCn: "中文班 (仅华文)",
+                lblClassCode: "班级邀请码 (选填/老师提供)", classCodePlaceholder: "如：G1-GRAM-01、M1-01（输入后自动加入班级）",
                 lblTeacherKey: "教师验证口令 (Teacher Key)",
                 lblEmail: "电子邮箱", lblPassword: "密码", pwdPlaceholder: "至少6位",
                 forgotPwd: "忘记密码？", btnLogin: "立即登录", btnRegister: "注册并登录",
@@ -272,8 +254,7 @@
                 tabLogin: "Log In", tabRegister: "Register",
                 lblIdentity: "Identity:", roleStudent: "Student", roleTeacher: "Teacher",
                 lblName: "Name / Nickname", namePlaceholder: "e.g., Alex",
-                lblGradeReg: "Grade", lblClassTypeReg: "Class Category",
-                optClassAll: "Daycare Class (All Subjects)", optClassCn: "Chinese Class (Chinese Only)",
+                lblClassCode: "Class Code (Optional)", classCodePlaceholder: "e.g. G1-GRAM-01, M1-01",
                 lblTeacherKey: "Teacher Security Key",
                 lblEmail: "Email", lblPassword: "Password", pwdPlaceholder: "Min 6 characters",
                 forgotPwd: "Forgot Password?", btnLogin: "Log In", btnRegister: "Register",
@@ -299,10 +280,8 @@
             document.getElementById('txt-role-teacher').innerText = t.roleTeacher;
             document.getElementById('lbl-name').innerText = t.lblName;
             document.getElementById('display-name').placeholder = t.namePlaceholder;
-            document.getElementById('lbl-select-grade-reg').innerText = t.lblGradeReg;
-            document.getElementById('lbl-select-classtype-reg').innerText = t.lblClassTypeReg;
-            document.getElementById('opt-class-all').innerText = t.optClassAll;
-            document.getElementById('opt-class-cn').innerText = t.optClassCn;
+            document.getElementById('lbl-class-code').innerText = t.lblClassCode;
+            document.getElementById('class-code').placeholder = t.classCodePlaceholder;
             document.getElementById('lbl-teacher-key').innerText = t.lblTeacherKey;
             document.getElementById('lbl-email').innerText = t.lblEmail;
             document.getElementById('lbl-password').innerText = t.lblPassword;
@@ -332,7 +311,7 @@
             if (mode === 'register') {
                 selectRole(selectedRole);
             } else {
-                document.getElementById('group-student-grade').classList.add('hidden');
+                document.getElementById('group-class-code').classList.add('hidden');
                 document.getElementById('group-teacher-key').classList.add('hidden');
             }
 
@@ -345,7 +324,7 @@
             document.getElementById('role-teacher').classList.toggle('active', role === 'teacher');
 
             if (currentMode === 'register') {
-                document.getElementById('group-student-grade').classList.toggle('hidden', role !== 'student');
+                document.getElementById('group-class-code').classList.toggle('hidden', role !== 'student');
                 document.getElementById('group-teacher-key').classList.toggle('hidden', role !== 'teacher');
             }
         }
@@ -355,8 +334,7 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const displayName = document.getElementById('display-name').value.trim();
-            const studentGrade = parseInt(document.getElementById('student-grade').value);
-            const classType = document.getElementById('student-class-type').value;
+            const classCodeRaw = document.getElementById('class-code').value.trim();
             const teacherKey = document.getElementById('teacher-key').value.trim();
             const t = translations[currentLang];
 
@@ -378,14 +356,19 @@
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
                     await cred.user.updateProfile({ displayName: displayName });
 
-                    // 写入 Firestore 数据（增加 classType 字段）
+                    // 提取输入的邀请码并转大写存入数组
+                    let enrolledClasses = [];
+                    if (selectedRole === 'student' && classCodeRaw) {
+                        enrolledClasses.push(classCodeRaw.toUpperCase());
+                    }
+
+                    // 写入 Firestore 账号基本信息
                     await db.collection("users").doc(cred.user.uid).set({
                         name: displayName,
                         email: email,
                         role: selectedRole, // 'student' 或 'teacher'
-                        grade: selectedRole === 'student' ? studentGrade : 0,
-                        classType: selectedRole === 'student' ? classType : 'all_subjects', // 'all_subjects' 或 'chinese_only'
-                        enrollYear: new Date().getFullYear()
+                        enrolledClasses: enrolledClasses,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                 }
             } catch (err) {
@@ -395,23 +378,23 @@
             }
         }
 
-        function handleForgotPassword() {
-            const email = document.getElementById('email').value.trim();
-            if (!email) {
-                showMessage("请先输入你的电子邮箱！", "error");
-                return;
-            }
-            auth.sendPasswordResetEmail(email).then(() => {
-                showMessage("重置密码邮件已发送，请检查邮箱！", "success");
-            }).catch(err => {
-                showMessage(err.message, "error");
-            });
-        }
-
         function showMessage(msg, type) {
             const msgBox = document.getElementById('message-box');
             msgBox.innerText = msg;
             msgBox.className = `message-box ${type}`;
+        }
+
+        function handleForgotPassword() {
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                showMessage("请先在上方输入框填写您的电子邮箱！", "error");
+                return;
+            }
+            auth.sendPasswordResetEmail(email).then(() => {
+                showMessage("重置密码邮件已发送，请检查您的邮箱！", "success");
+            }).catch(err => {
+                showMessage(err.message, "error");
+            });
         }
     </script>
 </body>
