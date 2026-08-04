@@ -166,8 +166,8 @@
 
     // 4. 从 Firestore 读取排行榜 Top 10
     async function loadLeaderboard() {
-        const listEl = document.getElementById('leaderboard-list');
-        if (!listEl) return;
+        const listEls = document.querySelectorAll('.leaderboard-list');
+        if (!listEls.length) return;
 
         try {
             const snapshot = await db.collection("leaderboard")
@@ -175,26 +175,28 @@
                 .limit(10)
                 .get();
 
-            listEl.innerHTML = "";
+            listEls.forEach(el => el.innerHTML = "");
 
             if (snapshot.empty) {
-                listEl.innerHTML = "<li>暂无成绩记录，快来成为第一名吧！</li>";
+                listEls.forEach(el => el.innerHTML = "<li>暂无成绩记录，快来成为第一名吧！</li>");
                 return;
             }
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                const li = document.createElement('li');
-                li.style.marginBottom = "6px";
-                li.innerHTML = `<b>${data.playerName || '匿名'}</b> - 分数: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> (${data.timeText || ''})`;
-                listEl.appendChild(li);
+                listEls.forEach(el => {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = "6px";
+                    li.innerHTML = `<b>${data.playerName || '匿名'}</b> - 分数: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> (${data.timeText || ''})`;
+                    el.appendChild(li);
+                });
             });
         } catch (err) {
             console.error("加载排行榜失败:", err);
-            listEl.innerHTML = "<li>加载排行榜失败</li>";
+            listEls.forEach(el => el.innerHTML = "<li>加载排行榜失败</li>");
         }
     }
-
+    
     // 5. 监听 Result Screen（游戏结束）事件，一旦展示即触发自动保存
     const observer = new MutationObserver(() => {
         const resultScreen = document.getElementById('result-screen');
