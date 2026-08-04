@@ -216,13 +216,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
+        // 请在此处替换为你在 Firebase 控制台获得的真实配置
         const firebaseConfig = {
-            apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
-            authDomain: "my-teacher-studio.firebaseapp.com",
-            projectId: "my-teacher-studio",
-            storageBucket: "my-teacher-studio.firebasestorage.app",
-            messagingSenderId: "82774284780",
-            appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
@@ -235,6 +236,9 @@
         let currentMode = 'login';
         let selectedRole = 'student';
         let currentLang = 'zh';
+        
+        // 关键修复标记：防止 onAuthStateChanged 提前抢跑跳转打断 Firestore 写入
+        let isSubmitting = false;
 
         const translations = {
             zh: {
@@ -294,8 +298,11 @@
             }
         }
 
+        // 仅在非表单提交操作时（例如直接刷页面已登录状态）进行自动跳转
         auth.onAuthStateChanged((user) => {
-            if (user) window.location.href = "dashboard.html";
+            if (user && !isSubmitting) {
+                window.location.href = "dashboard.html";
+            }
         });
 
         function switchTab(mode) {
@@ -342,9 +349,13 @@
             submitBtn.disabled = true;
             document.getElementById('txt-submit-btn').innerText = t.processing;
 
+            // 标记正在提交，阻止 onAuthStateChanged 提前抢跑跳转
+            isSubmitting = true;
+
             try {
                 if (currentMode === 'login') {
                     await auth.signInWithEmailAndPassword(email, password);
+                    window.location.href = "dashboard.html";
                 } else {
                     if (!displayName) throw { message: t.errRequireName };
 
@@ -353,16 +364,17 @@
                         throw { message: t.errWrongTeacherKey };
                     }
 
+                    // 1. 创建账号
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
                     await cred.user.updateProfile({ displayName: displayName });
 
-                    // 提取输入的邀请码并转大写存入数组
+                    // 2. 提取班级码
                     let enrolledClasses = [];
                     if (selectedRole === 'student' && classCodeRaw) {
                         enrolledClasses.push(classCodeRaw.toUpperCase());
                     }
 
-                    // 写入 Firestore 账号基本信息
+                    // 3. 写入 Firestore 数据库（确保 await 100% 完成后再跳转）
                     await db.collection("users").doc(cred.user.uid).set({
                         name: displayName,
                         email: email,
@@ -370,8 +382,12 @@
                         enrolledClasses: enrolledClasses,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
+
+                    // 4. 数据库写入成功后再进行页面跳转
+                    window.location.href = "dashboard.html";
                 }
             } catch (err) {
+                isSubmitting = false; // 出错时重置标志
                 showMessage(err.message, 'error');
                 submitBtn.disabled = false;
                 document.getElementById('txt-submit-btn').innerText = currentMode === 'login' ? t.btnLogin : t.btnRegister;
