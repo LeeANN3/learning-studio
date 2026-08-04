@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun Learning Island - Teacher Admin Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        body {
+            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            color: #0f172a;
+        }
+
+        .font-fun {
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+        }
+
+        .neo-card {
+            background-color: #ffffff;
+            border: 2px solid #0f172a;
+            border-radius: 16px;
+            box-shadow: 4px 4px 0px #0f172a;
+        }
+
+        .neo-btn {
+            background-color: #ffffff;
+            border: 2px solid #0f172a;
+            border-radius: 12px;
+            box-shadow: 2px 2px 0px #0f172a;
+            transition: all 0.15s ease;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+            font-weight: 600;
+        }
+
+        .neo-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #0f172a;
+        }
+
+        .neo-btn-primary { background-color: #ffe600; }
+        .neo-btn-primary:hover { background-color: #facc15; }
+
+        .neo-btn-danger { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; box-shadow: 2px 2px 0px #dc2626; }
+        .neo-btn-danger:hover { background-color: #ef4444; color: #ffffff; box-shadow: 3px 3px 0px #0f172a; }
+
+        .neo-input {
+            border: 2px solid #0f172a;
+            border-radius: 10px;
+            outline: none;
+            padding: 8px 12px;
+            box-shadow: 2px 2px 0px #cbd5e1;
+        }
+        .neo-input:focus {
+            box-shadow: 2px 2px 0px #ffe600;
+        }
+
+        .tab-btn {
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: 2px solid #0f172a;
+            background: #ffffff;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #0f172a;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: #ffe600;
+            box-shadow: 3px 3px 0px #0f172a;
+        }
+
+        /* Modal Background */
+        .modal-overlay {
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
+        }
+    </style>
+</head>
+<body class="pb-10">
+
+    <nav class="bg-white border-b-2 border-slate-900 sticky top-0 z-40 px-4 py-3 shadow-[0_4px_0_#0f172a]">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-300 p-2 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#0f172a]">
+                    <i class="fa-solid fa-chalkboard-user text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-fun text-xl font-bold leading-tight">教师管理后台</h1>
+                    <p class="text-xs text-slate-500 font-sans">Teacher Admin Dashboard</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 bg-slate-100 border-2 border-slate-900 px-3 py-1.5 rounded-xl text-sm font-semibold">
+                    <i class="fa-solid fa-user-shield text-amber-500"></i>
+                    <span id="teacher-name">陈老师 (Admin)</span>
+                </div>
+                <a href="dashboard.html" class="neo-btn px-3 py-1.5 text-sm flex items-center gap-2 bg-sky-100 hover:bg-sky-200">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>返回学生端</span>
+                </a>
+                <button onclick="handleLogout()" class="neo-btn neo-btn-danger px-3 py-1.5 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>退出</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 mt-6">
+
+        <!-- Banner Card -->
+        <div class="neo-card p-6 mb-6 bg-amber-50 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+                <div>
+                    <h2 class="font-fun text-2xl font-bold flex items-center gap-2">
+                        🏫 补习班多班级管控中心
+                    </h2>
+                    <p class="text-slate-600 text-sm mt-1">
+                        快速管理学生名册、一键删除/移出离校学生、解锁特定班级测验与课程进度。
+                    </p>
+                </div>
+                <button onclick="openCreateClassModal()" class="neo-btn neo-btn-primary px-4 py-2.5 flex items-center gap-2 text-base">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span>创建新班级邀请码</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex gap-3 overflow-x-auto pb-2 mb-6 scrollbar-none">
+            <button onclick="switchTab('students')" id="tab-students" class="tab-btn active font-fun flex items-center gap-2">
+                <i class="fa-solid fa-users"></i>
+                <span>学生账号与名册管理</span>
+            </button>
+            <button onclick="switchTab('classes')" id="tab-classes" class="tab-btn font-fun flex items-center gap-2">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>班级码 (Class Codes) 管理</span>
+            </button>
+            <button onclick="switchTab('unlock')" id="tab-unlock" class="tab-btn font-fun flex items-center gap-2">
+                <i class="fa-solid fa-lock-open"></i>
+                <span>课程/测验进度解锁</span>
+            </button>
+            <button onclick="switchTab('scores')" id="tab-scores" class="tab-btn font-fun flex items-center gap-2">
+                <i class="fa-solid fa-trophy"></i>
+                <span>做题成绩汇总看版</span>
+            </button>
+        </div>
+
+        <section id="section-students" class="space-y-4">
+            <div class="neo-card p-5">
+                <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
+                    <!-- Search and Filters -->
+                    <div class="flex flex-wrap items-center gap-3 flex-1">
+                        <div class="relative flex-1 min-w-[220px]">
+                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="student-search-input" onkeyup="filterStudents()" placeholder="搜索学生姓名或 Email..." class="neo-input w-full pl-9">
+                        </div>
+                        
+                        <select id="filter-class-select" onchange="filterStudents()" class="neo-input bg-white font-fun">
+                            <option value="ALL">所有班级 (All Classes)</option>
+                            <!-- Dynamically filled with classes -->
+                        </select>
+                    </div>
+
+                    <div class="text-sm font-semibold text-slate-600 flex items-center gap-2">
+                        <span>共有学生：</span>
+                        <span id="student-count-badge" class="bg-amber-300 border border-slate-900 px-2.5 py-0.5 rounded-full font-bold text-slate-900">0 人</span>
+                    </div>
+                </div>
+
+                <!-- Student Table -->
+                <div class="overflow-x-auto rounded-xl border-2 border-slate-900">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b-2 border-slate-900 text-slate-800 font-fun text-base">
+                                <th class="p-3">学生姓名</th>
+                                <th class="p-3">电子邮箱 Email</th>
+                                <th class="p-3">所属班级 Code</th>
+                                <th class="p-3">注册时间</th>
+                                <th class="p-3 text-center">操作 (Actions)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-table-body" class="divide-y border-slate-200 text-sm font-sans">
+                            <!-- Dynamically loaded rows -->
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-slate-400 font-fun text-lg">
+                                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在获取学生名册...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-classes" class="space-y-4 hidden">
+            <div class="neo-card p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-fun text-xl font-bold">🏫 当前活跃班级列表</h3>
+                    <button onclick="openCreateClassModal()" class="neo-btn neo-btn-primary px-3 py-1.5 text-sm flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> 新增班级
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="class-cards-container">
+                    <!-- Dynamically filled class cards -->
+                </div>
+            </div>
+        </section>
+
+        <section id="section-unlock" class="space-y-4 hidden">
+            <div class="neo-card p-5">
+                <h3 class="font-fun text-xl font-bold mb-2">🔓 课程与测验可见性（精准开关）</h3>
+                <p class="text-sm text-slate-600 mb-4">勾选某个班级，代表该班级的学生可以在 Dashboard 看到并打开对应的测验或游戏。</p>
+
+                <div class="overflow-x-auto rounded-xl border-2 border-slate-900">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b-2 border-slate-900 font-fun text-sm">
+                                <th class="p-3">资源名称</th>
+                                <th class="p-3">科目/年级/单元</th>
+                                <th class="p-3">资源类型</th>
+                                <th class="p-3">授权开放的班级</th>
+                                <th class="p-3 text-center">总发布状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resource-table-body" class="divide-y border-slate-200 text-sm font-sans">
+                            <!-- Dynamically filled resource list -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="section-scores" class="space-y-4 hidden">
+            <div class="neo-card p-5">
+                <h3 class="font-fun text-xl font-bold mb-3">🏆 全校做题与答题记录榜</h3>
+                <div class="overflow-x-auto rounded-xl border-2 border-slate-900">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b-2 border-slate-900 font-fun text-sm">
+                                <th class="p-3">做题学生</th>
+                                <th class="p-3">得分</th>
+                                <th class="p-3">用时</th>
+                                <th class="p-3">提交时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="score-table-body" class="divide-y border-slate-200 text-sm">
+                            <!-- Filled dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <div id="delete-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
+        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4 animate-bounce-in">
+            <div class="flex items-center gap-3 text-red-600">
+                <div class="bg-red-100 p-3 rounded-xl border-2 border-red-600">
+                    <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                </div>
+                <h3 class="font-fun text-xl font-bold">确认删除学生账号？</h3>
+            </div>
+            
+            <p class="text-sm text-slate-600 leading-relaxed">
+                您即将彻底删除学生 <b id="modal-delete-student-name" class="text-slate-900 underline">--</b> (<span id="modal-delete-student-email">--</span>) 的资料及名册记录。<br><br>
+                <span class="text-red-600 text-xs font-semibold">⚠️ 此操作无法撤销，删后该学生将无法再登录及做题！</span>
+            </p>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeDeleteModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
+                <button id="btn-confirm-delete" onclick="executeDeleteStudent()" class="neo-btn neo-btn-danger px-4 py-2 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>确认彻底删除</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
+        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
+            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-user-pen text-amber-500"></i>
+                <span>分配/修改学生班级</span>
+            </h3>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">学生姓名与邮箱</label>
+                <p id="modal-edit-student-info" class="font-bold text-sm bg-slate-100 p-2.5 rounded-lg border border-slate-300"></p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">班级邀请码 (Class Codes，多选/以逗号分隔)</label>
+                <input type="text" id="modal-edit-class-input" class="neo-input w-full font-mono text-sm" placeholder="如: G1-GRAM-01, DAYCARE-G1">
+                <p class="text-xs text-slate-400 mt-1">您可以直接填入班级代号，多班填逗号分隔。</p>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeEditClassModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
+                <button onclick="saveStudentClasses()" class="neo-btn neo-btn-primary px-4 py-2 text-sm">保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
+        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
+            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
+                <i class="fa-solid fa-plus-circle text-amber-500"></i>
+                <span>设定新班级 Code</span>
+            </h3>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">班级代码 (Class Code - 给学生注册填写)</label>
+                <input type="text" id="new-code-input" class="neo-input w-full font-mono font-bold uppercase" placeholder="例如: G1-GRAM-01">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">班级全称</label>
+                <input type="text" id="new-name-input" class="neo-input w-full text-sm" placeholder="例如: 一年级华文语法 1 班">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">适用年级</label>
+                    <select id="new-grade-select" class="neo-input w-full bg-white font-fun">
+                        <option value="0">学前/幼儿 (M1/M2)</option>
+                        <option value="1">一年级 (Grade 1)</option>
+                        <option value="2">二年级 (Grade 2)</option>
+                        <option value="3">三年级 (Grade 3)</option>
+                        <option value="4">四年级 (Grade 4)</option>
+                        <option value="5">五年级 (Grade 5)</option>
+                        <option value="6">六年级 (Grade 6)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">带班老师</label>
+                    <input type="text" id="new-teacher-input" class="neo-input w-full text-sm" placeholder="例如: 陈老师">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeCreateClassModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
+                <button onclick="executeCreateClass()" class="neo-btn neo-btn-primary px-4 py-2 text-sm">确认创建</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // 1. Firebase Config (Please make sure your real config is placed here)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // Local state
+        let currentAdminUser = null;
+        let allStudentsList = [];
+        let allClassCodesList = [];
+        let studentTargetToDelete = null;
+        let studentTargetToEdit = null;
+
+        // 2. Authentication Check & Role Guard
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            try {
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    
+                    // Verify if current user is indeed a Teacher
+                    if (userData.role !== 'teacher') {
+                        alert("⚠️ 只有教师账号才可以访问管理后台！");
+                        window.location.href = "dashboard.html";
+                        return;
+                    }
+
+                    document.getElementById('teacher-name').innerText = (userData.name || "老师") + " (Admin)";
+                    currentAdminUser = userData;
+                    
+                    // Load Initial Data
+                    loadAllData();
+                } else {
+                    window.location.href = "index.html";
+                }
+            } catch (err) {
+                console.error("验证教师身份失败:", err);
+            }
+        });
+
+        // 3. Load all Students, Classes, and Resources
+        async function loadAllData() {
+            await Promise.all([
+                fetchClasses(),
+                fetchStudents(),
+                fetchResources(),
+                fetchScores()
+            ]);
+        }
+
+        // --- FETCH STUDENTS ---
+        async function fetchStudents() {
+            const tbody = document.getElementById('student-table-body');
+            tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-fun text-lg"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在加载最新学生名单...</td></tr>`;
+
+            try {
+                const snapshot = await db.collection("users").where("role", "==", "student").get();
+                allStudentsList = [];
+
+                snapshot.forEach(doc => {
+                    allStudentsList.push({ id: doc.id, ...doc.data() });
+                });
+
+                renderStudentTable(allStudentsList);
+            } catch (err) {
+                console.error("读取学生失败:", err);
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500 font-semibold">⚠️ 读取学生失败：${err.message}</td></tr>`;
+            }
+        }
+
+        function renderStudentTable(students) {
+            const tbody = document.getElementById('student-table-body');
+            document.getElementById('student-count-badge').innerText = `${students.length} 人`;
+
+            if (students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 italic">暂无匹配的学生数据</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            students.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+
+                const classesBadge = (s.enrolledClasses && s.enrolledClasses.length > 0)
+                    ? s.enrolledClasses.map(c => `<span class="bg-sky-100 text-sky-800 border border-sky-300 font-mono text-xs px-2 py-0.5 rounded-md font-bold">${c}</span>`).join(' ')
+                    : `<span class="text-slate-400 text-xs italic">未加入任何班级</span>`;
+
+                const dateStr = s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleDateString('zh-CN') : '未知';
+
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-slate-900 flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-amber-200 border border-slate-900 flex items-center justify-center font-fun text-sm">
+                            ${(s.name || '学').charAt(0)}
+                        </div>
+                        <span>${s.name || '未填写'}</span>
+                    </td>
+                    <td class="p-3 text-slate-600 font-mono text-xs">${s.email || '-'}</td>
+                    <td class="p-3">${classesBadge}</td>
+                    <td class="p-3 text-slate-500 text-xs">${dateStr}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="openEditClassModal('${s.id}', '${s.name || '学生'}', '${(s.enrolledClasses || []).join(', ')}')" class="neo-btn px-2.5 py-1 text-xs bg-amber-100 hover:bg-amber-200" title="修改班级">
+                                <i class="fa-solid fa-pen-to-square"></i> 改班级
+                            </button>
+                            <button onclick="openDeleteModal('${s.id}', '${s.name || '未命名'}', '${s.email}')" class="neo-btn neo-btn-danger px-2.5 py-1 text-xs" title="彻底删除学生账号">
+                                <i class="fa-solid fa-trash"></i> 删除
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterStudents() {
+            const query = document.getElementById('student-search-input').value.toLowerCase().trim();
+            const classFilter = document.getElementById('filter-class-select').value;
+
+            const filtered = allStudentsList.filter(s => {
+                const matchName = (s.name || '').toLowerCase().includes(query) || (s.email || '').toLowerCase().includes(query);
+                const matchClass = (classFilter === 'ALL') || (s.enrolledClasses && s.enrolledClasses.includes(classFilter));
+                return matchName && matchClass;
+            });
+
+            renderStudentTable(filtered);
+        }
+
+        // --- DELETE STUDENT ACCOUNT FEATURE ---
+        function openDeleteModal(uid, name, email) {
+            studentTargetToDelete = { uid, name, email };
+            document.getElementById('modal-delete-student-name').innerText = name;
+            document.getElementById('modal-delete-student-email').innerText = email;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            studentTargetToDelete = null;
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+
+        async function executeDeleteStudent() {
+            if (!studentTargetToDelete) return;
+            const btn = document.getElementById('btn-confirm-delete');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 删除中...`;
+
+            try {
+                // Delete user document from Firestore
+                await db.collection("users").doc(studentTargetToDelete.uid).delete();
+                
+                closeDeleteModal();
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-trash-can"></i> 确认彻底删除`;
+
+                // Refresh Student Table
+                fetchStudents();
+            } catch (err) {
+                console.error("删除学生数据失败:", err);
+                alert("⚠️ 删除失败：" + err.message);
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-trash-can"></i> 确认彻底删除`;
+            }
+        }
+
+        // --- EDIT STUDENT CLASS ---
+        function openEditClassModal(uid, name, currentClassesStr) {
+            studentTargetToEdit = uid;
+            document.getElementById('modal-edit-student-info').innerText = `${name} (${uid.substring(0, 8)}...)`;
+            document.getElementById('modal-edit-class-input').value = currentClassesStr;
+            document.getElementById('edit-class-modal').classList.remove('hidden');
+        }
+
+        function closeEditClassModal() {
+            studentTargetToEdit = null;
+            document.getElementById('edit-class-modal').classList.add('hidden');
+        }
+
+        async function saveStudentClasses() {
+            if (!studentTargetToEdit) return;
+            const rawInput = document.getElementById('modal-edit-class-input').value;
+            const classArray = rawInput.split(',').map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
+
+            try {
+                await db.collection("users").doc(studentTargetToEdit).update({
+                    enrolledClasses: classArray
+                });
+                closeEditClassModal();
+                fetchStudents();
+            } catch (err) {
+                alert("⚠️ 更新失败：" + err.message);
+            }
+        }
+
+        // --- CLASSES MANAGEMENT ---
+        async function fetchClasses() {
+            const container = document.getElementById('class-cards-container');
+            const filterSelect = document.getElementById('filter-class-select');
+
+            try {
+                const snapshot = await db.collection("classes").get();
+                allClassCodesList = [];
+                container.innerHTML = '';
+
+                // Default filter options
+                filterSelect.innerHTML = `<option value="ALL">所有班级 (All Classes)</option>`;
+
+                snapshot.forEach(doc => {
+                    const c = { id: doc.id, ...doc.data() };
+                    allClassCodesList.push(c);
+
+                    // Append card
+                    const card = document.createElement('div');
+                    card.className = "neo-card p-4 bg-white hover:bg-amber-50/50 transition-colors";
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-mono font-bold bg-amber-300 border border-slate-900 px-2.5 py-1 rounded-lg text-sm">${c.id}</span>
+                            <span class="text-xs bg-slate-100 border border-slate-300 px-2 py-0.5 rounded font-bold text-slate-600">${c.grade || 0} 年级</span>
+                        </div>
+                        <h4 class="font-fun text-lg font-bold text-slate-800">${c.className || '未命名班级'}</h4>
+                        <p class="text-xs text-slate-500 mt-1">负责老师：${c.teacherName || '陈老师'}</p>
+                    `;
+                    container.appendChild(card);
+
+                    // Append filter option
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.innerText = `${c.id} - ${c.className || ''}`;
+                    filterSelect.appendChild(opt);
+                });
+
+                if (snapshot.empty) {
+                    container.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 italic">暂未创建班级邀请码，可以点击右上角创建！</div>`;
+                }
+
+            } catch (err) {
+                console.error("加载班级失败:", err);
+            }
+        }
+
+        function openCreateClassModal() {
+            document.getElementById('create-class-modal').classList.remove('hidden');
+        }
+
+        function closeCreateClassModal() {
+            document.getElementById('create-class-modal').classList.add('hidden');
+        }
+
+        async function executeCreateClass() {
+            const code = document.getElementById('new-code-input').value.trim().toUpperCase();
+            const name = document.getElementById('new-name-input').value.trim();
+            const grade = parseInt(document.getElementById('new-grade-select').value);
+            const teacher = document.getElementById('new-teacher-input').value.trim();
+
+            if (!code || !name) {
+                alert("请填写班级代码与班级全称！");
+                return;
+            }
+
+            try {
+                await db.collection("classes").doc(code).set({
+                    className: name,
+                    grade: grade,
+                    teacherName: teacher || "陈老师",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                closeCreateClassModal();
+                // Reset form
+                document.getElementById('new-code-input').value = '';
+                document.getElementById('new-name-input').value = '';
+                
+                fetchClasses();
+            } catch (err) {
+                alert("⚠️ 创建失败：" + err.message);
+            }
+        }
+
+        // --- RESOURCE UNLOCK CONTROL ---
+        async function fetchResources() {
+            const tbody = document.getElementById('resource-table-body');
+            try {
+                const snapshot = await db.collection("resources").get();
+                tbody.innerHTML = '';
+
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">资源库暂无测验/资料项。可在数据库中添加试题资源。</td></tr>`;
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const r = { id: doc.id, ...doc.data() };
+                    const tr = document.createElement('tr');
+                    
+                    const unlockedClasses = r.unlockedClasses || [];
+                    const classCheckboxes = allClassCodesList.map(c => `
+                        <label class="inline-flex items-center gap-1 bg-slate-100 border border-slate-300 px-2 py-1 rounded text-xs cursor-pointer hover:bg-amber-100">
+                            <input type="checkbox" onchange="toggleResourceClass('${r.id}', '${c.id}', this.checked)" ${unlockedClasses.includes(c.id) ? 'checked' : ''}>
+                            <span class="font-mono font-bold">${c.id}</span>
+                        </label>
+                    `).join(' ');
+
+                    tr.innerHTML = `
+                        <td class="p-3 font-semibold text-slate-900">${r.title || '无标题'}</td>
+                        <td class="p-3 text-slate-600 text-xs">${r.subject || ''} / ${r.grade || 1}年级 / 单元${r.unit || 1}</td>
+                        <td class="p-3"><span class="bg-amber-200 border border-slate-900 text-xs font-bold px-2 py-0.5 rounded">${r.type || 'quiz'}</span></td>
+                        <td class="p-3"><div class="flex flex-wrap gap-1">${classCheckboxes || '<span class="text-xs text-slate-400">请先创建班级</span>'}</div></td>
+                        <td class="p-3 text-center">
+                            <button onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2 py-1 text-xs ${r.isPublished ? 'bg-emerald-200 text-emerald-900' : 'bg-slate-200 text-slate-600'}">
+                                ${r.isPublished ? '已发布 (Published)' : '已隐藏 (Draft)'}
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error("读取资源库失败:", err);
+            }
+        }
+
+        async function toggleResourceClass(resourceId, classCode, isChecked) {
+            try {
+                const docRef = db.collection("resources").doc(resourceId);
+                if (isChecked) {
+                    await docRef.update({
+                        unlockedClasses: firebase.firestore.FieldValue.arrayUnion(classCode)
+                    });
+                } else {
+                    await docRef.update({
+                        unlockedClasses: firebase.firestore.FieldValue.arrayRemove(classCode)
+                    });
+                }
+            } catch (err) {
+                console.error("更新资源可见班级失败:", err);
+            }
+        }
+
+        async function toggleResourcePublish(resourceId, newStatus) {
+            try {
+                await db.collection("resources").doc(resourceId).update({ isPublished: newStatus });
+                fetchResources();
+            } catch (err) {
+                console.error("修改发布状态失败:", err);
+            }
+        }
+
+        // --- FETCH SCORES ---
+        async function fetchScores() {
+            const tbody = document.getElementById('score-table-body');
+            try {
+                const snapshot = await db.collection("leaderboard").orderBy("timestamp", "desc").limit(20).get();
+                tbody.innerHTML = '';
+
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">暂无学生提交测验成绩记录</td></tr>`;
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    const timeStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('zh-CN') : '-';
+                    tr.innerHTML = `
+                        <td class="p-3 font-semibold text-slate-900">${data.playerName || '匿名'}</td>
+                        <td class="p-3 font-bold text-red-600">${data.score} 分</td>
+                        <td class="p-3 text-slate-600 text-xs">${data.timeText || '-'}</td>
+                        <td class="p-3 text-slate-500 text-xs">${timeStr}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("加载成绩榜失败:", err);
+            }
+        }
+
+        // --- TAB SWITCHING ---
+        function switchTab(tabName) {
+            const tabs = ['students', 'classes', 'unlock', 'scores'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('active', t === tabName);
+                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tabName);
+            });
+        }
+
+        // --- LOGOUT ---
+        function handleLogout() {
+            auth.signOut().then(() => {
+                window.location.href = "index.html";
+            });
+        }
+    </script>
+</body>
+</html>
