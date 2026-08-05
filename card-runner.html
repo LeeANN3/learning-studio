@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记忆翻牌游戏 (Memory Card Game)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+
+        .container { background: #ffffff; width: 100%; max-width: 600px; padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; }
+        .screen { display: flex; flex-direction: column; gap: 15px; }
+        .hidden { display: none !important; }
+
+        button { background-color: #2196F3; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(33, 150, 243, 0.2); }
+        button:hover { background-color: #1e88e5; transform: translateY(-2px); }
+
+        .top-bar { display: flex; justify-content: space-between; font-weight: bold; color: #555; font-size: 14px; padding-bottom: 10px; border-bottom: 2px solid #eee; }
+
+        /* 🎴 翻牌网格与 3D 翻转效果 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+            perspective: 1000px;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.4s ease;
+        }
+
+        .card.flipped, .card.matched {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            word-break: break-word;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            color: white;
+            font-size: 28px;
+        }
+
+        .card-back {
+            background: #ffffff;
+            color: #333;
+            border: 3px solid #2196F3;
+            transform: rotateY(180deg);
+        }
+
+        .card.matched .card-back {
+            background: #e8f5e9;
+            border-color: #4CAF50;
+            color: #2e7d32;
+        }
+
+        .leaderboard-list li { font-size: 14px; color: #444; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 顶栏：显示登录学生 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: rgba(0,0,0,0.04); border-radius: 10px; margin-bottom: 15px;">
+        <div style="font-weight: bold; color: #333; font-size: 14px;">
+            👤 学生: <span id="header-user-name" style="color: #2196F3;">检查登录中...</span>
+        </div>
+        <a href="../dashboard.html" style="text-decoration: none; font-weight: bold; color: #666; font-size: 14px;">🏠 返回主页</a>
+    </div>
+
+    <!-- Start Screen -->
+    <section id="start-screen" class="screen">
+        <h1 id="quiz-main-title">记忆翻牌游戏</h1>
+        <p id="game-info-text">加载题库中...</p>
+
+        <button id="start-btn">开始游戏</button>
+
+        <div style="margin-top: 20px;">
+            <h3 style="font-size: 16px; color: #333;">🏆 排行榜 Top 10</h3>
+            <ol class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+        </div>
+    </section>
+
+    <!-- Game Screen -->
+    <section id="game-screen" class="screen hidden">
+        <div class="top-bar">
+            <div id="moves-count">翻牌步数: 0</div>
+            <div id="pairs-left">剩余配对: 0</div>
+            <div id="timer">时间: 0s</div>
+        </div>
+
+        <div id="card-grid" class="card-grid"></div>
+    </section>
+
+    <!-- Result Screen -->
+    <section id="result-screen" class="screen hidden">
+        <h1>🎉 挑战成功！</h1>
+        <h2 id="final-score" style="color: #2196F3; margin-top: 5px;"></h2>
+        <h3 id="final-time" style="color: #666; font-size: 18px;"></h3>
+
+        <div id="save-status-box" style="margin: 15px 0; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; background: #e3f2fd; color: #0d47a1;">
+            ⏳ 正在自动提交成绩中，请稍候...
+        </div>
+
+        <button id="restart-btn" style="margin-top: 5px;">再玩一次</button>
+
+        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+            <h3 style="font-size: 16px; color: #333;">🏆 最新排行榜 Top 10</h3>
+            <ol class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+        </div>
+    </section>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+    let QUIZ_INFO = { quizId: "card_game_01", quizTitle: "翻牌游戏", subject: "chinese", grade: 1, unit: 1 };
+    let words = [];
+    let maxPairs = 4; // 根据年级决定的配对组数
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+        authDomain: "my-teacher-studio.firebaseapp.com",
+        projectId: "my-teacher-studio",
+        storageBucket: "my-teacher-studio.firebasestorage.app",
+        messagingSenderId: "82774284780",
+        appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null, currentUserProfile = null, hasSavedScoreThisRound = false;
+
+    // 1. 加载 Firebase 中的题库数据
+    async function loadQuizData() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetQuizId = urlParams.get('quizId') || 'g1_chinese_u1';
+
+        try {
+            const docSnap = await db.collection("quizzes").doc(targetQuizId).get();
+            if (docSnap.exists) {
+                const data = docSnap.data();
+                QUIZ_INFO = { quizId: data.quizId || targetQuizId, quizTitle: data.quizTitle || "记忆翻牌", subject: data.subject || "general", grade: data.grade || 1, unit: data.unit || 1 };
+                words = data.words || [];
+            } else {
+                const response = await fetch(`./data/${targetQuizId}.json`);
+                const data = await response.json();
+                QUIZ_INFO = { quizId: data.quizId, quizTitle: data.quizTitle, subject: data.subject, grade: data.grade, unit: data.unit };
+                words = data.words || [];
+            }
+        } catch (err) {
+            words = [{ id: 1, english: "Apple", chinese: "苹果" }, { id: 2, english: "Banana", chinese: "香蕉" }, { id: 3, english: "Cat", chinese: "猫" }, { id: 4, english: "Dog", chinese: "狗" }];
+        }
+
+        // 🎯 根据年级设置卡片数量逻辑：
+        // 1-2年级: 4 组卡片 (8张)
+        // 3-4年级: 6 组卡片 (12张)
+        // 5-6年级: 8 组卡片 (16张)
+        const grade = QUIZ_INFO.grade || 1;
+        if (grade <= 2) maxPairs = 4;
+        else if (grade <= 4) maxPairs = 6;
+        else maxPairs = 8;
+
+        document.getElementById('quiz-main-title').innerText = QUIZ_INFO.quizTitle;
+        document.getElementById('game-info-text').innerText = `适合 ${grade} 年级 | 共 ${maxPairs * 2} 张卡片 (${maxPairs} 组配对)`;
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            currentUser = user;
+            try {
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                if (userDoc.exists) currentUserProfile = userDoc.data();
+            } catch (err) {}
+
+            const displayName = (currentUserProfile && currentUserProfile.name) || user.displayName || user.email.split('@')[0] || "学生";
+            document.getElementById('header-user-name').innerText = displayName;
+
+            await loadQuizData();
+            loadLeaderboard();
+        } else {
+            alert("请先登录账号！");
+            window.location.href = "../index.html";
+        }
+    });
+
+    // 2. 翻牌游戏引擎逻辑
+    let cardDeck = [], flippedCards = [], matchedPairs = 0, moves = 0, timer = null, seconds = 0;
+
+    function shuffle(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function initGame() {
+        moves = 0;
+        matchedPairs = 0;
+        seconds = 0;
+        flippedCards = [];
+
+        document.getElementById('moves-count').innerText = `翻牌步数: ${moves}`;
+        document.getElementById('pairs-left').innerText = `剩余配对: ${maxPairs}`;
+
+        // 截取目标数量的词汇
+        const selectedWords = shuffle(words).slice(0, maxPairs);
+
+        // 将每个词汇拆分为卡片：一张英文/图片提示，一张中文答案
+        cardDeck = [];
+        selectedWords.forEach(w => {
+            cardDeck.push({ pairId: w.id, text: w.english, type: 'prompt' });
+            cardDeck.push({ pairId: w.id, text: w.chinese, type: 'answer' });
+        });
+
+        cardDeck = shuffle(cardDeck);
+
+        // 渲染卡片 HTML
+        const grid = document.getElementById('card-grid');
+        grid.innerHTML = "";
+        
+        // 动态调整网格列数 (如 12 张卡用 4 列，16 张卡用 4 列)
+        grid.style.gridTemplateColumns = `repeat(4, 1fr)`;
+
+        cardDeck.forEach((cardData, idx) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            cardEl.dataset.index = idx;
+            cardEl.dataset.pairId = cardData.pairId;
+
+            cardEl.innerHTML = `
+                <div class="card-face card-front"><i class="fa-solid fa-question"></i></div>
+                <div class="card-face card-back">${cardData.text}</div>
+            `;
+
+            cardEl.addEventListener('click', () => handleCardClick(cardEl, cardData));
+            grid.appendChild(cardEl);
+        });
+
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+
+        startTimer();
+    }
+
+    function handleCardClick(cardEl, cardData) {
+        if (cardEl.classList.contains('flipped') || cardEl.classList.contains('matched') || flippedCards.length >= 2) return;
+
+        cardEl.classList.add('flipped');
+        flippedCards.push({ element: cardEl, data: cardData });
+
+        if (flippedCards.length === 2) {
+            moves++;
+            document.getElementById('moves-count').innerText = `翻牌步数: ${moves}`;
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const [card1, card2] = flippedCards;
+
+        if (card1.data.pairId === card2.data.pairId) {
+            // 配对成功
+            card1.element.classList.add('matched');
+            card2.element.classList.add('matched');
+            matchedPairs++;
+            document.getElementById('pairs-left').innerText = `剩余配对: ${maxPairs - matchedPairs}`;
+            flippedCards = [];
+
+            if (matchedPairs === maxPairs) {
+                setTimeout(endGame, 500);
+            }
+        } else {
+            // 配对失败，翻回背面
+            setTimeout(() => {
+                card1.element.classList.remove('flipped');
+                card2.element.classList.remove('flipped');
+                flippedCards = [];
+            }, 800);
+        }
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        document.getElementById('timer').innerText = "时间: 0s";
+        timer = setInterval(() => {
+            seconds++;
+            document.getElementById('timer').innerText = `时间: ${seconds}s`;
+        }, 1000);
+    }
+
+    function endGame() {
+        clearInterval(timer);
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+
+        // 计算基础得分（步数越少、用时越短得分越高）
+        const calculatedScore = Math.max(10, 100 - (moves - maxPairs) * 5 - Math.floor(seconds / 2));
+        document.getElementById('final-score').innerText = `最终得分: ${calculatedScore} (步数: ${moves})`;
+        document.getElementById('final-time').innerText = `完成用时: ${seconds} 秒`;
+    }
+
+    // 3. 提交成绩与加载排行榜
+    async function autoSaveScore() {
+        if (!currentUser || hasSavedScoreThisRound) return;
+        await new Promise(r => setTimeout(r, 300));
+
+        const statusBox = document.getElementById('save-status-box');
+        const displayName = (currentUserProfile && currentUserProfile.name) || currentUser.displayName || "学生";
+        const studentClassCode = (currentUserProfile && currentUserProfile.enrolledClasses && currentUserProfile.enrolledClasses.length > 0) ? currentUserProfile.enrolledClasses[0] : "未划分班级";
+
+        const scoreEl = document.getElementById('final-score').innerText;
+        const scoreValue = parseInt(scoreEl.match(/\d+/) || [0]);
+
+        try {
+            await db.collection("leaderboard").add({
+                studentUid: currentUser.uid,
+                playerName: displayName,
+                classCode: studentClassCode,
+                quizId: QUIZ_INFO.quizId,
+                quizTitle: QUIZ_INFO.quizTitle,
+                subject: QUIZ_INFO.subject,
+                grade: QUIZ_INFO.grade,
+                unit: QUIZ_INFO.unit,
+                score: scoreValue,
+                timeSpent: seconds,
+                timeText: `${Math.floor(seconds/60).toString().padStart(2,'0')}:${(seconds%60).toString().padStart(2,'0')}`,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                status: "active"
+            });
+
+            hasSavedScoreThisRound = true;
+            statusBox.style.background = '#e8f5e9';
+            statusBox.style.color = '#2e7d32';
+            statusBox.innerHTML = `🎉 成绩已自动同步到教师后台！`;
+            loadLeaderboard();
+        } catch (err) {
+            statusBox.style.background = '#ffebee';
+            statusBox.style.color = '#c62828';
+            statusBox.innerHTML = `⚠️ 成绩保存失败: ${err.message}`;
+        }
+    }
+
+    async function loadLeaderboard() {
+        const listEls = document.querySelectorAll('.leaderboard-list');
+        listEls.forEach(el => el.innerHTML = "<li>⏳ 加载排行榜...</li>");
+
+        try {
+            const snapshot = await db.collection("leaderboard").where("quizId", "==", QUIZ_INFO.quizId).orderBy("score", "desc").limit(10).get();
+            listEls.forEach(el => el.innerHTML = "");
+
+            if (snapshot.empty) {
+                listEls.forEach(el => el.innerHTML = "<li>暂无成绩记录！</li>");
+                return;
+            }
+
+            listEls.forEach(el => {
+                let rank = 1;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const li = document.createElement('li');
+                    li.style.marginBottom = "6px";
+                    li.innerHTML = `<b>#${rank} ${data.playerName}</b> (${data.classCode}) - 得分: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> (${data.timeText})`;
+                    el.appendChild(li);
+                    rank++;
+                });
+            });
+        } catch (err) {
+            listEls.forEach(el => el.innerHTML = `<li>⚠️ 加载失败</li>`);
+        }
+    }
+
+    const observer = new MutationObserver(() => {
+        const resultScreen = document.getElementById('result-screen');
+        if (resultScreen && !resultScreen.classList.contains('hidden')) autoSaveScore();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('start-btn').addEventListener('click', initGame);
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            hasSavedScoreThisRound = false;
+            initGame();
+        });
+        observer.observe(document.getElementById('result-screen'), { attributes: true, attributeFilter: ['class'] });
+    });
+</script>
+
+</body>
+</html>
