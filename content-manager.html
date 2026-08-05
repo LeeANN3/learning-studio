@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资料管控与游戏题库管理</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f4f7f6; color: #333; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; }
+        .btn-primary { background: #2196F3; color: white; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-secondary { background: #78909c; color: white; }
+
+        /* 模态框 Modal */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: #fff; border-radius: 10px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 25px; }
+
+        /* 列表表格 */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: bold; color: #555; }
+
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 12px; font-weight: bold; color: #666; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; outline: none; }
+
+        .word-item { display: grid; grid-template-columns: 40px 1fr 1fr 50px; gap: 10px; align-items: center; background: #f9f9f9; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>🗂️ 游戏与测验资料管控中心</h2>
+        <div>
+            <a href="dashboard.html" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> 返回Dashboard</a>
+            <button class="btn btn-primary" onclick="openTemplateSelector()"><i class="fa-solid fa-plus"></i> 创建新游戏测验</button>
+        </div>
+    </div>
+
+    <!-- 数据库现有的测验资料列表 -->
+    <h3>已发布的游戏/测验列表</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>测验标题</th>
+                <th>游戏模板</th>
+                <th>科目</th>
+                <th>年级/单元</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody id="quiz-table-body">
+            <tr><td colspan="5" style="text-align:center; color:#999;">⏳ 加载云端资料中...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 1. 模板选择弹窗 Modal -->
+<div id="template-modal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <h3 style="margin-bottom: 15px;">🎮 选择游戏模板</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-primary" style="justify-content: flex-start; padding: 15px;" onclick="selectTemplate('multiple_choice')">
+                <i class="fa-solid fa-list-check fa-2x"></i>
+                <div style="text-align: left;">
+                    <div style="font-size: 16px;">选择题测验 (Multiple Choice)</div>
+                    <div style="font-size: 12px; opacity: 0.8;">适合单字看文选义、基础测试</div>
+                </div>
+            </button>
+            <button class="btn btn-secondary" style="justify-content: flex-start; padding: 15px; cursor: not-allowed;" disabled>
+                <i class="fa-solid fa-puzzle-piece fa-2x"></i>
+                <div style="text-align: left;">
+                    <div style="font-size: 16px;">卡片连连看 (研发中...)</div>
+                    <div style="font-size: 12px; opacity: 0.8;">适合词汇与图片/配对练习</div>
+                </div>
+            </button>
+        </div>
+        <button class="btn btn-secondary" style="margin-top: 15px; width: 100%;" onclick="closeModal('template-modal')">取消</button>
+    </div>
+</div>
+
+<!-- 2. 测验编辑器弹窗 Modal -->
+<div id="editor-modal" class="modal">
+    <div class="modal-content">
+        <div class="header">
+            <h3 id="editor-title">编辑测验数据</h3>
+            <button class="btn btn-secondary" onclick="closeModal('editor-modal')">✕ 关 闭</button>
+        </div>
+
+        <input type="hidden" id="editing-doc-id">
+        <input type="hidden" id="editing-game-type" value="multiple_choice">
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>测验全局唯一 ID (系统自动生成或自定义):</label>
+                <input type="text" id="quiz-id" placeholder="如: g1_chinese_u1">
+            </div>
+            <div class="form-group">
+                <label>测验标题 (显示给学生):</label>
+                <input type="text" id="quiz-title" placeholder="如: 一年级华文 单元一">
+            </div>
+            <div class="form-group">
+                <label>科目:</label>
+                <select id="quiz-subject">
+                    <option value="chinese">华文 (Chinese)</option>
+                    <option value="english">英文 (English)</option>
+                    <option value="malay">国文 (Malay)</option>
+                    <option value="math">数学 (Math)</option>
+                    <option value="science">科学 (Science)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>目标年级:</label>
+                <input type="number" id="quiz-grade" value="1" min="1" max="6">
+            </div>
+            <div class="form-group">
+                <label>目标单元:</label>
+                <input type="number" id="quiz-unit" value="1" min="1" max="20">
+            </div>
+        </div>
+
+        <!-- 题目管理 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4>题目内容区</h4>
+            <button class="btn btn-primary" onclick="addWordRow()"><i class="fa-solid fa-plus"></i> 添加题目</button>
+        </div>
+
+        <div id="words-container" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
+
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 15px;">
+            <div>
+                <button class="btn btn-warning" onclick="document.getElementById('file-input').click()"><i class="fa-solid fa-file-import"></i> 导入本地 JSON</button>
+                <input type="file" id="file-input" accept=".json" style="display:none;" onchange="importLocalJSON(event)">
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="saveToFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> 保存同步到云端</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+        authDomain: "my-teacher-studio.firebaseapp.com",
+        projectId: "my-teacher-studio",
+        storageBucket: "my-teacher-studio.firebasestorage.app",
+        messagingSenderId: "82774284780",
+        appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // 鉴权保护
+    auth.onAuthStateChanged(user => {
+        if (!user) {
+            alert("请先登录教师账号！");
+            window.location.href = "index.html";
+        } else {
+            loadQuizzesFromFirebase();
+        }
+    });
+
+    // 读取数据库中现有的测验列表
+    async function loadQuizzesFromFirebase() {
+        const tbody = document.getElementById('quiz-table-body');
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999;">⏳ 加载云端资料中...</td></tr>`;
+
+        try {
+            const snapshot = await db.collection("quizzes").get();
+            tbody.innerHTML = "";
+
+            if (snapshot.empty) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#666;">暂无游戏资料，点击右上角新建！</td></tr>`;
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const q = doc.data();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><b>${q.quizTitle || q.quizId}</b></td>
+                    <td><span class="btn btn-secondary" style="padding: 2px 6px; font-size:11px;">${q.gameType || 'multiple_choice'}</span></td>
+                    <td>${q.subject || '未分类'}</td>
+                    <td>${q.grade || 1} 年级 / 单元 ${q.unit || 1}</td>
+                    <td>
+                        <button class="btn btn-primary" onclick="editQuiz('${doc.id}')"><i class="fa-solid fa-pen"></i> 修改</button>
+                        <button class="btn btn-danger" onclick="deleteQuiz('${doc.id}')"><i class="fa-solid fa-trash"></i> 删除</button>
+                        <a href="quiz-runner.html?quizId=${doc.id}" target="_blank" class="btn btn-success"><i class="fa-solid fa-play"></i> 测试</a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (err) {
+            alert("加载数据失败: " + err.message);
+        }
+    }
+
+    // 模态框控制
+    function openTemplateSelector() { document.getElementById('template-modal').classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function selectTemplate(gameType) {
+        closeModal('template-modal');
+        document.getElementById('editing-doc-id').value = "";
+        document.getElementById('editing-game-type').value = gameType;
+        document.getElementById('quiz-id').value = "quiz_" + Date.now();
+        document.getElementById('quiz-title').value = "";
+        document.getElementById('words-container').innerHTML = "";
+        
+        // 默认添加 3 题
+        addWordRow("Apple", "苹果");
+        addWordRow("Banana", "香蕉");
+        
+        document.getElementById('editor-modal').classList.add('active');
+    }
+
+    // 题目行渲染
+    function addWordRow(english = "", chinese = "") {
+        const container = document.getElementById('words-container');
+        const row = document.createElement('div');
+        row.className = 'word-item';
+        row.innerHTML = `
+            <div style="font-weight:bold; color:#888; text-align:center;">#</div>
+            <input type="text" class="input-english" placeholder="英文/题目" value="${english}">
+            <input type="text" class="input-chinese" placeholder="中文/答案" value="${chinese}">
+            <button class="btn btn-danger" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
+        `;
+        container.appendChild(row);
+    }
+
+    // 保存到 Firebase
+    async function saveToFirebase() {
+        const docId = document.getElementById('quiz-id').value.trim();
+        const quizTitle = document.getElementById('quiz-title').value.trim();
+        const subject = document.getElementById('quiz-subject').value;
+        const grade = parseInt(document.getElementById('quiz-grade').value) || 1;
+        const unit = parseInt(document.getElementById('quiz-unit').value) || 1;
+        const gameType = document.getElementById('editing-game-type').value;
+
+        if (!docId) return alert("请填写测验 ID！");
+
+        const wordRows = document.querySelectorAll('.word-item');
+        const words = [];
+        wordRows.forEach((row, idx) => {
+            const eng = row.querySelector('.input-english').value.trim();
+            const chi = row.querySelector('.input-chinese').value.trim();
+            if (eng && chi) {
+                words.push({ id: idx + 1, english: eng, chinese: chi });
+            }
+        });
+
+        if (words.length === 0) return alert("至少需要添加一道有效题目！");
+
+        const payload = {
+            quizId: docId,
+            quizTitle: quizTitle || docId,
+            subject: subject,
+            grade: grade,
+            unit: unit,
+            gameType: gameType,
+            words: words,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            // 使用 set 并开启 merge，既支持新建也支持修改
+            await db.collection("quizzes").doc(docId).set(payload, { merge: true });
+            alert("🎉 保存并发布成功！学生端已即时同步！");
+            closeModal('editor-modal');
+            loadQuizzesFromFirebase();
+        } catch (err) {
+            alert("保存失败: " + err.message);
+        }
+    }
+
+    // 编辑已有测验
+    async function editQuiz(docId) {
+        try {
+            const doc = await db.collection("quizzes").doc(docId).get();
+            if (!doc.exists) return alert("测验已被删除！");
+
+            const q = doc.data();
+            document.getElementById('editing-doc-id').value = doc.id;
+            document.getElementById('quiz-id').value = q.quizId || doc.id;
+            document.getElementById('quiz-title').value = q.quizTitle || "";
+            document.getElementById('quiz-subject').value = q.subject || "chinese";
+            document.getElementById('quiz-grade').value = q.grade || 1;
+            document.getElementById('quiz-unit').value = q.unit || 1;
+            document.getElementById('editing-game-type').value = q.gameType || "multiple_choice";
+
+            const container = document.getElementById('words-container');
+            container.innerHTML = "";
+            if (Array.isArray(q.words)) {
+                q.words.forEach(w => addWordRow(w.english, w.chinese));
+            }
+
+            document.getElementById('editor-modal').classList.add('active');
+        } catch (err) {
+            alert("获取数据失败: " + err.message);
+        }
+    }
+
+    // 删除测验
+    async function deleteQuiz(docId) {
+        if (!confirm(`确定要彻底删除测验 [${docId}] 吗？`)) return;
+        try {
+            await db.collection("quizzes").doc(docId).delete();
+            alert("已删除！");
+            loadQuizzesFromFirebase();
+        } catch (err) {
+            alert("删除失败: " + err.message);
+        }
+    }
+
+    // 导入本地 JSON 填充界面
+    function importLocalJSON(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const data = JSON.parse(evt.target.result);
+                if (data.quizId) document.getElementById('quiz-id').value = data.quizId;
+                if (data.quizTitle) document.getElementById('quiz-title').value = data.quizTitle;
+                if (data.subject) document.getElementById('quiz-subject').value = data.subject;
+                if (data.grade) document.getElementById('quiz-grade').value = data.grade;
+                if (data.unit) document.getElementById('quiz-unit').value = data.unit;
+
+                document.getElementById('words-container').innerHTML = "";
+                if (Array.isArray(data.words)) {
+                    data.words.forEach(w => addWordRow(w.english, w.chinese));
+                }
+                alert("已导入 JSON 内容！点击 [保存同步到云端] 即可发布！");
+            } catch (err) { alert("JSON 读取失败: " + err.message); }
+        };
+        reader.readAsText(file);
+    }
+</script>
+</body>
+</html>
