@@ -2,474 +2,77 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun Learning Island - Teacher Admin Dashboard</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>教室管理后台 - 学生名册与软删除管理</title>
+    <!-- Firebase SDK (v8 命名空间版，方便直接在单文件测试) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
     <style>
-        * { box-sizing: border-box; user-select: none; }
-        body {
-            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
-            background-color: #f8fafc;
-            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
-            background-size: 20px 20px;
-            min-height: 100vh;
-            color: #0f172a;
-        }
-
-        .font-fun {
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-        }
-
-        .neo-card {
-            background-color: #ffffff;
-            border: 2px solid #0f172a;
-            border-radius: 16px;
-            box-shadow: 4px 4px 0px #0f172a;
-        }
-
-        .neo-btn {
-            background-color: #ffffff;
-            border: 2px solid #0f172a;
-            border-radius: 12px;
-            box-shadow: 2px 2px 0px #0f172a;
-            transition: all 0.15s ease;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-weight: 600;
-        }
-
-        .neo-btn:hover {
-            transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px #0f172a;
-        }
-
-        .neo-btn-primary { background-color: #ffe600; }
-        .neo-btn-primary:hover { background-color: #facc15; }
-
-        .neo-btn-danger { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; box-shadow: 2px 2px 0px #dc2626; }
-        .neo-btn-danger:hover { background-color: #ef4444; color: #ffffff; box-shadow: 3px 3px 0px #0f172a; }
-
-        .neo-input {
-            border: 2px solid #0f172a;
-            border-radius: 10px;
-            outline: none;
-            padding: 8px 12px;
-            box-shadow: 2px 2px 0px #cbd5e1;
-        }
-        .neo-input:focus {
-            box-shadow: 2px 2px 0px #ffe600;
-        }
-
-        .tab-btn {
-            padding: 10px 18px;
-            border-radius: 12px;
-            border: 2px solid #0f172a;
-            background: #ffffff;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 2px 2px 0px #0f172a;
-            white-space: nowrap;
-        }
-        .tab-btn.active {
-            background: #ffe600;
-            box-shadow: 3px 3px 0px #0f172a;
-        }
-
-        .modal-overlay {
-            background-color: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(2px);
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
+        h1, h2 { color: #333; }
+        .section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+        .btn-warning { background-color: #ffc107; color: #212529; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn:hover { opacity: 0.85; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-active { background-color: #e2f0d9; color: #385723; }
+        .badge-pending { background-color: #fce4d6; color: #c65911; }
     </style>
 </head>
-<body class="pb-10">
+<body>
 
-    <nav class="bg-white border-b-2 border-slate-900 sticky top-0 z-40 px-4 py-3 shadow-[0_4px_0_#0f172a]">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-300 p-2 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#0f172a]">
-                    <i class="fa-solid fa-chalkboard-user text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-fun text-xl font-bold leading-tight">教师管理后台</h1>
-                    <p class="text-xs text-slate-500 font-sans">Teacher Admin Dashboard</p>
-                </div>
-            </div>
+    <h1>🏫 教室管理后台</h1>
 
-            <div class="flex items-center gap-3">
-                <div class="hidden sm:flex items-center gap-2 bg-slate-100 border-2 border-slate-900 px-3 py-1.5 rounded-xl text-sm font-semibold">
-                    <i class="fa-solid fa-user-shield text-amber-500"></i>
-                    <span id="teacher-name">陈老师 (Admin)</span>
-                </div>
-                <a href="dashboard.html" class="neo-btn px-3 py-1.5 text-sm flex items-center gap-2 bg-sky-100 hover:bg-sky-200">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                    <span>返回学生端</span>
-                </a>
-                <button onclick="handleLogout()" class="neo-btn neo-btn-danger px-3 py-1.5 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>退出</span>
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <div class="max-w-7xl mx-auto px-4 mt-6">
-
-        <!-- Banner Card -->
-        <div class="neo-card p-6 mb-6 bg-amber-50 relative overflow-hidden">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
-                <div>
-                    <h2 class="font-fun text-2xl font-bold flex items-center gap-2">
-                        🏫 补习班多班级管控中心
-                    </h2>
-                    <p class="text-slate-600 text-sm mt-1">
-                        快速管理学生名册、编辑/删除班级邀请码、精准按年级与特定学生解锁课程与测验。
-                    </p>
-                </div>
-                <button onclick="openCreateClassModal()" class="neo-btn neo-btn-primary px-4 py-2.5 flex items-center gap-2 text-base">
-                    <i class="fa-solid fa-plus-circle"></i>
-                    <span>创建新班级邀请码</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="flex gap-3 overflow-x-auto pb-2 mb-6 scrollbar-none">
-            <button onclick="switchTab('students')" id="tab-students" class="tab-btn active font-fun flex items-center gap-2">
-                <i class="fa-solid fa-users"></i>
-                <span>学生账号与名册管理</span>
-            </button>
-            <button onclick="switchTab('classes')" id="tab-classes" class="tab-btn font-fun flex items-center gap-2">
-                <i class="fa-solid fa-layer-group"></i>
-                <span>班级码 (Class Codes) 管理</span>
-            </button>
-            <button onclick="switchTab('unlock')" id="tab-unlock" class="tab-btn font-fun flex items-center gap-2">
-                <i class="fa-solid fa-lock-open"></i>
-                <span>课程/测验进度精准解锁</span>
-            </button>
-            <button onclick="switchTab('scores')" id="tab-scores" class="tab-btn font-fun flex items-center gap-2">
-                <i class="fa-solid fa-trophy"></i>
-                <span>做题成绩汇总看版</span>
-            </button>
-        </div>
-
-        <!-- TAB 1: STUDENTS -->
-        <section id="section-students" class="space-y-4">
-            <div class="neo-card p-5">
-                <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
-                    <div class="flex flex-wrap items-center gap-3 flex-1">
-                        <div class="relative flex-1 min-w-[220px]">
-                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="student-search-input" onkeyup="filterStudents()" placeholder="搜索学生姓名或 Email..." class="neo-input w-full pl-9">
-                        </div>
-                        
-                        <select id="filter-class-select" onchange="filterStudents()" class="neo-input bg-white font-fun">
-                            <option value="ALL">所有班级 (All Classes)</option>
-                        </select>
-                    </div>
-
-                    <div class="text-sm font-semibold text-slate-600 flex items-center gap-2">
-                        <span>共有学生：</span>
-                        <span id="student-count-badge" class="bg-amber-300 border border-slate-900 px-2.5 py-0.5 rounded-full font-bold text-slate-900">0 人</span>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto rounded-xl border-2 border-slate-900">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 border-b-2 border-slate-900 text-slate-800 font-fun text-base">
-                                <th class="p-3">学生姓名</th>
-                                <th class="p-3">电子邮箱 Email</th>
-                                <th class="p-3">所属班级 Code</th>
-                                <th class="p-3">注册时间</th>
-                                <th class="p-3 text-center">操作 (Actions)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="student-table-body" class="divide-y border-slate-200 text-sm font-sans">
-                            <tr>
-                                <td colspan="5" class="p-8 text-center text-slate-400 font-fun text-lg">
-                                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在获取学生名册...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 2: CLASSES -->
-        <section id="section-classes" class="space-y-4 hidden">
-            <div class="neo-card p-5">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-fun text-xl font-bold">🏫 当前活跃班级列表</h3>
-                    <button onclick="openCreateClassModal()" class="neo-btn neo-btn-primary px-3 py-1.5 text-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-plus"></i> 新增班级
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="class-cards-container">
-                    <!-- Dynamically filled class cards -->
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: RESOURCE UNLOCK -->
-        <section id="section-unlock" class="space-y-4 hidden">
-            <div class="neo-card p-5">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
-                    <div>
-                        <h3 class="font-fun text-xl font-bold">🔓 课程与测验可见性（精准开关）</h3>
-                        <p class="text-sm text-slate-600">系统已默认**仅显示与该资料相同年级的班级**。您还可进一步对班里的特定学生隐藏。</p>
-                    </div>
-
-                    <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-300 text-xs">
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold">
-                            <input type="checkbox" id="show-all-grades-toggle" onchange="fetchResources()" class="rounded border-slate-400">
-                            <span>跨年级显示所有班级</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto rounded-xl border-2 border-slate-900">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 border-b-2 border-slate-900 font-fun text-sm">
-                                <th class="p-3">资源名称</th>
-                                <th class="p-3">科目 / 年级 / 单元</th>
-                                <th class="p-3">同年级授权班级 (可多选)</th>
-                                <th class="p-3 text-center">特定学生屏蔽</th>
-                                <th class="p-3 text-center">总发布状态</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resource-table-body" class="divide-y border-slate-200 text-sm font-sans">
-                            <!-- Dynamically filled resource list -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 4: SCORES -->
-        <section id="section-scores" class="space-y-4 hidden">
-            <div class="neo-card p-5">
-                <h3 class="font-fun text-xl font-bold mb-3">🏆 全校做题与答题记录榜</h3>
-                <div class="overflow-x-auto rounded-xl border-2 border-slate-900">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 border-b-2 border-slate-900 font-fun text-sm">
-                                <th class="p-3">做题学生</th>
-                                <th class="p-3">得分</th>
-                                <th class="p-3">用时</th>
-                                <th class="p-3">提交时间</th>
-                            </tr>
-                        </thead>
-                        <tbody id="score-table-body" class="divide-y border-slate-200 text-sm">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
+    <!-- 1. 正常学生名册列表 -->
+    <div class="section">
+        <h2>📚 在读学生名册 (Active)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>UID</th>
+                    <th>姓名</th>
+                    <th>已选班级</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="active-student-list">
+                <tr><td colspan="5">加载中...</td></tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- MODALS SECTION -->
-
-    <!-- 1. Modal: Delete Student -->
-    <div id="delete-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <div class="flex items-center gap-3 text-red-600">
-                <div class="bg-red-100 p-3 rounded-xl border-2 border-red-600">
-                    <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-                </div>
-                <h3 class="font-fun text-xl font-bold">确认删除学生账号？</h3>
-            </div>
-            
-            <p class="text-sm text-slate-600 leading-relaxed">
-                您即将彻底删除学生 <b id="modal-delete-student-name" class="text-slate-900 underline">--</b> (<span id="modal-delete-student-email">--</span>) 的资料及名册记录。<br><br>
-                <span class="text-red-600 text-xs font-semibold">⚠️ 此操作无法撤销，删后该学生将无法再登录及做题！</span>
-            </p>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeDeleteModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
-                <button id="btn-confirm-delete" onclick="executeDeleteStudent()" class="neo-btn neo-btn-danger px-4 py-2 text-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-trash-can"></i>
-                    <span>确认彻底删除</span>
-                </button>
-            </div>
-        </div>
+    <!-- 2. 待移除学生账号列表 -->
+    <div class="section">
+        <h2>⚠️ 待移除学生账号列表 (Pending Delete)</h2>
+        <p style="color: #666; font-size: 13px;">
+            提示：移入此列表的学生已**无法读取任何课程**，且已在**积分榜隐蔽**。若已在 Firebase Console 手动彻底删除了 Auth 账号，可点击“彻底清理记录”。
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>UID</th>
+                    <th>姓名</th>
+                    <th>原备份班级</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="pending-student-list">
+                <tr><td colspan="5">加载中...</td></tr>
+            </tbody>
+        </table>
     </div>
-
-    <!-- 2. Modal: Edit Student's Enrolled Classes -->
-    <div id="edit-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-user-pen text-amber-500"></i>
-                <span>分配/修改学生班级</span>
-            </h3>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">学生姓名与邮箱</label>
-                <p id="modal-edit-student-info" class="font-bold text-sm bg-slate-100 p-2.5 rounded-lg border border-slate-300"></p>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级邀请码 (Class Codes，多选/以逗号分隔)</label>
-                <input type="text" id="modal-edit-class-input" class="neo-input w-full font-mono text-sm" placeholder="如: G1-GRAM-01, DAYCARE-G1">
-                <p class="text-xs text-slate-400 mt-1">您可以直接填入班级代号，多班填逗号分隔。</p>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeEditClassModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
-                <button onclick="saveStudentClasses()" class="neo-btn neo-btn-primary px-4 py-2 text-sm">保存修改</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. Modal: Create Class -->
-    <div id="create-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-plus-circle text-amber-500"></i>
-                <span>设定新班级 Code</span>
-            </h3>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级代码 (Class Code - 给学生注册填写)</label>
-                <input type="text" id="new-code-input" class="neo-input w-full font-mono font-bold uppercase" placeholder="例如: G1-GRAM-01">
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级全称</label>
-                <input type="text" id="new-name-input" class="neo-input w-full text-sm" placeholder="例如: 一年级华文语法 1 班">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">适用年级</label>
-                    <select id="new-grade-select" class="neo-input w-full bg-white font-fun">
-                        <option value="0">学前/通用 (M1/M2)</option>
-                        <option value="1">一年级 (Grade 1)</option>
-                        <option value="2">二年级 (Grade 2)</option>
-                        <option value="3">三年级 (Grade 3)</option>
-                        <option value="4">四年级 (Grade 4)</option>
-                        <option value="5">五年级 (Grade 5)</option>
-                        <option value="6">六年级 (Grade 6)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">带班老师</label>
-                    <input type="text" id="new-teacher-input" class="neo-input w-full text-sm" placeholder="例如: 陈老师">
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeCreateClassModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
-                <button onclick="executeCreateClass()" class="neo-btn neo-btn-primary px-4 py-2 text-sm">确认创建</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. Modal: Edit Class Info -->
-    <div id="edit-class-info-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-pen-to-square text-amber-500"></i>
-                <span>修改班级信息</span>
-            </h3>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级代码 (Code 不可更改)</label>
-                <input type="text" id="edit-class-code-input" class="neo-input w-full font-mono font-bold bg-slate-100 text-slate-500 cursor-not-allowed" readonly>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级全称</label>
-                <input type="text" id="edit-class-name-input" class="neo-input w-full text-sm">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">适用年级</label>
-                    <select id="edit-class-grade-select" class="neo-input w-full bg-white font-fun">
-                        <option value="0">学前/通用 (M1/M2)</option>
-                        <option value="1">一年级 (Grade 1)</option>
-                        <option value="2">二年级 (Grade 2)</option>
-                        <option value="3">三年级 (Grade 3)</option>
-                        <option value="4">四年级 (Grade 4)</option>
-                        <option value="5">五年级 (Grade 5)</option>
-                        <option value="6">六年级 (Grade 6)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">带班老师</label>
-                    <input type="text" id="edit-class-teacher-input" class="neo-input w-full text-sm">
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeEditClassInfoModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
-                <button onclick="executeEditClassInfo()" class="neo-btn neo-btn-primary px-4 py-2 text-sm">更新保存</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 5. Modal: Delete Class Confirmation -->
-    <div id="delete-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <div class="flex items-center gap-3 text-red-600">
-                <div class="bg-red-100 p-3 rounded-xl border-2 border-red-600">
-                    <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-                </div>
-                <h3 class="font-fun text-xl font-bold">确认删除班级？</h3>
-            </div>
-            
-            <p class="text-sm text-slate-600 leading-relaxed">
-                您即将彻底删除班级代码 <b id="modal-delete-class-code" class="text-slate-900 font-mono font-bold underline">--</b> (<span id="modal-delete-class-name">--</span>)。<br><br>
-                <span class="text-red-600 text-xs font-semibold">⚠️ 此操作不会删除学生账号，但该班级代码将从系统班级列表中移除。</span>
-            </p>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeDeleteClassModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
-                <button id="btn-confirm-delete-class" onclick="executeDeleteClass()" class="neo-btn neo-btn-danger px-4 py-2 text-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-trash-can"></i>
-                    <span>确认彻底删除</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 6. Modal: Exclude Specific Students for a Resource -->
-    <div id="exclude-students-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-lg w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
-            <div>
-                <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-user-slash text-amber-500"></i>
-                    <span>屏蔽/隐藏特定学生</span>
-                </h3>
-                <p class="text-xs text-slate-500 mt-1">资料: <b id="modal-exclude-resource-title" class="text-slate-900">--</b></p>
-                <p class="text-xs text-slate-500">勾选的学生即使属于已被授权的班级，也**无法看到/打开**本资料。</p>
-            </div>
-
-            <div class="flex-1 overflow-y-auto border-2 border-slate-900 rounded-xl p-3 bg-slate-50 space-y-2" id="exclude-students-list-container">
-                <!-- Dynamically filled list of students -->
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2 border-t border-slate-200">
-                <button onclick="closeExcludeStudentsModal()" class="neo-btn px-4 py-2 text-sm">取消</button>
-                <button onclick="saveExcludedStudents()" class="neo-btn neo-btn-primary px-4 py-2 text-sm">保存屏蔽设置</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
+        // ==========================================
+        // 1. Firebase 初始化配置 (请替换为你自己的配置)
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
             authDomain: "my-teacher-studio.firebaseapp.com",
@@ -479,560 +82,196 @@
             appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
         };
 
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let currentAdminUser = null;
-        let allStudentsList = [];
-        let allClassCodesList = [];
-        let allResourcesList = [];
+        // ==========================================
+        // 2. 页面加载与数据实时监听
+        // ==========================================
+        window.onload = function() {
+            listenToStudents();
+        };
 
-        let studentTargetToDelete = null;
-        let studentTargetToEdit = null;
-        let classTargetToDelete = null;
-        let classTargetToEdit = null;
-        let resourceTargetToExclude = null;
+        function listenToStudents() {
+            // 实时监听 users 集合变更
+            db.collection("users").onSnapshot(snapshot => {
+                const activeBody = document.getElementById("active-student-list");
+                const pendingBody = document.getElementById("pending-student-list");
 
-        // Auth Guard
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = "index.html";
-                return;
-            }
+                activeBody.innerHTML = "";
+                pendingBody.innerHTML = "";
 
-            try {
-                const userDoc = await db.collection("users").doc(user.uid).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    if (userData.role !== 'teacher') {
-                        alert("⚠️ 只有教师账号才可以访问管理后台！");
-                        window.location.href = "dashboard.html";
-                        return;
+                let activeCount = 0;
+                let pendingCount = 0;
+
+                snapshot.forEach(doc => {
+                    const student = doc.data();
+                    const uid = doc.id;
+                    const status = student.status || "active"; // 默认 status 为 active
+
+                    if (status === "active") {
+                        activeCount++;
+                        const classes = (student.enrolledClasses || []).join(", ") || "无班级";
+                        activeBody.innerHTML += `
+                            <tr>
+                                <td><small>${uid}</small></td>
+                                <td><strong>${student.name || '未命名'}</strong></td>
+                                <td>${classes}</td>
+                                <td><span class="badge badge-active">正常访问</span></td>
+                                <td>
+                                    <button class="btn btn-warning" onclick="softDeleteStudent('${uid}', '${student.name || ''}')">
+                                        移入待移除列表
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    } else if (status === "pending_delete") {
+                        pendingCount++;
+                        const backupClasses = (student.backupClasses || []).join(", ") || "无备份班级";
+                        pendingBody.innerHTML += `
+                            <tr>
+                                <td><small>${uid}</small></td>
+                                <td><strong>${student.name || '未命名'}</strong></td>
+                                <td>${backupClasses}</td>
+                                <td><span class="badge badge-pending">无权限 / 榜单已隐藏</span></td>
+                                <td>
+                                    <button class="btn btn-success" onclick="restoreStudent('${uid}', '${student.name || ''}')">
+                                        ↺ 恢复学生账号
+                                    </button>
+                                    <button class="btn btn-danger" onclick="hardDeleteAfterConsoleRemoval('${uid}', '${student.name || ''}')">
+                                        🗑️ 确认 Console 已删并彻底清理
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
                     }
-                    document.getElementById('teacher-name').innerText = (userData.name || "老师") + " (Admin)";
-                    currentAdminUser = userData;
-                    loadAllData();
-                } else {
-                    window.location.href = "index.html";
-                }
-            } catch (err) {
-                console.error("验证教师身份失败:", err);
-            }
-        });
-
-        async function loadAllData() {
-            await Promise.all([
-                fetchClasses(),
-                fetchStudents(),
-                fetchResources(),
-                fetchScores()
-            ]);
-        }
-
-        // --- FETCH STUDENTS ---
-        async function fetchStudents() {
-            const tbody = document.getElementById('student-table-body');
-            tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-fun text-lg"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在加载最新学生名单...</td></tr>`;
-
-            try {
-                const snapshot = await db.collection("users").where("role", "==", "student").get();
-                allStudentsList = [];
-                snapshot.forEach(doc => {
-                    allStudentsList.push({ id: doc.id, ...doc.data() });
                 });
-                renderStudentTable(allStudentsList);
-            } catch (err) {
-                console.error("读取学生失败:", err);
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-red-500 font-semibold">⚠️ 读取学生失败：${err.message}</td></tr>`;
-            }
-        }
 
-        function renderStudentTable(students) {
-            const tbody = document.getElementById('student-table-body');
-            document.getElementById('student-count-badge').innerText = `${students.length} 人`;
-
-            if (students.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 italic">暂无匹配的学生数据</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = '';
-            students.forEach(s => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-colors";
-
-                const classesBadge = (s.enrolledClasses && s.enrolledClasses.length > 0)
-                    ? s.enrolledClasses.map(c => `<span class="bg-sky-100 text-sky-800 border border-sky-300 font-mono text-xs px-2 py-0.5 rounded-md font-bold">${c}</span>`).join(' ')
-                    : `<span class="text-slate-400 text-xs italic">未加入任何班级</span>`;
-
-                const dateStr = s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleDateString('zh-CN') : '未知';
-
-                tr.innerHTML = `
-                    <td class="p-3 font-semibold text-slate-900 flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-amber-200 border border-slate-900 flex items-center justify-center font-fun text-sm">
-                            ${(s.name || '学').charAt(0)}
-                        </div>
-                        <span>${s.name || '未填写'}</span>
-                    </td>
-                    <td class="p-3 text-slate-600 font-mono text-xs">${s.email || '-'}</td>
-                    <td class="p-3">${classesBadge}</td>
-                    <td class="p-3 text-slate-500 text-xs">${dateStr}</td>
-                    <td class="p-3 text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            <button onclick="openEditClassModal('${s.id}', '${s.name || '学生'}', '${(s.enrolledClasses || []).join(', ')}')" class="neo-btn px-2.5 py-1 text-xs bg-amber-100 hover:bg-amber-200" title="修改班级">
-                                <i class="fa-solid fa-pen-to-square"></i> 改班级
-                            </button>
-                            <button onclick="openDeleteModal('${s.id}', '${s.name || '未命名'}', '${s.email}')" class="neo-btn neo-btn-danger px-2.5 py-1 text-xs" title="彻底删除学生账号">
-                                <i class="fa-solid fa-trash"></i> 删除
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                if (activeCount === 0) activeBody.innerHTML = '<tr><td colspan="5">暂无在读学生</td></tr>';
+                if (pendingCount === 0) pendingBody.innerHTML = '<tr><td colspan="5">待移除列表中暂无学生</td></tr>';
+            }, err => {
+                console.error("数据读取失败:", err);
             });
         }
 
-        function filterStudents() {
-            const query = document.getElementById('student-search-input').value.toLowerCase().trim();
-            const classFilter = document.getElementById('filter-class-select').value;
+        // ==========================================
+        // 3. 核心功能逻辑
+        // ==========================================
 
-            const filtered = allStudentsList.filter(s => {
-                const matchName = (s.name || '').toLowerCase().includes(query) || (s.email || '').toLowerCase().includes(query);
-                const matchClass = (classFilter === 'ALL') || (s.enrolledClasses && s.enrolledClasses.includes(classFilter));
-                return matchName && matchClass;
-            });
-
-            renderStudentTable(filtered);
-        }
-
-        // Student Actions
-        function openDeleteModal(uid, name, email) {
-            studentTargetToDelete = { uid, name, email };
-            document.getElementById('modal-delete-student-name').innerText = name;
-            document.getElementById('modal-delete-student-email').innerText = email;
-            document.getElementById('delete-modal').classList.remove('hidden');
-        }
-
-        function closeDeleteModal() {
-            studentTargetToDelete = null;
-            document.getElementById('delete-modal').classList.add('hidden');
-        }
-
-        async function executeDeleteStudent() {
-            if (!studentTargetToDelete) return;
-            const btn = document.getElementById('btn-confirm-delete');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 删除中...`;
+        /**
+         * 功能 1：移入待移除列表（软删除：停权 + 积分榜隐藏）
+         */
+        async function softDeleteStudent(studentUid, studentName) {
+            if (!confirm(`确认将学生【${studentName || studentUid}】移入待移除列表？\n\n移入后：\n1. 该学生将立刻失去所有课程读取权限。\n2. 积分榜上将自动隐藏该学生。`)) return;
 
             try {
-                await db.collection("users").doc(studentTargetToDelete.uid).delete();
-                closeDeleteModal();
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-trash-can"></i> 确认彻底删除`;
-                fetchStudents();
-            } catch (err) {
-                alert("⚠️ 删除失败：" + err.message);
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-trash-can"></i> 确认彻底删除`;
-            }
-        }
+                const batch = db.batch();
 
-        function openEditClassModal(uid, name, currentClassesStr) {
-            studentTargetToEdit = uid;
-            document.getElementById('modal-edit-student-info').innerText = `${name} (${uid.substring(0, 8)}...)`;
-            document.getElementById('modal-edit-class-input').value = currentClassesStr;
-            document.getElementById('edit-class-modal').classList.remove('hidden');
-        }
+                // 1. 获取当前学生数据，准备备份班级
+                const userRef = db.collection("users").doc(studentUid);
+                const userDoc = await userRef.get();
+                const userData = userDoc.data() || {};
 
-        function closeEditClassModal() {
-            studentTargetToEdit = null;
-            document.getElementById('edit-class-modal').classList.add('hidden');
-        }
-
-        async function saveStudentClasses() {
-            if (!studentTargetToEdit) return;
-            const rawInput = document.getElementById('modal-edit-class-input').value;
-            const classArray = rawInput.split(',').map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
-
-            try {
-                await db.collection("users").doc(studentTargetToEdit).update({
-                    enrolledClasses: classArray
-                });
-                closeEditClassModal();
-                fetchStudents();
-            } catch (err) {
-                alert("⚠️ 更新失败：" + err.message);
-            }
-        }
-
-        // --- CLASSES MANAGEMENT ---
-        async function fetchClasses() {
-            const container = document.getElementById('class-cards-container');
-            const filterSelect = document.getElementById('filter-class-select');
-
-            try {
-                const snapshot = await db.collection("classes").get();
-                allClassCodesList = [];
-                container.innerHTML = '';
-                filterSelect.innerHTML = `<option value="ALL">所有班级 (All Classes)</option>`;
-
-                snapshot.forEach(doc => {
-                    const c = { id: doc.id, ...doc.data() };
-                    allClassCodesList.push(c);
-
-                    const card = document.createElement('div');
-                    card.className = "neo-card p-4 bg-white flex flex-col justify-between hover:bg-amber-50/50 transition-colors";
-                    card.innerHTML = `
-                        <div>
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="font-mono font-bold bg-amber-300 border border-slate-900 px-2.5 py-1 rounded-lg text-sm">${c.id}</span>
-                                <span class="text-xs bg-slate-100 border border-slate-300 px-2 py-0.5 rounded font-bold text-slate-600">${c.grade || 0} 年级</span>
-                            </div>
-                            <h4 class="font-fun text-lg font-bold text-slate-800">${c.className || '未命名班级'}</h4>
-                            <p class="text-xs text-slate-500 mt-1">负责老师：${c.teacherName || '陈老师'}</p>
-                        </div>
-                        <div class="flex justify-end gap-2 mt-4 pt-3 border-t border-slate-200">
-                            <button onclick="openEditClassInfoModal('${c.id}', '${c.className || ''}', ${c.grade || 0}, '${c.teacherName || ''}')" class="neo-btn px-2.5 py-1 text-xs bg-sky-100 hover:bg-sky-200 flex items-center gap-1">
-                                <i class="fa-solid fa-pen-to-square"></i> 修改
-                            </button>
-                            <button onclick="openDeleteClassModal('${c.id}', '${c.className || ''}')" class="neo-btn neo-btn-danger px-2.5 py-1 text-xs flex items-center gap-1">
-                                <i class="fa-solid fa-trash"></i> 删除
-                            </button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-
-                    const opt = document.createElement('option');
-                    opt.value = c.id;
-                    opt.innerText = `${c.id} - ${c.className || ''}`;
-                    filterSelect.appendChild(opt);
+                batch.update(userRef, {
+                    status: "pending_delete",
+                    backupClasses: userData.enrolledClasses || [], // 备份班级
+                    enrolledClasses: [],                         // 清空当前班级以拦截权限
+                    pendingDeleteAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                if (snapshot.empty) {
-                    container.innerHTML = `<div class="col-span-full p-6 text-center text-slate-400 italic">暂未创建班级邀请码，可以点击右上角创建！</div>`;
-                }
+                // 2. 积分榜打上 pending_delete 标记（使其在排行榜前端不被查询出）
+                const leaderboardSnap = await db.collection("leaderboard")
+                    .where("studentUid", "==", studentUid)
+                    .get();
+
+                leaderboardSnap.forEach(doc => {
+                    batch.update(doc.ref, { status: "pending_delete" });
+                });
+
+                await batch.commit();
+                alert(`✅ 学生【${studentName}】已移入待移除列表！`);
 
             } catch (err) {
-                console.error("加载班级失败:", err);
+                console.error("移入待移除列表失败:", err);
+                alert("⚠️ 操作失败：" + err.message);
             }
         }
 
-        // Create Class
-        function openCreateClassModal() {
-            document.getElementById('create-class-modal').classList.remove('hidden');
+        /**
+         * 功能 2：从待移除列表中恢复账号（恢复班级权限 + 恢复积分榜）
+         */
+        async function restoreStudent(studentUid, studentName) {
+            try {
+                const batch = db.batch();
+
+                const userRef = db.collection("users").doc(studentUid);
+                const userDoc = await userRef.get();
+                const userData = userDoc.data() || {};
+
+                // 1. 还原学生班级与状态
+                batch.update(userRef, {
+                    status: "active",
+                    enrolledClasses: userData.backupClasses || [], // 恢复原来的班级
+                    backupClasses: firebase.firestore.FieldValue.delete(),
+                    pendingDeleteAt: firebase.firestore.FieldValue.delete()
+                });
+
+                // 2. 还原积分榜记录状态
+                const leaderboardSnap = await db.collection("leaderboard")
+                    .where("studentUid", "==", studentUid)
+                    .get();
+
+                leaderboardSnap.forEach(doc => {
+                    batch.update(doc.ref, { status: "active" });
+                });
+
+                await batch.commit();
+                alert(`🎉 学生【${studentName}】账号及榜单成绩已成功恢复！`);
+
+            } catch (err) {
+                console.error("恢复学生失败:", err);
+                alert("⚠️ 恢复失败：" + err.message);
+            }
         }
 
-        function closeCreateClassModal() {
-            document.getElementById('create-class-modal').classList.add('hidden');
-        }
+        /**
+         * 功能 3：确认 Firebase Console 已手动删除 Auth 后，彻底清理 Firestore 记录
+         */
+        async function hardDeleteAfterConsoleRemoval(studentUid, studentName) {
+            const confirmName = prompt(
+                `⚠️ 警告：彻底清理将永久抹除学生【${studentName}】在 Firestore 数据库里的所有数据（包含成绩记录），无法恢复！\n\n` +
+                `请确认您已去 Firebase Console 的 Authentication 页面删除了此 UID：\n${studentUid}\n\n` +
+                `确认清理请输入学生姓名「${studentName}」：`
+            );
 
-        async function executeCreateClass() {
-            const code = document.getElementById('new-code-input').value.trim().toUpperCase();
-            const name = document.getElementById('new-name-input').value.trim();
-            const grade = parseInt(document.getElementById('new-grade-select').value);
-            const teacher = document.getElementById('new-teacher-input').value.trim();
-
-            if (!code || !name) {
-                alert("请填写班级代码与班级全称！");
+            if (confirmName !== studentName) {
+                alert("取消清理：输入的姓名不匹配。");
                 return;
             }
 
             try {
-                await db.collection("classes").doc(code).set({
-                    className: name,
-                    grade: grade,
-                    teacherName: teacher || "陈老师",
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                const batch = db.batch();
+
+                // 1. 删除 Firestore 中的学生文档
+                const userRef = db.collection("users").doc(studentUid);
+                batch.delete(userRef);
+
+                // 2. 删除 Firestore 中的排行榜记录
+                const leaderboardSnap = await db.collection("leaderboard")
+                    .where("studentUid", "==", studentUid)
+                    .get();
+
+                leaderboardSnap.forEach(doc => {
+                    batch.delete(doc.ref);
                 });
 
-                closeCreateClassModal();
-                document.getElementById('new-code-input').value = '';
-                document.getElementById('new-name-input').value = '';
-                fetchClasses();
-                fetchResources();
-            } catch (err) {
-                alert("⚠️ 创建失败：" + err.message);
-            }
-        }
-
-        // Edit Class Info
-        function openEditClassInfoModal(id, name, grade, teacher) {
-            classTargetToEdit = id;
-            document.getElementById('edit-class-code-input').value = id;
-            document.getElementById('edit-class-name-input').value = name;
-            document.getElementById('edit-class-grade-select').value = grade;
-            document.getElementById('edit-class-teacher-input').value = teacher;
-            document.getElementById('edit-class-info-modal').classList.remove('hidden');
-        }
-
-        function closeEditClassInfoModal() {
-            classTargetToEdit = null;
-            document.getElementById('edit-class-info-modal').classList.add('hidden');
-        }
-
-        async function executeEditClassInfo() {
-            if (!classTargetToEdit) return;
-            const name = document.getElementById('edit-class-name-input').value.trim();
-            const grade = parseInt(document.getElementById('edit-class-grade-select').value);
-            const teacher = document.getElementById('edit-class-teacher-input').value.trim();
-
-            if (!name) {
-                alert("请输入班级全称！");
-                return;
-            }
-
-            try {
-                await db.collection("classes").doc(classTargetToEdit).update({
-                    className: name,
-                    grade: grade,
-                    teacherName: teacher || "陈老师"
-                });
-                closeEditClassInfoModal();
-                fetchClasses();
-                fetchResources();
-            } catch (err) {
-                alert("⚠️ 修改班级失败：" + err.message);
-            }
-        }
-
-        // Delete Class
-        function openDeleteClassModal(id, name) {
-            classTargetToDelete = { id, name };
-            document.getElementById('modal-delete-class-code').innerText = id;
-            document.getElementById('modal-delete-class-name').innerText = name || '未命名';
-            document.getElementById('delete-class-modal').classList.remove('hidden');
-        }
-
-        function closeDeleteClassModal() {
-            classTargetToDelete = null;
-            document.getElementById('delete-class-modal').classList.add('hidden');
-        }
-
-        async function executeDeleteClass() {
-            if (!classTargetToDelete) return;
-            const btn = document.getElementById('btn-confirm-delete-class');
-            btn.disabled = true;
-
-            try {
-                await db.collection("classes").doc(classTargetToDelete.id).delete();
-                closeDeleteClassModal();
-                btn.disabled = false;
-                fetchClasses();
-                fetchResources();
-            } catch (err) {
-                alert("⚠️ 删除班级失败：" + err.message);
-                btn.disabled = false;
-            }
-        }
-
-        // --- RESOURCE UNLOCK & EXCLUSIONS ---
-        async function fetchResources() {
-            const tbody = document.getElementById('resource-table-body');
-            const showAllGrades = document.getElementById('show-all-grades-toggle') ? document.getElementById('show-all-grades-toggle').checked : false;
-
-            try {
-                const snapshot = await db.collection("resources").get();
-                allResourcesList = [];
-                tbody.innerHTML = '';
-
-                if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">资源库暂无测验/资料项。可在数据库中添加试题资源。</td></tr>`;
-                    return;
-                }
-
-                snapshot.forEach(doc => {
-                    const r = { id: doc.id, ...doc.data() };
-                    allResourcesList.push(r);
-
-                    const tr = document.createElement('tr');
-                    const unlockedClasses = r.unlockedClasses || [];
-                    const excludedStudents = r.excludedStudents || [];
-
-                    let relevantClasses = allClassCodesList;
-                    if (!showAllGrades && r.grade) {
-                        relevantClasses = allClassCodesList.filter(c => c.grade == r.grade || c.grade == 0);
-                    }
-
-                    const classCheckboxes = relevantClasses.map(c => `
-                        <label class="inline-flex items-center gap-1 bg-slate-100 border border-slate-300 px-2 py-1 rounded text-xs cursor-pointer hover:bg-amber-100">
-                            <input type="checkbox" onchange="toggleResourceClass('${r.id}', '${c.id}', this.checked)" ${unlockedClasses.includes(c.id) ? 'checked' : ''}>
-                            <span class="font-mono font-bold">${c.id}</span>
-                        </label>
-                    `).join(' ');
-
-                    const exclusionBadge = excludedStudents.length > 0 
-                        ? `<span class="bg-red-100 text-red-700 border border-red-300 px-2 py-0.5 rounded-full font-bold text-xs">${excludedStudents.length} 人隐藏</span>`
-                        : `<span class="text-slate-400 text-xs">无隐藏</span>`;
-
-                    tr.innerHTML = `
-                        <td class="p-3 font-semibold text-slate-900">${r.title || '无标题'}</td>
-                        <td class="p-3 text-slate-600 text-xs">${r.subject || ''} / ${r.grade || 1}年级 / 单元${r.unit || 1}</td>
-                        <td class="p-3">
-                            <div class="flex flex-wrap gap-1">
-                                ${classCheckboxes || '<span class="text-xs text-slate-400 italic">暂无同年级班级代码</span>'}
-                            </div>
-                        </td>
-                        <td class="p-3 text-center">
-                            <button onclick="openExcludeStudentsModal('${r.id}')" class="neo-btn px-2.5 py-1 text-xs flex items-center gap-1 mx-auto ${excludedStudents.length > 0 ? 'bg-amber-100 hover:bg-amber-200' : 'bg-slate-100'}">
-                                <i class="fa-solid fa-user-slash"></i> 屏蔽管理 (${exclusionBadge})
-                            </button>
-                        </td>
-                        <td class="p-3 text-center">
-                            <button onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2 py-1 text-xs ${r.isPublished ? 'bg-emerald-200 text-emerald-900' : 'bg-slate-200 text-slate-600'}">
-                                ${r.isPublished ? '已发布' : '已隐藏'}
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                await batch.commit();
+                alert("🎉 数据库记录已彻底抹除清理完毕！");
 
             } catch (err) {
-                console.error("读取资源库失败:", err);
+                console.error("彻底删除失败:", err);
+                alert("⚠️ 清理失败：" + err.message);
             }
-        }
-
-        // [补全逻辑 1]: 实时同步勾选班级到 Firestore
-        async function toggleResourceClass(resourceId, classCode, isChecked) {
-            try {
-                const docRef = db.collection("resources").doc(resourceId);
-                if (isChecked) {
-                    await docRef.update({
-                        unlockedClasses: firebase.firestore.FieldValue.arrayUnion(classCode)
-                    });
-                } else {
-                    await docRef.update({
-                        unlockedClasses: firebase.firestore.FieldValue.arrayRemove(classCode)
-                    });
-                }
-                console.log(`资源 ${resourceId} 的班级 ${classCode} 授权状态已成功修改为: ${isChecked}`);
-            } catch (err) {
-                console.error("更新资源可见班级失败:", err);
-                alert("⚠️ 更新授权班级失败：" + err.message);
-            }
-        }
-
-        async function toggleResourcePublish(resourceId, newStatus) {
-            try {
-                await db.collection("resources").doc(resourceId).update({ isPublished: newStatus });
-                fetchResources();
-            } catch (err) {
-                console.error("修改发布状态失败:", err);
-            }
-        }
-
-        // Exclude Specific Students Logic
-        function openExcludeStudentsModal(resourceId) {
-            resourceTargetToExclude = resourceId;
-            const resource = allResourcesList.find(r => r.id === resourceId);
-            if (!resource) return;
-
-            document.getElementById('modal-exclude-resource-title').innerText = resource.title || '资料';
-            const container = document.getElementById('exclude-students-list-container');
-            container.innerHTML = '';
-
-            const unlockedClasses = resource.unlockedClasses || [];
-            const excludedStudents = resource.excludedStudents || [];
-
-            const eligibleStudents = allStudentsList.filter(s => {
-                if (!s.enrolledClasses) return false;
-                return s.enrolledClasses.some(c => unlockedClasses.includes(c));
-            });
-
-            if (eligibleStudents.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs italic">当前尚未授权任何班级，或已授权班级中暂无注册学生。</div>`;
-            } else {
-                eligibleStudents.forEach(s => {
-                    const isExcluded = excludedStudents.includes(s.id);
-                    const div = document.createElement('div');
-                    div.className = "flex items-center justify-between p-2.5 bg-white border border-slate-300 rounded-lg hover:bg-slate-100";
-                    div.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-sm text-slate-800">${s.name || '学生'}</span>
-                            <span class="text-xs font-mono text-slate-500">(${s.email || '-'})</span>
-                        </div>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-md">
-                            <input type="checkbox" class="exclude-checkbox rounded text-red-600" value="${s.id}" ${isExcluded ? 'checked' : ''}>
-                            <span>隐藏/屏蔽本课</span>
-                        </label>
-                    `;
-                    container.appendChild(div);
-                });
-            }
-
-            document.getElementById('exclude-students-modal').classList.remove('hidden');
-        }
-
-        function closeExcludeStudentsModal() {
-            resourceTargetToExclude = null;
-            document.getElementById('exclude-students-modal').classList.add('hidden');
-        }
-
-        // [补全逻辑 2]: 保存特定学生屏蔽名单
-        async function saveExcludedStudents() {
-            if (!resourceTargetToExclude) return;
-
-            const checkboxes = document.querySelectorAll('.exclude-checkbox');
-            const excludedIds = [];
-            checkboxes.forEach(cb => {
-                if (cb.checked) excludedIds.push(cb.value);
-            });
-
-            try {
-                await db.collection("resources").doc(resourceTargetToExclude).update({
-                    excludedStudents: excludedIds
-                });
-                closeExcludeStudentsModal();
-                fetchResources();
-                alert("✅ 屏蔽设置保存成功！");
-            } catch (err) {
-                alert("⚠️ 保存屏蔽设置失败：" + err.message);
-            }
-        }
-
-        // --- FETCH SCORES ---
-        async function fetchScores() {
-            const tbody = document.getElementById('score-table-body');
-            try {
-                const snapshot = await db.collection("leaderboard").orderBy("timestamp", "desc").limit(20).get();
-                tbody.innerHTML = '';
-
-                if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">暂无学生提交测验成绩记录</td></tr>`;
-                    return;
-                }
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const tr = document.createElement('tr');
-                    const timeStr = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString('zh-CN') : '-';
-                    tr.innerHTML = `
-                        <td class="p-3 font-semibold text-slate-900">${data.playerName || '匿名'}</td>
-                        <td class="p-3 font-bold text-red-600">${data.score} 分</td>
-                        <td class="p-3 text-slate-600 text-xs">${data.timeText || '-'}</td>
-                        <td class="p-3 text-slate-500 text-xs">${timeStr}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error("加载成绩榜失败:", err);
-            }
-        }
-
-        // --- TAB SWITCHING ---
-        function switchTab(tabName) {
-            const tabs = ['students', 'classes', 'unlock', 'scores'];
-            tabs.forEach(t => {
-                document.getElementById(`tab-${t}`).classList.toggle('active', t === tabName);
-                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tabName);
-            });
-        }
-
-        // Logout
-        function handleLogout() {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
-            });
         }
     </script>
 </body>
