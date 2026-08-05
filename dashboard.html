@@ -102,7 +102,6 @@
         .btn-teacher-admin {
             background: #ffe600;
             border-color: #1a1a1a;
-            animation: pulse-border 2s infinite;
         }
         .btn-teacher-admin:hover {
             background: #facc15;
@@ -111,51 +110,6 @@
         .btn-logout:hover {
             background: #ff4d4d;
             color: #ffffff;
-        }
-
-        @media (max-width: 640px) {
-            .navbar {
-                padding: 10px 12px;
-                gap: 8px;
-            }
-
-            .brand-logo {
-                font-size: 17px;
-                gap: 6px;
-            }
-
-            .brand-logo i {
-                padding: 5px;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-
-            .user-actions {
-                gap: 6px;
-            }
-
-            .user-info-badge {
-                padding: 4px 8px;
-                font-size: 13px;
-                border-radius: 8px;
-            }
-
-            .btn-ui {
-                padding: 4px 8px;
-                font-size: 13px;
-                border-radius: 8px;
-            }
-
-            .tag-class-type {
-                font-size: 10px;
-                padding: 1px 4px;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .brand-logo span {
-                display: none;
-            }
         }
 
         .container {
@@ -435,11 +389,8 @@
             }
         };
 
-        // 🔒 强化版 Auth 防越权与停权拦截监听系统
         auth.onAuthStateChanged(async (user) => {
-            // 1. 若完全未登录，立即拦截跳转回登录页
             if (!user) {
-                console.warn("未检测到登录 Token，强行返回登录页");
                 window.location.href = "index.html";
                 return;
             }
@@ -448,8 +399,6 @@
                 const doc = await db.collection("users").doc(user.uid).get();
                 if (doc.exists) {
                     currentUserData = doc.data();
-
-                    // 2. 账号状态检查：如果属于 pending_delete（已移入待移除列表），阻止登录
                     if (currentUserData.status === 'pending_delete') {
                         alert("⚠️ 账号受限：您的账号已被暂时关停，请联系老师恢复。");
                         await auth.signOut();
@@ -516,7 +465,7 @@
             unitSelect.innerHTML = '';
 
             const t = translations[currentLang];
-            for (let i = 1; i <= 10; i++) {
+            for (let i = 1; i <= 20; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
                 opt.innerText = `${t.unitPrefix}${i}`;
