@@ -650,19 +650,23 @@
             document.getElementById('edit-class-modal').classList.add('hidden');
         }
 
-        async function saveStudentClasses() {
+       async function saveStudentClasses() {
             if (!studentTargetToEdit) return;
-            const rawInput = document.getElementById('modal-edit-class-input').value;
-            const classArray = rawInput.split(',').map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
+            const inputVal = document.getElementById('modal-edit-class-input').value;
+            // 将输入的逗号分隔字符串转为数组，并去重、清理空格
+            const classesArray = inputVal.split(',')
+                                         .map(c => c.trim().toUpperCase())
+                                         .filter(c => c.length > 0);
 
             try {
                 await db.collection("users").doc(studentTargetToEdit).update({
-                    enrolledClasses: classArray
+                    enrolledClasses: classesArray
                 });
+                alert("✅ 学生班级修改成功！");
                 closeEditClassModal();
-                fetchStudents();
+                fetchStudents(); // 刷新学生列表
             } catch (err) {
-                alert("⚠️ 更新失败：" + err.message);
+                alert("⚠️ 保存失败：" + err.message);
             }
         }
 
@@ -827,67 +831,75 @@
         }
 
         // --- RESOURCE UNLOCK & EXCLUSIONS ---
-        async function fetchResources() {
+       async function fetchResources() {
             const tbody = document.getElementById('resource-table-body');
-            const showAllGrades = document.getElementById('show-all-grades-toggle') ? document.getElementById('show-all-grades-toggle').checked : false;
+            tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>加载资源中...</td></tr>`;
 
             try {
                 const snapshot = await db.collection("resources").get();
                 allResourcesList = [];
-                tbody.innerHTML = '';
-
-                if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">资源库暂无测验/资料项。可在数据库中添加试题资源。</td></tr>`;
-                    return;
-                }
-
                 snapshot.forEach(doc => {
-                    const r = { id: doc.id, ...doc.data() };
-                    allResourcesList.push(r);
-
-                    const tr = document.createElement('tr');
-                    const unlockedClasses = r.unlockedClasses || [];
-                    const excludedStudents = r.excludedStudents || [];
-
-                    // Filter classes: show matching grade classes OR all classes if toggle enabled
-                    let relevantClasses = allClassCodesList;
-                    if (!showAllGrades && r.grade) {
-                        relevantClasses = allClassCodesList.filter(c => c.grade == r.grade || c.grade == 0);
-                    }
-
-                    const classCheckboxes = relevantClasses.map(c => `
-                        <label class="inline-flex items-center gap-1 bg-slate-100 border border-slate-300 px-2 py-1 rounded text-xs cursor-pointer hover:bg-amber-100">
-                            <input type="checkbox" onchange="toggleResourceClass('${r.id}', '${c.id}', this.checked)" ${unlockedClasses.includes(c.id) ? 'checked' : ''}>
-                            <span class="font-mono font-bold">${c.id}</span>
-                        </label>
-                    `).join(' ');
-
-                    const exclusionBadge = excludedStudents.length > 0 
-                        ? `<span class="bg-red-100 text-red-700 border border-red-300 px-2 py-0.5 rounded-full font-bold text-xs">${excludedStudents.length} 人隐藏</span>`
-                        : `<span class="text-slate-400 text-xs">无隐藏</span>`;
-
-                    tr.innerHTML = `
-                        <td class="p-3 font-semibold text-slate-900">${r.title || '无标题'}</td>
-                        <td class="p-3 text-slate-600 text-xs">${r.subject || ''} / ${r.grade || 1}年级 / 单元${r.unit || 1}</td>
-                        <td class="p-3">
-                            <div class="flex flex-wrap gap-1">
-                                ${classCheckboxes || '<span class="text-xs text-slate-400 italic">暂无同年级班级代码</span>'}
-                            </div>
-                        </td>
-                        <td class="p-3 text-center">
-                            <button onclick="openExcludeStudentsModal('${r.id}')" class="neo-btn px-2.5 py-1 text-xs flex items-center gap-1 mx-auto ${excludedStudents.length > 0 ? 'bg-amber-100 hover:bg-amber-200' : 'bg-slate-100'}">
-                                <i class="fa-solid fa-user-slash"></i> 屏蔽管理 (${exclusionBadge})
-                            </button>
-                        </td>
-                        <td class="p-3 text-center">
-                            <button onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2 py-1 text-xs ${r.isPublished ? 'bg-emerald-200 text-emerald-900' : 'bg-slate-200 text-slate-600'}">
-                                ${r.isPublished ? '已发布' : '已隐藏'}
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
+                    allResourcesList.push({ id: doc.id, ...doc.data() });
                 });
+                renderResourceTable(allResourcesList);
+            } catch (err) {
+                console.error("加载资源失败:", err);
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">加载资源失败: ${err.message}</td></tr>`;
+            }
+        }
 
+        function renderResourceTable(resources) {
+            const tbody = document.getElementById('resource-table-body');
+            tbody.innerHTML = '';
+
+            const showAllGrades = document.getElementById('show-all-grades-toggle')?.checked || false;
+
+            resources.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+
+                // 筛选同年级的班级列表
+                const availableClasses = showAllGrades 
+                    ? allClassCodesList 
+                    : allClassCodesList.filter(c => String(c.grade) === String(r.grade || 0));
+
+                const currentAllowed = r.allowedClasses || [];
+
+                // 渲染多选班级 Checkbox 按钮
+                const classCheckboxesHTML = availableClasses.map(c => {
+                    const isChecked = currentAllowed.includes(c.code) ? 'checked' : '';
+                    return `
+                        <label class="inline-flex items-center gap-1 bg-white border border-slate-300 rounded px-2 py-1 text-xs cursor-pointer hover:bg-slate-100">
+                            <input type="checkbox" ${isChecked} onchange="toggleResourceClass('${r.id}', '${c.code}', this.checked)" class="rounded text-amber-500">
+                            <span class="font-mono font-bold">${c.code}</span>
+                        </label>
+                    `;
+                }).join(' ');
+
+                // 屏蔽学生人数 Badge
+                const excludedCount = (r.excludedStudents || []).length;
+                const excludeBadge = excludedCount > 0 
+                    ? `<span class="bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded-full text-xs">已屏蔽 ${excludedCount} 人</span>`
+                    : `<span class="text-slate-400 text-xs">无屏蔽</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-3 font-bold">${r.title || '未命名资源'}</td>
+                    <td class="p-3 text-xs text-slate-500">${r.subject || '-'} / ${r.grade || 0}年级</td>
+                    <td class="p-3 flex flex-wrap gap-1">${classCheckboxesHTML || '<span class="text-xs text-slate-400">暂无可匹配班级</span>'}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="openExcludeStudentsModal('${r.id}')" class="neo-btn px-2 py-1 text-xs flex items-center justify-center gap-1 mx-auto">
+                            <i class="fa-solid fa-user-slash"></i>
+                            <span>看名单</span>
+                            ${excludeBadge}
+                        </button>
+                    </td>
+                    <td class="p-3 text-center">
+                        <input type="checkbox" ${r.isPublished ? 'checked' : ''} onchange="toggleResourcePublish('${r.id}', this.checked)" class="w-5 h-5 accent-amber-400 cursor-pointer">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
             } catch (err) {
                 console.error("读取资源库失败:", err);
             }
@@ -896,63 +908,95 @@
         async function toggleResourceClass(resourceId, classCode, isChecked) {
             try {
                 const docRef = db.collection("resources").doc(resourceId);
+                const docSnap = await docRef.get();
+                if (!docSnap.exists) return;
+
+                let allowedClasses = docSnap.data().allowedClasses || [];
+
                 if (isChecked) {
-                    await docRef.update({
-                        unlockedClasses: firebase.firestore.FieldValue.arrayUnion(classCode)
-                    });
+                    if (!allowedClasses.includes(classCode)) allowedClasses.push(classCode);
                 } else {
-                    await docRef.update({
-                        unlockedClasses: firebase.firestore.FieldValue.arrayRemove(classCode)
-                    });
+                    allowedClasses = allowedClasses.filter(c => c !== classCode);
                 }
+
+                // 关键点：保存到 Firestore 中的 allowedClasses 数组
+                await docRef.update({ allowedClasses: allowedClasses });
+                console.log(`✅ 资源 ${resourceId} 已更新授权班级:`, allowedClasses);
             } catch (err) {
-                console.error("更新资源可见班级失败:", err);
+                alert("⚠️ 修改权限失败: " + err.message);
             }
         }
 
-        async function toggleResourcePublish(resourceId, newStatus) {
+        async function toggleResourcePublish(resourceId, isPublished) {
             try {
-                await db.collection("resources").doc(resourceId).update({ isPublished: newStatus });
-                fetchResources();
+                await db.collection("resources").doc(resourceId).update({
+                    isPublished: isPublished
+                });
+                console.log(`✅ 资源 ${resourceId} 发布状态更新为:`, isPublished);
             } catch (err) {
-                console.error("修改发布状态失败:", err);
+                alert("⚠️ 更改发布状态失败: " + err.message);
             }
         }
-
         // Exclude Specific Students Logic
         function openExcludeStudentsModal(resourceId) {
-            resourceTargetToExclude = resourceId;
-            const resource = allResourcesList.find(r => r.id === resourceId);
-            if (!resource) return;
+            resourceTargetToExclude = allResourcesList.find(r => r.id === resourceId);
+            if (!resourceTargetToExclude) return;
 
-            document.getElementById('modal-exclude-resource-title').innerText = resource.title || '资料';
+            document.getElementById('modal-exclude-resource-title').innerText = resourceTargetToExclude.title || '';
             const container = document.getElementById('exclude-students-list-container');
             container.innerHTML = '';
 
-            const unlockedClasses = resource.unlockedClasses || [];
-            const excludedStudents = resource.excludedStudents || [];
+            const currentExcluded = resourceTargetToExclude.excludedStudents || [];
 
-            // Find all students who belong to the unlocked classes of this resource
-            const eligibleStudents = allStudentsList.filter(s => {
-                if (!s.enrolledClasses) return false;
-                return s.enrolledClasses.some(c => unlockedClasses.includes(c));
-            });
-
-            if (eligibleStudents.length === 0) {
-                container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs italic">当前尚未授权任何班级，或已授权班级中暂无注册学生。</div>`;
+            if (allStudentsList.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">暂无学生账号</p>`;
             } else {
-                eligibleStudents.forEach(s => {
-                    const isExcluded = excludedStudents.includes(s.id);
+                allStudentsList.forEach(s => {
+                    const isChecked = currentExcluded.includes(s.id) ? 'checked' : '';
                     const div = document.createElement('div');
-                    div.className = "flex items-center justify-between p-2.5 bg-white border border-slate-300 rounded-lg hover:bg-slate-100";
+                    div.className = "flex items-center justify-between p-2 bg-white rounded border border-slate-200 text-sm";
                     div.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-sm text-slate-800">${s.name || '学生'}</span>
-                            <span class="text-xs font-mono text-slate-500">(${s.email || '-'})</span>
+                        <div>
+                            <span class="font-bold text-slate-800">${s.name || '未命名'}</span>
+                            <span class="text-xs text-slate-400 font-mono ml-2">(${s.email || ''})</span>
                         </div>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-md">
-                            <input type="checkbox" class="exclude-checkbox rounded text-red-600" value="${s.id}" ${isExcluded ? 'checked' : ''}>
-                            <span>隐藏/屏蔽本课</span>
+                        <label class="inline-flex items-center gap-1 text-xs cursor-pointer font-bold text-red-600">
+                            <input type="checkbox" value="${s.id}" ${isChecked} class="rounded text-red-600">
+                            <span>屏蔽</span>
+                        </label>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            document.getElementById('exclude-students-modal').classList.remove('hidden');
+        }
+
+        function openExcludeStudentsModal(resourceId) {
+            resourceTargetToExclude = allResourcesList.find(r => r.id === resourceId);
+            if (!resourceTargetToExclude) return;
+
+            document.getElementById('modal-exclude-resource-title').innerText = resourceTargetToExclude.title || '';
+            const container = document.getElementById('exclude-students-list-container');
+            container.innerHTML = '';
+
+            const currentExcluded = resourceTargetToExclude.excludedStudents || [];
+
+            if (allStudentsList.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">暂无学生账号</p>`;
+            } else {
+                allStudentsList.forEach(s => {
+                    const isChecked = currentExcluded.includes(s.id) ? 'checked' : '';
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-2 bg-white rounded border border-slate-200 text-sm";
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-bold text-slate-800">${s.name || '未命名'}</span>
+                            <span class="text-xs text-slate-400 font-mono ml-2">(${s.email || ''})</span>
+                        </div>
+                        <label class="inline-flex items-center gap-1 text-xs cursor-pointer font-bold text-red-600">
+                            <input type="checkbox" value="${s.id}" ${isChecked} class="rounded text-red-600">
+                            <span>屏蔽</span>
                         </label>
                     `;
                     container.appendChild(div);
@@ -970,20 +1014,20 @@
         async function saveExcludedStudents() {
             if (!resourceTargetToExclude) return;
 
-            const checkboxes = document.querySelectorAll('.exclude-checkbox');
-            const excludedIds = [];
-            checkboxes.forEach(cb => {
-                if (cb.checked) excludedIds.push(cb.value);
-            });
+            // 获取被勾选屏蔽的学生 UID 数组
+            const checkboxes = document.querySelectorAll('#exclude-students-list-container input[type="checkbox"]:checked');
+            const excludedUids = Array.from(checkboxes).map(cb => cb.value);
 
             try {
-                await db.collection("resources").doc(resourceTargetToExclude).update({
-                    excludedStudents: excludedIds
+                // 关键点：将 excludedStudents 数组保存到 Firestore
+                await db.collection("resources").doc(resourceTargetToExclude.id).update({
+                    excludedStudents: excludedUids
                 });
+                alert("✅ 屏蔽设置保存成功！");
                 closeExcludeStudentsModal();
-                fetchResources();
+                fetchResources(); // 刷新表格 UI
             } catch (err) {
-                alert("⚠️ 保存屏蔽设置失败：" + err.message);
+                alert("⚠️ 保存屏蔽设置失败: " + err.message);
             }
         }
 
@@ -1018,18 +1062,35 @@
 
         // --- TAB SWITCHING ---
         function switchTab(tabName) {
-            const tabs = ['students', 'classes', 'unlock', 'scores'];
-            tabs.forEach(t => {
-                document.getElementById(`tab-${t}`).classList.toggle('active', t === tabName);
-                document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tabName);
+            ['students', 'classes', 'unlock', 'scores'].forEach(t => {
+                document.getElementById(`section-${t}`)?.classList.add('hidden');
+                document.getElementById(`tab-${t}`)?.classList.remove('active');
             });
+            document.getElementById(`section-${tabName}`)?.classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`)?.classList.add('active');
         }
 
-        // Logout
+        async function fetchClasses() {
+            try {
+                const snap = await db.collection("classes").get();
+                allClassCodesList = [];
+                snap.forEach(doc => allClassCodesList.push({ id: doc.id, ...doc.data() }));
+                
+                // 填充学生筛选下拉框
+                const select = document.getElementById('filter-class-select');
+                if (select) {
+                    select.innerHTML = '<option value="ALL">所有班级 (All Classes)</option>';
+                    allClassCodesList.forEach(c => {
+                        select.innerHTML += `<option value="${c.code}">${c.code} - ${c.name}</option>`;
+                    });
+                }
+            } catch(e) { console.error("加载班级失败:", e); }
+        }
+
+        async function fetchScores() { /* 做题记录逻辑 */ }
+
         function handleLogout() {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
-            });
+            auth.signOut().then(() => window.location.href = "index.html");
         }
     </script>
 </body>
