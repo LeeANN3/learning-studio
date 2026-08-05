@@ -106,7 +106,8 @@
             <div class="flex items-center gap-3">
                 <div class="hidden sm:flex items-center gap-2 bg-slate-100 border-2 border-slate-900 px-3 py-1.5 rounded-xl text-sm font-semibold">
                     <i class="fa-solid fa-user-shield text-amber-500"></i>
-                    <span id="teacher-name">陈老师 (Admin)</span>
+                    <!-- 避免静态硬编码陈老师，初始化显示加载指示器 -->
+                    <span id="teacher-name"><i class="fa-solid fa-spinner fa-spin text-slate-400"></i> 验证身份中...</span>
                 </div>
                 <a href="dashboard.html" class="neo-btn px-3 py-1.5 text-sm flex items-center gap-2 bg-sky-100 hover:bg-sky-200">
                     <i class="fa-solid fa-graduation-cap"></i>
@@ -537,30 +538,41 @@
         let classTargetToEdit = null;
         let resourceTargetToExclude = null;
 
-        // Auth Guard
+        // 🔒 强化版 Auth 防越权登录与拦截系统
         auth.onAuthStateChanged(async (user) => {
+            // 1. 如果无痕模式或未登录，立刻拦截并踢回 index.html 登录页
             if (!user) {
+                console.warn("未检测到登录 Token，强行返回登录页");
                 window.location.href = "index.html";
                 return;
             }
 
             try {
+                // 2. 查验该 UID 是否在数据库有记录
                 const userDoc = await db.collection("users").doc(user.uid).get();
                 if (userDoc.exists) {
                     const userData = userDoc.data();
+                    
+                    // 3. 校验 Role 角色权限
                     if (userData.role !== 'teacher') {
-                        alert("⚠️ 只有教师账号才可以访问管理后台！");
+                        alert("⚠️ 权限拦截：只有教师账号才可以访问管理后台！");
                         window.location.href = "dashboard.html";
                         return;
                     }
+
+                    // 4. 验证完全通过，渲染实际登录教师名并拉取后台数据
                     document.getElementById('teacher-name').innerText = (userData.name || "老师") + " (Admin)";
                     currentAdminUser = userData;
                     loadAllData();
                 } else {
+                    // 5. 特殊情况：账号在 Auth 有记录但 Firestore 被抹除，强行注销
+                    alert("⚠️ 未查找到该账号的教师档案！");
+                    await auth.signOut();
                     window.location.href = "index.html";
                 }
             } catch (err) {
-                console.error("验证教师身份失败:", err);
+                console.error("验证教师身份异常:", err);
+                window.location.href = "index.html";
             }
         });
 
@@ -576,7 +588,6 @@
         // --- FETCH STUDENTS ---
         async function fetchStudents() {
             const activeTbody = document.getElementById('student-table-body');
-
             activeTbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-fun text-lg"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在加载最新学生名单...</td></tr>`;
 
             try {
