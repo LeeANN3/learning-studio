@@ -3,397 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun Learning Island - Student Dashboard</title>
-    
+    <title>教师管理后台 - 复古风版</title>
+
+    <!-- 1. Google Fonts & Tailwind CSS & FontAwesome CDN -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 2. Firebase SDK (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- 3. 你的专属 Neubrutalism 风格样式 -->
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        * { box-sizing: border-box; user-select: none; }
         body {
             font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
-            background-color: #fafafa;
-            background-image: radial-gradient(#e5e7eb 1.2px, transparent 1.2px);
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
             background-size: 20px 20px;
             min-height: 100vh;
-            color: #1a1a1a;
-            padding-bottom: 40px;
+            color: #0f172a;
         }
 
-        .navbar {
+        .font-fun {
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+        }
+
+        .neo-card {
             background-color: #ffffff;
-            border-bottom: 2px solid #1a1a1a;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0px 4px 0px #1a1a1a;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            border: 2px solid #0f172a;
+            border-radius: 16px;
+            box-shadow: 4px 4px 0px #0f172a;
         }
 
-        .brand-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 22px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .brand-logo i {
-            background: #ffe600;
-            padding: 8px;
+        .neo-btn {
+            background-color: #ffffff;
+            border: 2px solid #0f172a;
             border-radius: 12px;
-            border: 2px solid #1a1a1a;
-            box-shadow: 2px 2px 0px #1a1a1a;
-        }
-
-        .user-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .user-info-badge {
-            background: #f4f4f5;
-            border: 2px solid #1a1a1a;
-            border-radius: 12px;
-            padding: 6px 12px;
-            font-size: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-
-        .btn-ui {
-            background: #ffffff;
-            border: 2px solid #1a1a1a;
-            border-radius: 12px;
-            padding: 6px 12px;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 2px 2px 0px #1a1a1a;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            box-shadow: 2px 2px 0px #0f172a;
             transition: all 0.15s ease;
-            white-space: nowrap;
-            text-decoration: none;
-            color: #1a1a1a;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+            font-weight: 600;
         }
 
-        .btn-ui:hover {
-            background: #ffe600;
+        .neo-btn:hover {
             transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px #1a1a1a;
+            box-shadow: 3px 3px 0px #0f172a;
         }
 
-        .btn-teacher-admin {
-            background: #ffe600;
-            border-color: #1a1a1a;
-            animation: pulse-border 2s infinite;
-        }
-        .btn-teacher-admin:hover {
-            background: #facc15;
-        }
+        .neo-btn-primary { background-color: #ffe600; }
+        .neo-btn-primary:hover { background-color: #facc15; }
 
-        .btn-logout:hover {
-            background: #ff4d4d;
-            color: #ffffff;
-        }
+        .neo-btn-success { background-color: #bbf7d0; color: #166534; border-color: #0f172a; }
+        .neo-btn-success:hover { background-color: #4ade80; }
 
-        @media (max-width: 640px) {
-            .navbar {
-                padding: 10px 12px;
-                gap: 8px;
-            }
+        .neo-btn-danger { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; box-shadow: 2px 2px 0px #dc2626; }
+        .neo-btn-danger:hover { background-color: #ef4444; color: #ffffff; box-shadow: 3px 3px 0px #0f172a; }
 
-            .brand-logo {
-                font-size: 17px;
-                gap: 6px;
-            }
-
-            .brand-logo i {
-                padding: 5px;
-                font-size: 14px;
-                border-radius: 8px;
-            }
-
-            .user-actions {
-                gap: 6px;
-            }
-
-            .user-info-badge {
-                padding: 4px 8px;
-                font-size: 13px;
-                border-radius: 8px;
-            }
-
-            .btn-ui {
-                padding: 4px 8px;
-                font-size: 13px;
-                border-radius: 8px;
-            }
-
-            .tag-class-type {
-                font-size: 10px;
-                padding: 1px 4px;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .brand-logo span {
-                display: none;
-            }
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        .dashboard-header-card {
-            background: #ffffff;
-            border: 2px solid #1a1a1a;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 4px 4px 0px #1a1a1a;
-            margin-bottom: 28px;
-        }
-
-        .title-grade {
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 28px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .selectors-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 10px 14px;
-            border: 2px solid #1a1a1a;
-            border-radius: 12px;
-            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive;
-            font-size: 16px;
-            outline: none;
-            background-color: #ffffff;
-            box-shadow: 2px 2px 0px #1a1a1a;
-            cursor: pointer;
-        }
-
-        .form-select:focus {
-            box-shadow: 3px 3px 0px #ffe600;
-        }
-
-        .section-card {
-            background: #ffffff;
-            border: 2px solid #1a1a1a;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 4px 4px 0px #1a1a1a;
-            margin-bottom: 24px;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 22px;
-            margin-bottom: 16px;
-            border-bottom: 2px dashed #e5e7eb;
-            padding-bottom: 10px;
-        }
-
-        .section-header i {
-            width: 38px;
-            height: 38px;
+        .neo-input {
+            border: 2px solid #0f172a;
             border-radius: 10px;
-            border: 2px solid #1a1a1a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            box-shadow: 2px 2px 0px #1a1a1a;
+            outline: none;
+            padding: 8px 12px;
+            box-shadow: 2px 2px 0px #cbd5e1;
+        }
+        .neo-input:focus {
+            box-shadow: 2px 2px 0px #ffe600;
         }
 
-        .icon-quiz { background-color: #ffe600; }
-        .icon-review { background-color: #4da6ff; color: white; }
-        .icon-game { background-color: #ff66b2; color: white; }
-
-        .link-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 14px;
+        .tab-btn {
+            padding: 10px 18px;
+            border-radius: 12px;
+            border: 2px solid #0f172a;
+            background: #ffffff;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #0f172a;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: #ffe600;
+            box-shadow: 3px 3px 0px #0f172a;
         }
 
-        .link-item {
-            background-color: #ffffff;
-            border: 2px solid #1a1a1a;
-            border-radius: 14px;
-            padding: 12px 16px;
-            text-decoration: none;
-            color: #1a1a1a;
-            font-size: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 2px 2px 0px #1a1a1a;
-            transition: all 0.15s ease;
+        .modal-overlay {
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(2px);
         }
-
-        .link-item:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0px #1a1a1a;
-            background-color: #fff9c4;
-        }
-
-        .empty-tip {
-            color: #888;
-            font-size: 15px;
-            font-style: italic;
-            padding: 10px 0;
-        }
-
-        .tag-class-type {
-            font-size: 12px;
-            padding: 2px 8px;
-            border-radius: 6px;
-            border: 1px solid #1a1a1a;
-            margin-left: 4px;
-            background: #e0f2fe;
-        }
-
-        .hidden { display: none !important; }
     </style>
 </head>
-<body>
+<body class="pb-10">
 
-    <div class="navbar">
-        <div class="brand-logo">
-            <i class="fa-solid fa-gamepad"></i>
-            <span id="txt-app-title">趣味学习岛</span>
-        </div>
-
-        <div class="user-actions">
-            <a href="admin.html" id="btn-admin-portal" class="btn-ui btn-teacher-admin hidden">
-                <i class="fa-solid fa-chalkboard-user"></i>
-                <span id="txt-admin-portal">教师管理后台</span>
-            </a>
-
-            <button type="button" class="btn-ui" onclick="toggleLanguage()">
-                <i class="fa-solid fa-globe"></i>
-                <span id="lang-btn-text">English</span>
-            </button>
-            <div class="user-info-badge">
-                <i id="user-role-icon" class="fa-solid fa-user-graduate"></i>
-                <span id="user-name-display">加载中...</span>
-                <span id="class-type-badge" class="tag-class-type">学生</span>
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white border-b-2 border-slate-900 sticky top-0 z-40 px-4 py-3 shadow-[0_4px_0_#0f172a]">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-300 p-2 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#0f172a]">
+                    <i class="fa-solid fa-chalkboard-user text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-fun text-xl font-bold leading-tight">教师管理后台</h1>
+                    <p class="text-xs text-slate-500 font-sans">Teacher Admin Dashboard</p>
+                </div>
             </div>
-            <button type="button" class="btn-ui btn-logout" onclick="handleLogout()">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span id="txt-logout">退出</span>
+
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 bg-slate-100 border-2 border-slate-900 px-3 py-1.5 rounded-xl text-sm font-semibold">
+                    <i class="fa-solid fa-user-shield text-amber-500"></i>
+                    <span id="teacher-name">陈老师 (Admin)</span>
+                </div>
+                <a href="dashboard.html" class="neo-btn px-3 py-1.5 text-sm flex items-center gap-2 bg-sky-100 hover:bg-sky-200">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>返回学生端</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 mt-6">
+
+        <!-- Banner 横幅 -->
+        <div class="neo-card p-6 mb-6 bg-amber-50 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+                <div>
+                    <h2 class="font-fun text-2xl font-bold flex items-center gap-2">
+                        🏫 补习班多班级管控中心
+                    </h2>
+                    <p class="text-slate-600 text-sm mt-1">
+                        快速管理学生名册、移入待移除列表、恢复停权账号、编辑班级码并精准管控课程权限。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 选项卡切换 Navigation Tabs -->
+        <div class="flex gap-3 overflow-x-auto pb-2 mb-6 scrollbar-none">
+            <button onclick="switchTab('active-students')" id="tab-active-students" class="tab-btn active font-fun flex items-center gap-2">
+                <i class="fa-solid fa-users"></i>
+                <span>在读学生名册</span>
+            </button>
+            <button onclick="switchTab('pending-students')" id="tab-pending-students" class="tab-btn font-fun flex items-center gap-2 bg-orange-100">
+                <i class="fa-solid fa-user-clock text-orange-600"></i>
+                <span>待移除学生列表</span>
+            </button>
+            <button onclick="switchTab('classes')" id="tab-classes" class="tab-btn font-fun flex items-center gap-2">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>班级码管理</span>
+            </button>
+            <button onclick="switchTab('scores')" id="tab-scores" class="tab-btn font-fun flex items-center gap-2">
+                <i class="fa-solid fa-trophy"></i>
+                <span>做题成绩榜</span>
             </button>
         </div>
+
+        <!-- TAB 1: 在读学生名册 -->
+        <section id="section-active-students" class="space-y-4">
+            <div class="neo-card p-5">
+                <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
+                    <div class="flex flex-wrap items-center gap-3 flex-1">
+                        <div class="relative flex-1 min-w-[220px]">
+                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="active-search-input" onkeyup="renderTables()" placeholder="搜索学生姓名..." class="neo-input w-full pl-9">
+                        </div>
+                    </div>
+                    <div class="text-sm font-semibold text-slate-600 flex items-center gap-2">
+                        <span>在读学生：</span>
+                        <span id="active-count-badge" class="bg-amber-300 border border-slate-900 px-2.5 py-0.5 rounded-full font-bold text-slate-900">0 人</span>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border-2 border-slate-900">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b-2 border-slate-900 text-slate-800 font-fun text-base">
+                                <th class="p-3">UID</th>
+                                <th class="p-3">学生姓名</th>
+                                <th class="p-3">已选班级</th>
+                                <th class="p-3">访问状态</th>
+                                <th class="p-3 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="active-student-table-body" class="divide-y border-slate-200 text-sm font-sans">
+                            <!-- 动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: 待移除学生账号列表 (软删除) -->
+        <section id="section-pending-students" class="space-y-4 hidden">
+            <div class="neo-card p-5 bg-orange-50/50">
+                <div class="mb-4">
+                    <h3 class="font-fun text-xl font-bold flex items-center gap-2 text-orange-900">
+                        <i class="fa-solid fa-triangle-exclamation text-orange-500"></i>
+                        <span>待移除学生列表 (Pending Delete)</span>
+                    </h3>
+                    <p class="text-xs text-slate-600 mt-1">
+                        💡 处于此列表的学生已**完全失去课程访问权限**，并且在**积分排行榜上已自动隐蔽**。您可以在此恢复学生账号，或者在 Firebase Console 彻底删除 UID 后点击清理数据。
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border-2 border-slate-900 bg-white">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-amber-100 border-b-2 border-slate-900 text-slate-800 font-fun text-base">
+                                <th class="p-3">UID</th>
+                                <th class="p-3">学生姓名</th>
+                                <th class="p-3">原备份班级</th>
+                                <th class="p-3">状态</th>
+                                <th class="p-3 text-center">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-student-table-body" class="divide-y border-slate-200 text-sm font-sans">
+                            <!-- 动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: 班级码管理 -->
+        <section id="section-classes" class="space-y-4 hidden">
+            <div class="neo-card p-5">
+                <h3 class="font-fun text-xl font-bold mb-3">🏫 当前班级列表</h3>
+                <p class="text-slate-500 text-sm">这里可以展示与管理班级邀请码。</p>
+            </div>
+        </section>
+
+        <!-- TAB 4: 做题成绩榜 -->
+        <section id="section-scores" class="space-y-4 hidden">
+            <div class="neo-card p-5">
+                <h3 class="font-fun text-xl font-bold mb-3">🏆 全校做题与答题记录榜</h3>
+                <p class="text-slate-500 text-sm">排行榜只展示 active 状态的学生。</p>
+            </div>
+        </section>
+
     </div>
 
-    <div class="container">
-        
-        <div class="dashboard-header-card">
-            <div class="title-grade">
-                <i class="fa-solid fa-graduation-cap"></i>
-                <span id="display-grade-title">X 年级学习区</span>
-            </div>
-
-            <div class="selectors-grid">
-                <div class="form-group">
-                    <label for="select-grade" id="lbl-select-grade">选择年级</label>
-                    <select id="select-grade" class="form-select" onchange="onGradeChange()">
-                        <option value="1">一年级 (Grade 1)</option>
-                        <option value="2">二年级 (Grade 2)</option>
-                        <option value="3">三年级 (Grade 3)</option>
-                        <option value="4">四年级 (Grade 4)</option>
-                        <option value="5">五年级 (Grade 5)</option>
-                        <option value="6">六年级 (Grade 6)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="select-subject" id="lbl-select-subject">选择科目</label>
-                    <select id="select-subject" class="form-select" onchange="onSubjectChange()">
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="select-unit" id="lbl-select-unit">选择单元</label>
-                    <select id="select-unit" class="form-select" onchange="renderResources()">
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="section-card">
-            <div class="section-header">
-                <i class="fa-solid fa-file-pen icon-quiz"></i>
-                <span id="txt-sec-quiz">测验 (Quizzes)</span>
-            </div>
-            <div class="link-grid" id="quiz-list">
-            </div>
-        </div>
-
-        <div class="section-card">
-            <div class="section-header">
-                <i class="fa-solid fa-book-open icon-review"></i>
-                <span id="txt-sec-review">复习 (Revision)</span>
-            </div>
-            <div class="link-grid" id="review-list">
-            </div>
-        </div>
-
-        <div class="section-card">
-            <div class="section-header">
-                <i class="fa-solid fa-dice icon-game"></i>
-                <span id="txt-sec-game">游戏 (Educational Games)</span>
-            </div>
-            <div class="link-grid" id="game-list">
-            </div>
-        </div>
-
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
+    <!-- Firebase 与 业务逻辑脚本 -->
     <script>
+        // 1. 请替换为您自己的 Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
             authDomain: "my-teacher-studio.firebaseapp.com",
@@ -403,243 +256,179 @@
             appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
         };
 
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let currentUserData = null;
-        let currentLang = 'zh';
+        let allStudentsCache = [];
 
-        const allSubjects = [
-            { id: 'chinese', zh: '华文', en: 'Chinese' },
-            { id: 'malay', zh: '马来文', en: 'Malay' },
-            { id: 'english', zh: '英文', en: 'English' },
-            { id: 'math', zh: '数学', en: 'Mathematics' },
-            { id: 'science', zh: '科学', en: 'Science' }
-        ];
-
-        const translations = {
-            zh: {
-                langBtn: "English", appTitle: "趣味学习岛", logout: "退出", adminPortal: "教师管理后台",
-                lblGrade: "选择年级", lblSubject: "选择科目", lblUnit: "选择单元",
-                secQuiz: "测验", secReview: "复习", secGame: "游戏",
-                emptyTip: "暂无相关链接资源", loadingTip: "正在载入资源...", gradeTitleSuffix: "年级学习区",
-                tagStudent: "学生", tagTeacher: "教师/管理员", unitPrefix: "单元 "
-            },
-            en: {
-                langBtn: "中文", appTitle: "Fun Learning Island", logout: "Logout", adminPortal: "Teacher Admin",
-                lblGrade: "Grade", lblSubject: "Subject", lblUnit: "Unit",
-                secQuiz: "Quizzes", secReview: "Revision", secGame: "Games",
-                emptyTip: "No resources available for now", loadingTip: "Loading resources...", gradeTitleSuffix: " Learning Area",
-                tagStudent: "Student", tagTeacher: "Teacher", unitPrefix: "Unit "
-            }
+        // 页面初始化
+        window.onload = function() {
+            listenToStudents();
         };
 
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = "index.html";
-                return;
-            }
-
-            try {
-                const doc = await db.collection("users").doc(user.uid).get();
-                if (doc.exists) {
-                    currentUserData = doc.data();
-                } else {
-                    currentUserData = { name: user.displayName || "使用者", role: 'student', grade: 1 };
-                }
-                setupDashboardUI();
-            } catch (err) {
-                console.error("加载用户信息失败:", err);
-            }
-        });
-
-        function setupDashboardUI() {
-            document.getElementById('user-name-display').innerText = currentUserData.name || "使用者";
-            
-            const badge = document.getElementById('class-type-badge');
-            const adminBtn = document.getElementById('btn-admin-portal');
-            const roleIcon = document.getElementById('user-role-icon');
-
-            if (currentUserData.role === 'teacher') {
-                adminBtn.classList.remove('hidden');
-                badge.innerText = translations[currentLang].tagTeacher;
-                badge.style.backgroundColor = '#fef3c7';
-                roleIcon.className = "fa-solid fa-user-shield text-amber-500";
-            } else {
-                adminBtn.classList.add('hidden');
-                badge.innerText = translations[currentLang].tagStudent;
-                badge.style.backgroundColor = '#e0f2fe';
-                roleIcon.className = "fa-solid fa-user-graduate";
-            }
-
-            const userGrade = currentUserData.grade || 1;
-            document.getElementById('select-grade').value = userGrade;
-
-            initSubjectDropdown();
-            updateGradeTitle();
-        }
-
-        function initSubjectDropdown() {
-            const subjectSelect = document.getElementById('select-subject');
-            subjectSelect.innerHTML = '';
-
-            allSubjects.forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub.id;
-                opt.innerText = currentLang === 'zh' ? sub.zh : sub.en;
-                subjectSelect.appendChild(opt);
+        // 选项卡切换
+        function switchTab(tabName) {
+            ['active-students', 'pending-students', 'classes', 'scores'].forEach(t => {
+                document.getElementById(`section-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active');
             });
 
-            onSubjectChange(); 
+            document.getElementById(`section-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
         }
 
-        function onGradeChange() {
-            updateGradeTitle();
-            renderResources();
+        // 实时监听数据库学生名册
+        function listenToStudents() {
+            db.collection("users").onSnapshot(snapshot => {
+                allStudentsCache = [];
+                snapshot.forEach(doc => {
+                    allStudentsCache.push({ uid: doc.id, ...doc.data() });
+                });
+                renderTables();
+            });
         }
 
-        function onSubjectChange() {
-            const unitSelect = document.getElementById('select-unit');
-            unitSelect.innerHTML = '';
+        // 渲染在读列表与待移除列表
+        function renderTables() {
+            const activeBody = document.getElementById("active-student-table-body");
+            const pendingBody = document.getElementById("pending-student-table-body");
+            const searchKeyword = document.getElementById("active-search-input").value.toLowerCase();
 
-            const t = translations[currentLang];
-            for (let i = 1; i <= 10; i++) {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.innerText = `${t.unitPrefix}${i}`;
-                unitSelect.appendChild(opt);
-            }
+            activeBody.innerHTML = "";
+            pendingBody.innerHTML = "";
 
-            renderResources();
+            let activeCount = 0;
+            let pendingCount = 0;
+
+            allStudentsCache.forEach(student => {
+                const name = student.name || '未命名';
+                const status = student.status || 'active';
+
+                if (status === 'active') {
+                    if (searchKeyword && !name.toLowerCase().includes(searchKeyword)) return;
+                    activeCount++;
+
+                    const classes = (student.enrolledClasses || []).join(", ") || "无班级";
+                    activeBody.innerHTML += `
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-3 font-mono text-xs text-slate-500">${student.uid}</td>
+                            <td class="p-3 font-bold font-fun text-base">${name}</td>
+                            <td class="p-3">${classes}</td>
+                            <td class="p-3"><span class="bg-green-100 text-green-800 border border-green-800 text-xs px-2 py-0.5 rounded-md font-bold">正常访问</span></td>
+                            <td class="p-3 text-center">
+                                <button onclick="softDeleteStudent('${student.uid}', '${name}')" class="neo-btn neo-btn-danger px-3 py-1 text-xs">
+                                    <i class="fa-solid fa-user-minus mr-1"></i> 移入待移除
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                } else if (status === 'pending_delete') {
+                    pendingCount++;
+                    const backupClasses = (student.backupClasses || []).join(", ") || "无班级";
+                    pendingBody.innerHTML += `
+                        <tr class="hover:bg-orange-100/30">
+                            <td class="p-3 font-mono text-xs text-slate-500">${student.uid}</td>
+                            <td class="p-3 font-bold font-fun text-base text-slate-700">${name}</td>
+                            <td class="p-3 text-slate-500">${backupClasses}</td>
+                            <td class="p-3"><span class="bg-orange-200 text-orange-900 border border-orange-900 text-xs px-2 py-0.5 rounded-md font-bold">无权限/榜单隐藏</span></td>
+                            <td class="p-3 text-center flex justify-center gap-2">
+                                <button onclick="restoreStudent('${student.uid}', '${name}')" class="neo-btn neo-btn-success px-3 py-1 text-xs">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> 恢复账号
+                                </button>
+                                <button onclick="hardDeleteStudent('${student.uid}', '${name}')" class="neo-btn neo-btn-danger px-3 py-1 text-xs">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> 确认Console已删并彻底清理
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            document.getElementById("active-count-badge").innerText = `${activeCount} 人`;
+            if (activeCount === 0) activeBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 font-fun">没有找到活跃学生</td></tr>`;
+            if (pendingCount === 0) pendingBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 font-fun">待移除列表中暂无学生</td></tr>`;
         }
 
-        function updateGradeTitle() {
-            const gradeVal = document.getElementById('select-grade').value;
-            const t = translations[currentLang];
-            if (currentLang === 'zh') {
-                const gradeZh = ['一', '二', '三', '四', '五', '六'][gradeVal - 1];
-                document.getElementById('display-grade-title').innerText = `${gradeZh}${t.gradeTitleSuffix}`;
-            } else {
-                document.getElementById('display-grade-title').innerText = `Grade ${gradeVal}${t.gradeTitleSuffix}`;
-            }
-        }
+        // --- 核心业务逻辑 ---
 
-        // 核心改动：精确的班级/屏蔽判定接线逻辑
-        async function renderResources() {
-            const gradeVal = document.getElementById('select-grade').value;
-            const subjectVal = document.getElementById('select-subject').value;
-            const unitVal = document.getElementById('select-unit').value;
-
-            const t = translations[currentLang];
-
-            document.getElementById('quiz-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
-            document.getElementById('review-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
-            document.getElementById('game-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
+        // 1. 软删除 (移入待移除)
+        async function softDeleteStudent(studentUid, studentName) {
+            if (!confirm(`确认将学生【${studentName}】移入待移除列表？\n\n- 学生将失去所有课程访问权限\n- 积分榜上将隐藏该学生`)) return;
 
             try {
-                const snapshot = await db.collection("resources")
-                    .where("subject", "==", subjectVal)
-                    .get();
+                const batch = db.batch();
+                const userRef = db.collection("users").doc(studentUid);
+                const userDoc = await userRef.get();
+                const userData = userDoc.data() || {};
 
-                const quizzes = [];
-                const reviews = [];
-                const games = [];
-
-                const userId = auth.currentUser ? auth.currentUser.uid : null;
-                const userRole = currentUserData ? currentUserData.role : 'student';
-                const userClasses = (currentUserData && currentUserData.enrolledClasses) ? currentUserData.enrolledClasses : [];
-
-                snapshot.forEach(doc => {
-                    const item = doc.data();
-
-                    const matchGrade = (item.grade == gradeVal);
-                    const matchUnit = (item.unit == unitVal);
-
-                    if (!matchGrade || !matchUnit) return;
-
-                    let hasPermission = false;
-
-                    if (userRole === 'teacher') {
-                        hasPermission = true;
-                    } else {
-                        const isPublished = (item.isPublished !== false);
-                        const unlockedClasses = item.unlockedClasses || [];
-                        const excludedStudents = item.excludedStudents || [];
-
-                        const inUnlockedClass = userClasses.some(cls => unlockedClasses.includes(cls));
-                        const isExcluded = excludedStudents.includes(userId);
-
-                        if (isPublished && inUnlockedClass && !isExcluded) {
-                            hasPermission = true;
-                        }
-                    }
-
-                    if (hasPermission) {
-                        if (item.type === 'quiz') quizzes.push(item);
-                        else if (item.type === 'review') reviews.push(item);
-                        else if (item.type === 'game') games.push(item);
-                    }
+                batch.update(userRef, {
+                    status: "pending_delete",
+                    backupClasses: userData.enrolledClasses || [],
+                    enrolledClasses: [],
+                    pendingDeleteAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                renderLinkGrid('quiz-list', quizzes, 'fa-circle-question');
-                renderLinkGrid('review-list', reviews, 'fa-file-lines');
-                renderLinkGrid('game-list', games, 'fa-gamepad');
+                // 隐藏积分榜记录
+                const leaderboardSnap = await db.collection("leaderboard").where("studentUid", "==", studentUid).get();
+                leaderboardSnap.forEach(doc => {
+                    batch.update(doc.ref, { status: "pending_delete" });
+                });
 
-            } catch (error) {
-                console.error("读取 Firebase 资源失败:", error);
-                document.getElementById('quiz-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
-                document.getElementById('review-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
-                document.getElementById('game-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
+                await batch.commit();
+                alert(`✅ 已成功将【${studentName}】移入待移除列表！`);
+            } catch (err) {
+                alert("⚠️ 操作失败：" + err.message);
             }
         }
 
-        function renderLinkGrid(elementId, items, iconClass) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = '';
+        // 2. 恢复学生账号
+        async function restoreStudent(studentUid, studentName) {
+            try {
+                const batch = db.batch();
+                const userRef = db.collection("users").doc(studentUid);
+                const userDoc = await userRef.get();
+                const userData = userDoc.data() || {};
 
-            if (items.length === 0) {
-                container.innerHTML = `<div class="empty-tip">${translations[currentLang].emptyTip}</div>`;
+                batch.update(userRef, {
+                    status: "active",
+                    enrolledClasses: userData.backupClasses || [],
+                    backupClasses: firebase.firestore.FieldValue.delete(),
+                    pendingDeleteAt: firebase.firestore.FieldValue.delete()
+                });
+
+                // 还原积分榜记录
+                const leaderboardSnap = await db.collection("leaderboard").where("studentUid", "==", studentUid).get();
+                leaderboardSnap.forEach(doc => {
+                    batch.update(doc.ref, { status: "active" });
+                });
+
+                await batch.commit();
+                alert(`🎉 学生【${studentName}】的账号与积分榜数据已成功恢复！`);
+            } catch (err) {
+                alert("⚠️ 恢复失败：" + err.message);
+            }
+        }
+
+        // 3. 彻底清理数据 (配合 Firebase Console 删除 Auth 后)
+        async function hardDeleteStudent(studentUid, studentName) {
+            const check = prompt(`请确认您已经在 Firebase Console 的 Authentication 页面删除了此 UID：\n${studentUid}\n\n输入学生姓名「${studentName}」以确认永久抹除该学生的数据库历史记录：`);
+            if (check !== studentName) {
+                alert("取消清理：输入的姓名不匹配。");
                 return;
             }
 
-            items.forEach(item => {
-                const a = document.createElement('a');
-                a.href = item.url || '#';
-                a.className = 'link-item';
-                a.target = '_blank';
-                a.innerHTML = `
-                    <span><i class="fa-solid ${iconClass}" style="margin-right:8px;"></i>${item.title || 'Untitled'}</span>
-                    <i class="fa-solid fa-chevron-right" style="font-size:12px; opacity:0.6;"></i>
-                `;
-                container.appendChild(a);
-            });
-        }
+            try {
+                const batch = db.batch();
+                batch.delete(db.collection("users").doc(studentUid));
 
-        function toggleLanguage() {
-            currentLang = (currentLang === 'zh') ? 'en' : 'zh';
-            const t = translations[currentLang];
+                const leaderboardSnap = await db.collection("leaderboard").where("studentUid", "==", studentUid).get();
+                leaderboardSnap.forEach(doc => batch.delete(doc.ref));
 
-            document.getElementById('lang-btn-text').innerText = t.langBtn;
-            document.getElementById('txt-app-title').innerText = t.appTitle;
-            document.getElementById('txt-logout').innerText = t.logout;
-            document.getElementById('txt-admin-portal').innerText = t.adminPortal;
-            document.getElementById('lbl-select-grade').innerText = t.lblGrade;
-            document.getElementById('lbl-select-subject').innerText = t.lblSubject;
-            document.getElementById('lbl-select-unit').innerText = t.lblUnit;
-            document.getElementById('txt-sec-quiz').innerText = t.secQuiz;
-            document.getElementById('txt-sec-review').innerText = t.secReview;
-            document.getElementById('txt-sec-game').innerText = t.secGame;
-
-            if (currentUserData) {
-                setupDashboardUI();
+                await batch.commit();
+                alert("🗑️ 数据库记录已彻底清理！");
+            } catch (err) {
+                alert("⚠️ 清理失败：" + err.message);
             }
-        }
-
-        function handleLogout() {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
-            });
         }
     </script>
 </body>
