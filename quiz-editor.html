@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game 题库编辑器</title>
+    <!-- 引入 FontAwesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .editor-container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 850px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #eaeaea;
+        }
+
+        .header-bar h1 {
+            font-size: 22px;
+            color: #1a73e8;
+        }
+
+        .section-box {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #444;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-color: #1a73e8;
+        }
+
+        /* 题目列表样式 */
+        .word-item {
+            display: grid;
+            grid-template-columns: 50px 1fr 1fr 50px;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .word-index {
+            font-weight: bold;
+            color: #888;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary { background-color: #1a73e8; color: white; }
+        .btn-success { background-color: #2e7d32; color: white; }
+        .btn-warning { background-color: #f57c00; color: white; }
+        .btn-danger { background-color: #d32f2f; color: white; padding: 8px 12px; }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #eaeaea;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* 隐藏原生文件上传按钮 */
+        #import-file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="editor-container">
+
+    <!-- 顶栏标题与页面切换 -->
+    <div class="header-bar">
+        <h1><i class="fa-solid fa-pen-to-square"></i> Quiz 题库编辑器</h1>
+        <a href="quiz-runner.html" target="_blank" style="text-decoration: none; font-size: 14px; color: #1a73e8; font-weight: bold;">
+            <i class="fa-solid fa-play"></i> 预览/测试游戏
+        </a>
+    </div>
+
+    <!-- 1. 测验基本配置区域 -->
+    <div class="section-box">
+        <div class="section-title"><i class="fa-solid fa-sliders"></i> 1. 测验元数据设置</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="quiz-id">测验 ID (文件名/URL参数):</label>
+                <input type="text" id="quiz-id" placeholder="如: g1_chinese_u1">
+            </div>
+
+            <div class="form-group">
+                <label for="quiz-title">测验显示名称:</label>
+                <input type="text" id="quiz-title" placeholder="如: 一年级华文 单元一">
+            </div>
+
+            <div class="form-group">
+                <label for="quiz-subject">科目:</label>
+                <select id="quiz-subject">
+                    <option value="chinese">华文 (Chinese)</option>
+                    <option value="english">英文 (English)</option>
+                    <option value="malay">国文 (Malay)</option>
+                    <option value="math">数学 (Math)</option>
+                    <option value="science">科学 (Science)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="quiz-grade">年级:</label>
+                <input type="number" id="quiz-grade" value="1" min="1" max="6">
+            </div>
+
+            <div class="form-group">
+                <label for="quiz-unit">单元:</label>
+                <input type="number" id="quiz-unit" value="1" min="1" max="20">
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 题目录入与编辑区域 -->
+    <div class="section-box">
+        <div class="section-title" style="justify-content: space-between;">
+            <span><i class="fa-solid fa-list-check"></i> 2. 题目列表 (<span id="total-count">0</span> 题)</span>
+            <button class="btn btn-primary" onclick="addWordRow()"><i class="fa-solid fa-plus"></i> 添加新题目</button>
+        </div>
+
+        <div id="words-container">
+            <!-- 动态生成的题目行将放入此处 -->
+        </div>
+
+        <button class="btn btn-primary" onclick="addWordRow()" style="width: 100%; justify-content: center; margin-top: 10px;">
+            <i class="fa-solid fa-plus"></i> 继续添加题目
+        </button>
+    </div>
+
+    <!-- 3. 操作控制与导出工具 -->
+    <div class="action-bar">
+        <div>
+            <!-- 导入 JSON 触发器 -->
+            <button class="btn btn-warning" onclick="document.getElementById('import-file-input').click()">
+                <i class="fa-solid fa-file-import"></i> 导入已有 JSON 修改
+            </button>
+            <input type="file" id="import-file-input" accept=".json" onchange="handleFileImport(event)">
+        </div>
+
+        <div>
+            <!-- 导出 JSON 触发器 -->
+            <button class="btn btn-success" onclick="exportJSON()">
+                <i class="fa-solid fa-file-export"></i> 导出并下载 JSON 文件
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let wordAutoIncrementId = 1;
+
+    // 页面加载完成后默认生成 3 个空白题目行
+    window.addEventListener('DOMContentLoaded', () => {
+        // 设置默认 ID 与 标题
+        document.getElementById('quiz-id').value = "g1_chinese_u1";
+        document.getElementById('quiz-title').value = "一年级华文 单元一";
+
+        addWordRow("Apple", "苹果");
+        addWordRow("Banana", "香蕉");
+        addWordRow("Cat", "猫");
+    });
+
+    // 添加单行题目 UI
+    function addWordRow(english = "", chinese = "") {
+        const container = document.getElementById('words-container');
+        const currentId = wordAutoIncrementId++;
+
+        const row = document.createElement('div');
+        row.className = 'word-item';
+        row.dataset.id = currentId;
+
+        row.innerHTML = `
+            <div class="word-index">#</div>
+            <input type="text" class="input-english" placeholder="英文 / 提示文本" value="${english}">
+            <input type="text" class="input-chinese" placeholder="中文 / 正确答案" value="${chinese}">
+            <button class="btn btn-danger" title="删除本题" onclick="removeWordRow(this)">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        `;
+
+        container.appendChild(row);
+        updateRowIndexes();
+    }
+
+    // 删除单行题目
+    function removeWordRow(btnElement) {
+        const row = btnElement.closest('.word-item');
+        row.remove();
+        updateRowIndexes();
+    }
+
+    // 重新更新题目序号与总数统计
+    function updateRowIndexes() {
+        const rows = document.querySelectorAll('.word-item');
+        rows.forEach((row, index) => {
+            row.querySelector('.word-index').innerText = `#${index + 1}`;
+        });
+        document.getElementById('total-count').innerText = rows.length;
+    }
+
+    // 打包并导出 JSON 文件
+    function exportJSON() {
+        const quizId = document.getElementById('quiz-id').value.trim();
+        const quizTitle = document.getElementById('quiz-title').value.trim();
+        const subject = document.getElementById('quiz-subject').value;
+        const grade = parseInt(document.getElementById('quiz-grade').value) || 1;
+        const unit = parseInt(document.getElementById('quiz-unit').value) || 1;
+
+        if (!quizId) {
+            alert("⚠️ 请填写【测验 ID】！");
+            return;
+        }
+
+        // 收集所有题目数据
+        const wordRows = document.querySelectorAll('.word-item');
+        const words = [];
+        let hasEmptyField = false;
+
+        wordRows.forEach((row, index) => {
+            const english = row.querySelector('.input-english').value.trim();
+            const chinese = row.querySelector('.input-chinese').value.trim();
+
+            if (!english || !chinese) {
+                hasEmptyField = true;
+            }
+
+            words.push({
+                id: index + 1,
+                english: english,
+                chinese: chinese
+            });
+        });
+
+        if (words.length === 0) {
+            alert("⚠️ 请至少保留 1 道题目！");
+            return;
+        }
+
+        if (hasEmptyField) {
+            if (!confirm("⚠️ 检测到有未填写的题目框，是否仍要继续导出？")) {
+                return;
+            }
+        }
+
+        // 构建标准 JSON 对象
+        const quizData = {
+            quizId: quizId,
+            quizTitle: quizTitle || quizId,
+            subject: subject,
+            grade: grade,
+            unit: unit,
+            words: words
+        };
+
+        // 转为字符串并创建 Blob 触发下载
+        const jsonStr = JSON.stringify(quizData, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${quizId}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert(`🎉 已成功导出题库文件：${quizId}.json\n请将其放入 GitHub 项目中的 data/ 目录下！`);
+    }
+
+    // 导入旧 JSON 文件并填充编辑器
+    function handleFileImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+
+                // 还原元数据
+                if (data.quizId) document.getElementById('quiz-id').value = data.quizId;
+                if (data.quizTitle) document.getElementById('quiz-title').value = data.quizTitle;
+                if (data.subject) document.getElementById('quiz-subject').value = data.subject;
+                if (data.grade) document.getElementById('quiz-grade').value = data.grade;
+                if (data.unit) document.getElementById('quiz-unit').value = data.unit;
+
+                // 清空现有题目
+                document.getElementById('words-container').innerHTML = "";
+                wordAutoIncrementId = 1;
+
+                // 重新填充题目
+                if (Array.isArray(data.words)) {
+                    data.words.forEach(w => {
+                        addWordRow(w.english || "", w.chinese || "");
+                    });
+                }
+
+                alert(`✅ 成功导入题库：${data.quizTitle || data.quizId}`);
+            } catch (err) {
+                alert("❌ 读取 JSON 文件失败，请确保文件格式正确！\n错误: " + err.message);
+            }
+        };
+
+        reader.readAsText(file);
+        // 清空 input 保证同一个文件可以反复导入
+        event.target.value = "";
+    }
+</script>
+
+</body>
+</html>
