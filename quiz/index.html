@@ -148,6 +148,9 @@
         const secs = (secondsValue % 60).toString().padStart(2, '0');
         const formattedTimeText = `${mins}:${secs}`;
 
+        // 💡 修复重点：安全的全局 wrongCount 获取，彻底排除 ReferenceError
+        const wrongAnswers = (typeof window.wrongCount !== 'undefined') ? window.wrongCount : 0;
+
         try {
             if (statusBox) statusBox.innerHTML = `⏳ 正在自动提交 ${displayName} 的成绩...`;
 
@@ -159,13 +162,12 @@
                 .get();
 
             const attemptsCount = existingSnap.size + 1;
-            const wrongCount = (typeof wrongCount !== 'undefined') ? wrongCount : (scoreValue < 200 ? 1 : 0);
 
             // 写入完整的 leaderboard 集合数据
             await db.collection("leaderboard").add({
                 studentUid: currentUser.uid,
                 playerName: displayName,
-                classCode: studentClassCode, // 👈 解决“未划分班级”问题
+                classCode: studentClassCode,
 
                 quizId: quizId,
                 quizTitle: (typeof QUIZ_INFO !== 'undefined' && QUIZ_INFO.quizTitle) ? QUIZ_INFO.quizTitle : "testing quiz",
@@ -177,7 +179,7 @@
                 timeSpent: secondsValue,
                 timeText: formattedTimeText,
                 attemptsCount: attemptsCount,
-                wrongAnswersCount: wrongCount,
+                wrongAnswersCount: wrongAnswers,
 
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 status: "active"
