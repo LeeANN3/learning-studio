@@ -31,7 +31,6 @@ const resultScreen = document.getElementById("result-screen");
 
 const startBtn = document.getElementById("start-btn");
 const restartBtn = document.getElementById("restart-btn");
-const saveScoreBtn = document.getElementById("save-score-btn");
 
 const questionText = document.getElementById("question");
 const optionsDiv = document.getElementById("options");
@@ -44,7 +43,6 @@ const finalScore = document.getElementById("final-score");
 const finalTime = document.getElementById("final-time");
 
 const totalQuestionText = document.getElementById("total-question-text");
-const playerNameInput = document.getElementById("player-name");
 const leaderboardList = document.getElementById("leaderboard-list");
 
 
@@ -58,6 +56,7 @@ let score = 0;
 let seconds = 0;
 let timer = null;
 let wrongCount = 0; // 错题计数器
+let isSaving = false; // 防重复提交锁
 
 
 // ==========================================
@@ -113,6 +112,7 @@ function startGame() {
     seconds = 0;
     wrongCount = 0;
     currentQuestionIndex = 0;
+    isSaving = false;
 
     scoreText.textContent = "Score : 0";
 
@@ -223,10 +223,10 @@ function startTimer() {
 
 
 // ==========================================
-// 游戏结算
+// 游戏结算 (自动保存成绩到 Firebase)
 // ==========================================
 
-function endGame() {
+async function endGame() {
     clearInterval(timer);
 
     quizScreen.classList.add("hidden");
@@ -234,54 +234,57 @@ function endGame() {
 
     finalScore.textContent = `Final Score: ${score}`;
     finalTime.textContent = `Total Time: ${seconds} seconds`;
+
+    // 🎯 游戏结束立刻自动触发云端保存
+    if (!isSaving) {
+        isSaving = true;
+        await autoSaveScoreToFirebase();
+    }
 }
 
 
 // ==========================================
-// 🔥 Firebase 实时榜单与保存逻辑 (替换原 LocalStorage)
+// 🔥 自动同步成绩至 Firebase 数据库
 // ==========================================
 
-async function saveScore() {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        alert("⚠️ 未登录账号，请先登录后再提交成绩！");
+async function autoSaveScoreToFirebase() {
+    if (typeof firebase === 'undefined') {
+        console.warn("未检测到 Firebase SDK 库，请检查 index.html 中是否成功引入。");
         return;
     }
 
-    if (saveScoreBtn) {
-        saveScoreBtn.disabled = true;
-        saveScoreBtn.textContent = "保存中...";
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        console.warn("⚠️ 学生未登录账号，无法记录成绩到云端。");
+        return;
     }
 
     try {
         const db = firebase.firestore();
 
-        // 1. 获取学生的账号详细数据 (班级、姓名等)
+        // 1. 获取学生的最新班级与姓名数据
         const userDoc = await db.collection("users").doc(user.uid).get();
         const userData = userDoc.data() || {};
 
-        const studentName = playerNameInput && playerNameInput.value.trim() 
-            ? playerNameInput.value.trim() 
-            : (userData.name || user.displayName || "未命名学生");
-
+        const studentName = userData.name || user.displayName || "未命名学生";
         const studentClassCode = (userData.enrolledClasses && userData.enrolledClasses.length > 0)
             ? userData.enrolledClasses[0]
             : "未划分班级";
 
-        // 2. 查询该学生之前提交过多少次本测验 (自动计算尝试次数)
+        // 2. 查询历史做题记录 (自动算尝试次数)
         const existingRecords = await db.collection("leaderboard")
             .where("studentUid", "==", user.uid)
             .where("quizId", "==", QUIZ_INFO.quizId)
             .get();
 
-        const attemptsCount = existingRecords.size + 1; // 本次为第 N 次尝试
+        const attemptsCount = existingRecords.size + 1;
 
-        // 3. 格式化用时文本 (如 80 秒 -> "01:20")
+        // 3. 格式化用时字符串 (如 80 秒 -> "01:20")
         const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
         const secs = (seconds % 60).toString().padStart(2, '0');
         const timeTextStr = `${mins}:${secs}`;
 
-        // 4. 写入 Firebase leaderboard 集合
+        // 4. 提交到 leaderboard 集合
         await db.collection("leaderboard").add({
             studentUid: user.uid,
             playerName: studentName,
@@ -303,16 +306,11 @@ async function saveScore() {
             status: "active"
         });
 
-        alert("🎉 成绩已成功同步到教师后台排行榜！");
-        if (playerNameInput) playerNameInput.value = "";
+        console.log("🎉 游戏成绩与多维分析数据已成功自动同步到 Firebase！");
         renderLeaderboard();
 
     } catch (err) {
-        console.error("保存成绩到 Firebase 失败:", err);
-        alert("⚠️ 成绩保存失败：" + err.message);
-        if (saveScoreBtn) saveScoreBtn.disabled = false;
-    } finally {
-        if (saveScoreBtn) saveScoreBtn.textContent = "保存成绩";
+        console.error("⚠️ 自动保存成绩到 Firebase 失败:", err);
     }
 }
 
@@ -357,15 +355,9 @@ async function renderLeaderboard() {
 // ==========================================
 
 startBtn.addEventListener("click", () => {
-    if (saveScoreBtn) saveScoreBtn.disabled = false;
     startGame();
 });
 
 restartBtn.addEventListener("click", () => {
-    if (saveScoreBtn) saveScoreBtn.disabled = false;
     startGame();
 });
-
-if (saveScoreBtn) {
-    saveScoreBtn.addEventListener("click", saveScore);
-}
