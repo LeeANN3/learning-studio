@@ -1,0 +1,13 @@
+{
+  "quizId": "g1_chinese_u1",
+  "quizTitle": "一年级华文 单元一",
+  "subject": "chinese",
+  "grade": 1,
+  "unit": 1,
+  "words": [
+    { "id": 1, "english": "Apple", "chinese": "苹果" },
+    { "id": 2, "english": "Banana", "chinese": "香蕉" },
+    { "id": 3, "english": "Cat", "chinese": "猫" },
+    { "id": 4, "english": "Dog", "chinese": "狗" }
+  ]
+}
