@@ -3,355 +3,457 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>资料管控与游戏题库管理</title>
+    <title>Fun Learning Island - 游戏与测验资料管控</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f4f7f6; color: #333; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; }
-        .btn-primary { background: #2196F3; color: white; }
-        .btn-success { background: #4CAF50; color: white; }
-        .btn-danger { background: #f44336; color: white; }
-        .btn-warning { background: #ff9800; color: white; }
-        .btn-secondary { background: #78909c; color: white; }
-
-        /* 模态框 Modal */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
-        .modal.active { display: flex; }
-        .modal-content { background: #fff; border-radius: 10px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; padding: 25px; }
-
-        /* 列表表格 */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; font-weight: bold; color: #555; }
-
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .form-group { display: flex; flex-direction: column; gap: 5px; }
-        .form-group label { font-size: 12px; font-weight: bold; color: #666; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; outline: none; }
-
-        .word-item { display: grid; grid-template-columns: 40px 1fr 1fr 50px; gap: 10px; align-items: center; background: #f9f9f9; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
+        * { box-sizing: border-box; user-select: none; }
+        body {
+            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            color: #0f172a;
+        }
+        .font-fun { font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; }
+        .neo-card {
+            background-color: #ffffff;
+            border: 2px solid #0f172a;
+            border-radius: 16px;
+            box-shadow: 4px 4px 0px #0f172a;
+        }
+        .neo-btn {
+            background-color: #ffffff;
+            border: 2px solid #0f172a;
+            border-radius: 12px;
+            box-shadow: 2px 2px 0px #0f172a;
+            transition: all 0.15s ease;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+            font-weight: 600;
+        }
+        .neo-btn:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #0f172a;
+        }
+        .neo-btn-primary { background-color: #ffe600; }
+        .neo-btn-primary:hover { background-color: #facc15; }
+        .neo-btn-success { background-color: #bbf7d0; color: #166534; }
+        .neo-btn-danger { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; box-shadow: 2px 2px 0px #dc2626; }
+        .neo-input {
+            border: 2px solid #0f172a;
+            border-radius: 10px;
+            outline: none;
+            padding: 8px 12px;
+            box-shadow: 2px 2px 0px #cbd5e1;
+        }
+        .neo-input:focus { box-shadow: 2px 2px 0px #ffe600; }
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); }
     </style>
 </head>
-<body>
+<body class="pb-10">
 
-<div class="container">
-    <div class="header">
-        <h2>🗂️ 游戏与测验资料管控中心</h2>
-        <div>
-            <a href="dashboard.html" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> 返回Dashboard</a>
-            <button class="btn btn-primary" onclick="openTemplateSelector()"><i class="fa-solid fa-plus"></i> 创建新游戏测验</button>
-        </div>
-    </div>
-
-    <!-- 数据库现有的测验资料列表 -->
-    <h3>已发布的游戏/测验列表</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>测验标题</th>
-                <th>游戏模板</th>
-                <th>科目</th>
-                <th>年级/单元</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody id="quiz-table-body">
-            <tr><td colspan="5" style="text-align:center; color:#999;">⏳ 加载云端资料中...</td></tr>
-        </tbody>
-    </table>
-</div>
-
-<!-- 1. 模板选择弹窗 Modal -->
-<div id="template-modal" class="modal">
-    <div class="modal-content" style="max-width: 500px;">
-        <h3 style="margin-bottom: 15px;">🎮 选择游戏模板</h3>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button class="btn btn-primary" style="justify-content: flex-start; padding: 15px;" onclick="selectTemplate('multiple_choice')">
-                <i class="fa-solid fa-list-check fa-2x"></i>
-                <div style="text-align: left;">
-                    <div style="font-size: 16px;">选择题测验 (Multiple Choice)</div>
-                    <div style="font-size: 12px; opacity: 0.8;">适合单字看文选义、基础测试</div>
+    <nav class="bg-white border-b-2 border-slate-900 sticky top-0 z-40 px-4 py-3 shadow-[0_4px_0_#0f172a]">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-300 p-2 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#0f172a]">
+                    <i class="fa-solid fa-gamepad text-xl"></i>
                 </div>
-            </button>
-            <button class="btn btn-primary" style="justify-content: flex-start; padding: 15px;" onclick="selectTemplate('card_matching')">
-                <i class="fa-solid fa-puzzle-piece fa-2x"></i>
-                <div style="text-align: left;">
-                    <div style="font-size: 16px;">记忆翻牌游戏 (Card Matching)</div>
-                    <div style="font-size: 12px; opacity: 0.8;">适合词汇配对与记忆练习（自动适配卡片数）</div>
+                <div>
+                    <h1 class="font-fun text-xl font-bold leading-tight">游戏与测验资料管控</h1>
+                    <p class="text-xs text-slate-500 font-sans">Content & Quiz Manager</p>
                 </div>
-            </button>
-        </div>
-        <button class="btn btn-secondary" style="margin-top: 15px; width: 100%;" onclick="closeModal('template-modal')">取消</button>
-    </div>
-</div>
+            </div>
 
-<!-- 2. 测验编辑器弹窗 Modal -->
-<div id="editor-modal" class="modal">
-    <div class="modal-content">
-        <div class="header">
-            <h3 id="editor-title">编辑测验数据</h3>
-            <button class="btn btn-secondary" onclick="closeModal('editor-modal')">✕ 关 闭</button>
-        </div>
-
-        <input type="hidden" id="editing-doc-id">
-        <input type="hidden" id="editing-game-type" value="multiple_choice">
-
-        <div class="form-grid">
-            <div class="form-group">
-                <label>测验全局唯一 ID (系统自动生成或自定义):</label>
-                <input type="text" id="quiz-id" placeholder="如: g1_chinese_u1">
-            </div>
-            <div class="form-group">
-                <label>测验标题 (显示给学生):</label>
-                <input type="text" id="quiz-title" placeholder="如: 一年级华文 单元一">
-            </div>
-            <div class="form-group">
-                <label>科目:</label>
-                <select id="quiz-subject">
-                    <option value="chinese">华文 (Chinese)</option>
-                    <option value="english">英文 (English)</option>
-                    <option value="malay">国文 (Malay)</option>
-                    <option value="math">数学 (Math)</option>
-                    <option value="science">科学 (Science)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>目标年级:</label>
-                <input type="number" id="quiz-grade" value="1" min="1" max="6">
-            </div>
-            <div class="form-group">
-                <label>目标单元:</label>
-                <input type="number" id="quiz-unit" value="1" min="1" max="20">
+            <div class="flex items-center gap-3">
+                <a href="admin.html" class="neo-btn px-3 py-1.5 text-sm flex items-center gap-2 bg-slate-100">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>返回教室后台</span>
+                </a>
+                <button onclick="openEditorForCreate()" class="neo-btn neo-btn-primary px-3 py-1.5 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span>创建新测验/游戏</span>
+                </button>
             </div>
         </div>
+    </nav>
 
-        <!-- 题目管理 -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h4>题目内容区</h4>
-            <button class="btn btn-primary" onclick="addWordRow()"><i class="fa-solid fa-plus"></i> 添加题目</button>
-        </div>
-
-        <div id="words-container" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
-
-        <div style="display: flex; justify-content: space-between; border-top: 1px solid #eee; padding-top: 15px;">
-            <div>
-                <button class="btn btn-warning" onclick="document.getElementById('file-input').click()"><i class="fa-solid fa-file-import"></i> 导入本地 JSON</button>
-                <input type="file" id="file-input" accept=".json" style="display:none;" onchange="importLocalJSON(event)">
-            </div>
-            <div>
-                <button class="btn btn-success" onclick="saveToFirebase()"><i class="fa-solid fa-cloud-arrow-up"></i> 保存同步到云端</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
-        authDomain: "my-teacher-studio.firebaseapp.com",
-        projectId: "my-teacher-studio",
-        storageBucket: "my-teacher-studio.firebasestorage.app",
-        messagingSenderId: "82774284780",
-        appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // 鉴权保护
-    auth.onAuthStateChanged(user => {
-        if (!user) {
-            alert("请先登录教师账号！");
-            window.location.href = "index.html";
-        } else {
-            loadQuizzesFromFirebase();
-        }
-    });
-
-    // 读取数据库中现有的测验列表
-    async function loadQuizzesFromFirebase() {
-        const tbody = document.getElementById('quiz-table-body');
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#999;">⏳ 加载云端资料中...</td></tr>`;
-
-        try {
-            const snapshot = await db.collection("quizzes").get();
-            tbody.innerHTML = "";
-
-            if (snapshot.empty) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#666;">暂无游戏资料，点击右上角新建！</td></tr>`;
-                return;
-            }
-
-            snapshot.forEach(doc => {
-                const q = doc.data();
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><b>${q.quizTitle || q.quizId}</b></td>
-                    <td><span class="btn btn-secondary" style="padding: 2px 6px; font-size:11px;">${q.gameType || 'multiple_choice'}</span></td>
-                    <td>${q.subject || '未分类'}</td>
-                    <td>${q.grade || 1} 年级 / 单元 ${q.unit || 1}</td>
-                    <td>
-                        <button class="btn btn-primary" onclick="editQuiz('${doc.id}')"><i class="fa-solid fa-pen"></i> 修改</button>
-                        <button class="btn btn-danger" onclick="deleteQuiz('${doc.id}')"><i class="fa-solid fa-trash"></i> 删除</button>
-                        <a href="quiz-runner.html?quizId=${doc.id}" target="_blank" class="btn btn-success"><i class="fa-solid fa-play"></i> 测试</a>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } catch (err) {
-            alert("加载数据失败: " + err.message);
-        }
-    }
-
-    // 模态框控制
-    function openTemplateSelector() { document.getElementById('template-modal').classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-    function selectTemplate(gameType) {
-        closeModal('template-modal');
-        document.getElementById('editing-doc-id').value = "";
-        document.getElementById('editing-game-type').value = gameType;
-        document.getElementById('quiz-id').value = "quiz_" + Date.now();
-        document.getElementById('quiz-title').value = "";
-        document.getElementById('words-container').innerHTML = "";
+    <div class="max-w-7xl mx-auto px-4 mt-6">
         
-        // 默认添加 3 题
-        addWordRow("Apple", "苹果");
-        addWordRow("Banana", "香蕉");
-        
-        document.getElementById('editor-modal').classList.add('active');
-    }
+        <div class="neo-card p-5 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-fun text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-amber-500"></i>
+                    <span>云端已发布的测验与游戏列表</span>
+                </h3>
+                <span class="text-xs text-slate-500">点击“修改”可同步更新题目，点击“删除”彻底移除。</span>
+            </div>
 
-    // 题目行渲染
-    function addWordRow(english = "", chinese = "") {
-        const container = document.getElementById('words-container');
-        const row = document.createElement('div');
-        row.className = 'word-item';
-        row.innerHTML = `
-            <div style="font-weight:bold; color:#888; text-align:center;">#</div>
-            <input type="text" class="input-english" placeholder="英文/题目" value="${english}">
-            <input type="text" class="input-chinese" placeholder="中文/答案" value="${chinese}">
-            <button class="btn btn-danger" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
-        `;
-        container.appendChild(row);
-    }
+            <div class="overflow-x-auto rounded-xl border-2 border-slate-900 bg-white">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 border-b-2 border-slate-900 font-fun text-sm text-slate-800">
+                            <th class="p-3">测验/游戏标题</th>
+                            <th class="p-3">ID 编码</th>
+                            <th class="p-3">分类类型</th>
+                            <th class="p-3">科目 / 年级 / 单元</th>
+                            <th class="p-3">题目数量</th>
+                            <th class="p-3 text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quiz-table-body" class="divide-y border-slate-200 text-sm font-sans">
+                        <tr>
+                            <td colspan="6" class="p-8 text-center text-slate-400 font-fun text-lg">
+                                <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在加载云端题库资料...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    // 保存到 Firebase
-    async function saveToFirebase() {
-        const docId = document.getElementById('quiz-id').value.trim();
-        const quizTitle = document.getElementById('quiz-title').value.trim();
-        const subject = document.getElementById('quiz-subject').value;
-        const grade = parseInt(document.getElementById('quiz-grade').value) || 1;
-        const unit = parseInt(document.getElementById('quiz-unit').value) || 1;
-        const gameType = document.getElementById('editing-game-type').value;
+    </div>
 
-        if (!docId) return alert("请填写测验 ID！");
+    <!-- 测验编辑器弹窗 Modal -->
+    <div id="editor-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
+        <div class="neo-card bg-white max-w-3xl w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center border-b-2 border-slate-900 pb-3">
+                <h3 id="editor-title" class="font-fun text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-amber-500"></i>
+                    <span>编辑测验内容</span>
+                </h3>
+                <button onclick="closeEditorModal()" class="neo-btn px-2.5 py-1 text-xs">✕ 关闭</button>
+            </div>
 
-        const wordRows = document.querySelectorAll('.word-item');
-        const words = [];
-        wordRows.forEach((row, idx) => {
-            const eng = row.querySelector('.input-english').value.trim();
-            const chi = row.querySelector('.input-chinese').value.trim();
-            if (eng && chi) {
-                words.push({ id: idx + 1, english: eng, chinese: chi });
+            <div class="flex-1 overflow-y-auto space-y-4 pr-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">测验全局唯一 ID (用于识别链接)</label>
+                        <input type="text" id="quiz-id" class="neo-input w-full text-sm font-mono" placeholder="如: g1_chinese_u1">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">测验/游戏显示标题</label>
+                        <input type="text" id="quiz-title" class="neo-input w-full text-sm font-bold" placeholder="如: 一年级华文 单元一测验">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">科目</label>
+                        <select id="quiz-subject" class="neo-input w-full bg-white text-xs font-fun">
+                            <option value="chinese">华文 (Chinese)</option>
+                            <option value="english">英文 (English)</option>
+                            <option value="malay">国文 (Malay)</option>
+                            <option value="math">数学 (Math)</option>
+                            <option value="science">科学 (Science)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">目标年级</label>
+                        <select id="quiz-grade" class="neo-input w-full bg-white text-xs font-fun">
+                            <option value="1">一年级 (Grade 1)</option>
+                            <option value="2">二年级 (Grade 2)</option>
+                            <option value="3">三年级 (Grade 3)</option>
+                            <option value="4">四年级 (Grade 4)</option>
+                            <option value="5">五年级 (Grade 5)</option>
+                            <option value="6">六年级 (Grade 6)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">目标单元</label>
+                        <input type="number" id="quiz-unit" value="1" min="1" max="20" class="neo-input w-full text-xs font-bold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 bg-amber-50 p-3 rounded-xl border border-slate-900">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">资源模块划分 (决定出现在学生端哪个栏目)</label>
+                        <select id="quiz-type" class="neo-input w-full bg-white text-xs font-fun">
+                            <option value="quiz">📝 测验 (Quizzes)</option>
+                            <option value="review">📖 复习 (Revision)</option>
+                            <option value="game">🎮 游戏 (Educational Games)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">游戏机制 Runner 模板</label>
+                        <select id="quiz-game-type" class="neo-input w-full bg-white text-xs font-fun">
+                            <option value="multiple_choice">选择题 (quiz-runner.html)</option>
+                            <option value="card_matching">记忆翻牌 (card-runner.html)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 题目管理 -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-fun text-base font-bold">题目与词汇列表</h4>
+                        <button type="button" onclick="addWordRow()" class="neo-btn neo-btn-primary px-3 py-1 text-xs flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> 添加题目
+                        </button>
+                    </div>
+                    
+                    <div id="words-container" class="space-y-2 max-h-[220px] overflow-y-auto p-2 bg-slate-50 border-2 border-slate-900 rounded-xl">
+                        <!-- Word Rows Dynamic Container -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t-2 border-slate-900">
+                <div>
+                    <button type="button" onclick="document.getElementById('file-input').click()" class="neo-btn px-3 py-1.5 text-xs bg-slate-100">
+                        <i class="fa-solid fa-file-import"></i> 导入 JSON
+                    </button>
+                    <input type="file" id="file-input" accept=".json" class="hidden" onchange="importLocalJSON(event)">
+                </div>
+                <button type="button" onclick="saveToCloud()" class="neo-btn neo-btn-primary px-5 py-2 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>保存并同步云端</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+            authDomain: "my-teacher-studio.firebaseapp.com",
+            projectId: "my-teacher-studio",
+            storageBucket: "my-teacher-studio.firebasestorage.app",
+            messagingSenderId: "82774284780",
+            appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        auth.onAuthStateChanged(async user => {
+            if (!user) {
+                window.location.href = "index.html";
+            } else {
+                loadQuizzes();
             }
         });
 
-        if (words.length === 0) return alert("至少需要添加一道有效题目！");
+        async function loadQuizzes() {
+            const tbody = document.getElementById('quiz-table-body');
+            tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 font-fun text-lg"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在加载云端题库...</td></tr>`;
 
-        const payload = {
-            quizId: docId,
-            quizTitle: quizTitle || docId,
-            subject: subject,
-            grade: grade,
-            unit: unit,
-            gameType: gameType,
-            words: words,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        try {
-            // 使用 set 并开启 merge，既支持新建也支持修改
-            await db.collection("quizzes").doc(docId).set(payload, { merge: true });
-            alert("🎉 保存并发布成功！学生端已即时同步！");
-            closeModal('editor-modal');
-            loadQuizzesFromFirebase();
-        } catch (err) {
-            alert("保存失败: " + err.message);
-        }
-    }
-
-    // 编辑已有测验
-    async function editQuiz(docId) {
-        try {
-            const doc = await db.collection("quizzes").doc(docId).get();
-            if (!doc.exists) return alert("测验已被删除！");
-
-            const q = doc.data();
-            document.getElementById('editing-doc-id').value = doc.id;
-            document.getElementById('quiz-id').value = q.quizId || doc.id;
-            document.getElementById('quiz-title').value = q.quizTitle || "";
-            document.getElementById('quiz-subject').value = q.subject || "chinese";
-            document.getElementById('quiz-grade').value = q.grade || 1;
-            document.getElementById('quiz-unit').value = q.unit || 1;
-            document.getElementById('editing-game-type').value = q.gameType || "multiple_choice";
-
-            const container = document.getElementById('words-container');
-            container.innerHTML = "";
-            if (Array.isArray(q.words)) {
-                q.words.forEach(w => addWordRow(w.english, w.chinese));
-            }
-
-            document.getElementById('editor-modal').classList.add('active');
-        } catch (err) {
-            alert("获取数据失败: " + err.message);
-        }
-    }
-
-    // 删除测验
-    async function deleteQuiz(docId) {
-        if (!confirm(`确定要彻底删除测验 [${docId}] 吗？`)) return;
-        try {
-            await db.collection("quizzes").doc(docId).delete();
-            alert("已删除！");
-            loadQuizzesFromFirebase();
-        } catch (err) {
-            alert("删除失败: " + err.message);
-        }
-    }
-
-    // 导入本地 JSON 填充界面
-    function importLocalJSON(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(evt) {
             try {
-                const data = JSON.parse(evt.target.result);
-                if (data.quizId) document.getElementById('quiz-id').value = data.quizId;
-                if (data.quizTitle) document.getElementById('quiz-title').value = data.quizTitle;
-                if (data.subject) document.getElementById('quiz-subject').value = data.subject;
-                if (data.grade) document.getElementById('quiz-grade').value = data.grade;
-                if (data.unit) document.getElementById('quiz-unit').value = data.unit;
+                const snapshot = await db.collection("quizzes").get();
+                tbody.innerHTML = "";
 
-                document.getElementById('words-container').innerHTML = "";
-                if (Array.isArray(data.words)) {
-                    data.words.forEach(w => addWordRow(w.english, w.chinese));
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400 italic font-fun">暂无游戏/测验资料，点击右上角新建！</td></tr>`;
+                    return;
                 }
-                alert("已导入 JSON 内容！点击 [保存同步到云端] 即可发布！");
-            } catch (err) { alert("JSON 读取失败: " + err.message); }
-        };
-        reader.readAsText(file);
-    }
-</script>
+
+                snapshot.forEach(doc => {
+                    const q = doc.data();
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors";
+
+                    const runnerPage = (q.gameType === 'card_matching') ? 'card-runner.html' : 'quiz-runner.html';
+
+                    tr.innerHTML = `
+                        <td class="p-3 font-bold font-fun text-slate-800 text-base">${q.quizTitle || doc.id}</td>
+                        <td class="p-3 font-mono text-xs text-slate-500">${doc.id}</td>
+                        <td class="p-3">
+                            <span class="bg-amber-100 text-amber-900 border border-slate-900 text-xs px-2 py-0.5 rounded-md font-bold font-fun">
+                                ${q.type || 'quiz'} (${q.gameType || 'multiple_choice'})
+                            </span>
+                        </td>
+                        <td class="p-3 text-xs text-slate-600">${q.subject || '通用'} / ${q.grade || 1}年级 / 单元${q.unit || 1}</td>
+                        <td class="p-3 text-xs font-mono font-bold text-slate-700">${(q.words || []).length} 题</td>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="editQuiz('${doc.id}')" class="neo-btn px-2.5 py-1 text-xs bg-amber-100 hover:bg-amber-200">
+                                    <i class="fa-solid fa-pen-to-square"></i> 修改
+                                </button>
+                                <a href="${runnerPage}?quizId=${doc.id}" target="_blank" class="neo-btn neo-btn-success px-2.5 py-1 text-xs flex items-center gap-1">
+                                    <i class="fa-solid fa-play"></i> 测试
+                                </a>
+                                <button onclick="deleteQuiz('${doc.id}')" class="neo-btn neo-btn-danger px-2.5 py-1 text-xs">
+                                    <i class="fa-solid fa-trash"></i> 删除
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-red-500 font-semibold">⚠️ 加载失败：${err.message}</td></tr>`;
+            }
+        }
+
+        function openEditorForCreate() {
+            document.getElementById('quiz-id').value = "quiz_" + Date.now().toString().slice(-6);
+            document.getElementById('quiz-title').value = "";
+            document.getElementById('quiz-grade').value = "1";
+            document.getElementById('quiz-unit').value = "1";
+            document.getElementById('words-container').innerHTML = "";
+            addWordRow("Apple", "苹果");
+            addWordRow("Banana", "香蕉");
+            document.getElementById('editor-modal').classList.remove('hidden');
+        }
+
+        function closeEditorModal() {
+            document.getElementById('editor-modal').classList.add('hidden');
+        }
+
+        function addWordRow(english = "", chinese = "") {
+            const container = document.getElementById('words-container');
+            const div = document.createElement('div');
+            div.className = "word-row flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-300";
+            div.innerHTML = `
+                <input type="text" class="input-english neo-input text-xs flex-1" placeholder="英文/题目" value="${english}">
+                <input type="text" class="input-chinese neo-input text-xs flex-1" placeholder="中文/答案" value="${chinese}">
+                <button type="button" onclick="this.parentElement.remove()" class="neo-btn neo-btn-danger px-2 py-1 text-xs">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        async function saveToCloud() {
+            const quizId = document.getElementById('quiz-id').value.trim();
+            const quizTitle = document.getElementById('quiz-title').value.trim();
+            const subject = document.getElementById('quiz-subject').value;
+            const grade = parseInt(document.getElementById('quiz-grade').value) || 1;
+            const unit = parseInt(document.getElementById('quiz-unit').value) || 1;
+            const type = document.getElementById('quiz-type').value;
+            const gameType = document.getElementById('quiz-game-type').value;
+
+            if (!quizId) return alert("请填写测验 ID！");
+
+            const wordRows = document.querySelectorAll('.word-row');
+            const words = [];
+            wordRows.forEach((row, idx) => {
+                const eng = row.querySelector('.input-english').value.trim();
+                const chi = row.querySelector('.input-chinese').value.trim();
+                if (eng && chi) {
+                    words.push({ id: idx + 1, english: eng, chinese: chi });
+                }
+            });
+
+            if (words.length === 0) return alert("请至少添加一组有效题目！");
+
+            const runnerPage = (gameType === 'card_matching') ? 'card-runner.html' : 'quiz-runner.html';
+            const targetUrl = `${runnerPage}?quizId=${quizId}`;
+
+            // 获取属于该年级的活跃班级代码
+            let classCodesForGrade = [];
+            try {
+                const classSnap = await db.collection("classes").where("grade", "==", grade).get();
+                classSnap.forEach(doc => classCodesForGrade.push(doc.id));
+            } catch(e){}
+
+            const quizData = {
+                quizId: quizId,
+                quizTitle: quizTitle || quizId,
+                subject: subject,
+                grade: grade,
+                unit: unit,
+                type: type,
+                gameType: gameType,
+                words: words,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            const resourceData = {
+                title: quizTitle || quizId,
+                subject: subject,
+                grade: grade,
+                unit: unit,
+                type: type,
+                gameType: gameType,
+                url: targetUrl,
+                isPublished: true,
+                unlockedClasses: classCodesForGrade,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                const batch = db.batch();
+                batch.set(db.collection("quizzes").doc(quizId), quizData, { merge: true });
+                batch.set(db.collection("resources").doc(quizId), resourceData, { merge: true });
+                await batch.commit();
+
+                alert("🎉 保存并发布成功！学生端已即时展示！");
+                closeEditorModal();
+                loadQuizzes();
+            } catch (err) {
+                alert("⚠️ 保存失败：" + err.message);
+            }
+        }
+
+        async function editQuiz(id) {
+            try {
+                const docSnap = await db.collection("quizzes").doc(id).get();
+                if (!docSnap.exists) return alert("未找到该测验数据！");
+                const q = docSnap.data();
+
+                document.getElementById('quiz-id').value = docSnap.id;
+                document.getElementById('quiz-title').value = q.quizTitle || "";
+                document.getElementById('quiz-subject').value = q.subject || "chinese";
+                document.getElementById('quiz-grade').value = q.grade || 1;
+                document.getElementById('quiz-unit').value = q.unit || 1;
+                document.getElementById('quiz-type').value = q.type || "quiz";
+                document.getElementById('quiz-game-type').value = q.gameType || "multiple_choice";
+
+                const container = document.getElementById('words-container');
+                container.innerHTML = "";
+                if (Array.isArray(q.words)) {
+                    q.words.forEach(w => addWordRow(w.english, w.chinese));
+                }
+
+                document.getElementById('editor-modal').classList.remove('hidden');
+            } catch (err) { alert("读取失败：" + err.message); }
+        }
+
+        async function deleteQuiz(id) {
+            if (!confirm(`确定彻底删除测验【${id}】吗？`)) return;
+            try {
+                const batch = db.batch();
+                batch.delete(db.collection("quizzes").doc(id));
+                batch.delete(db.collection("resources").doc(id));
+                await batch.commit();
+                loadQuizzes();
+            } catch (err) { alert("删除失败：" + err.message); }
+        }
+
+        function importLocalJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (data.quizId) document.getElementById('quiz-id').value = data.quizId;
+                    if (data.quizTitle) document.getElementById('quiz-title').value = data.quizTitle;
+                    if (data.subject) document.getElementById('quiz-subject').value = data.subject;
+                    if (data.grade) document.getElementById('quiz-grade').value = data.grade;
+                    if (data.unit) document.getElementById('quiz-unit').value = data.unit;
+
+                    document.getElementById('words-container').innerHTML = "";
+                    if (Array.isArray(data.words)) {
+                        data.words.forEach(w => addWordRow(w.english, w.chinese));
+                    }
+                    alert("JSON 导入成功！点击 [保存并同步云端] 即可发布。");
+                } catch (err) { alert("JSON 读取失败：" + err.message); }
+            };
+            reader.readAsText(file);
+        }
+    </script>
 </body>
 </html>
