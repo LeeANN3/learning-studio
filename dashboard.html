@@ -315,7 +315,7 @@
             </button>
             <div class="user-info-badge">
                 <i id="user-role-icon" class="fa-solid fa-user-graduate"></i>
-                <span id="user-name-display">加载中...</span>
+                <span id="user-name-display"><i class="fa-solid fa-spinner fa-spin text-slate-400"></i> 验证登录中...</span>
                 <span id="class-type-badge" class="tag-class-type">学生</span>
             </div>
             <button type="button" class="btn-ui btn-logout" onclick="handleLogout()">
@@ -330,7 +330,7 @@
         <div class="dashboard-header-card">
             <div class="title-grade">
                 <i class="fa-solid fa-graduation-cap"></i>
-                <span id="display-grade-title">X 年级学习区</span>
+                <span id="display-grade-title">学习区</span>
             </div>
 
             <div class="selectors-grid">
@@ -435,8 +435,11 @@
             }
         };
 
+        // 🔒 强化版 Auth 防越权与停权拦截监听系统
         auth.onAuthStateChanged(async (user) => {
+            // 1. 若完全未登录，立即拦截跳转回登录页
             if (!user) {
+                console.warn("未检测到登录 Token，强行返回登录页");
                 window.location.href = "index.html";
                 return;
             }
@@ -445,12 +448,21 @@
                 const doc = await db.collection("users").doc(user.uid).get();
                 if (doc.exists) {
                     currentUserData = doc.data();
+
+                    // 2. 账号状态检查：如果属于 pending_delete（已移入待移除列表），阻止登录
+                    if (currentUserData.status === 'pending_delete') {
+                        alert("⚠️ 账号受限：您的账号已被暂时关停，请联系老师恢复。");
+                        await auth.signOut();
+                        window.location.href = "index.html";
+                        return;
+                    }
                 } else {
                     currentUserData = { name: user.displayName || "使用者", role: 'student', grade: 1 };
                 }
                 setupDashboardUI();
             } catch (err) {
                 console.error("加载用户信息失败:", err);
+                window.location.href = "index.html";
             }
         });
 
@@ -525,7 +537,6 @@
             }
         }
 
-        // 核心改动：精确的班级/屏蔽判定接线逻辑
         async function renderResources() {
             const gradeVal = document.getElementById('select-grade').value;
             const subjectVal = document.getElementById('select-subject').value;
