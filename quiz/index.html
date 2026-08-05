@@ -6,7 +6,7 @@
     <title>Quiz Game</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- 引入 FontAwesome 图标库 (可选) -->
+    <!-- 引入 FontAwesome 图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -31,7 +31,7 @@
         <!-- 首页排行榜列表 -->
         <div style="margin-top: 30px;">
             <h3>🏆 排行榜 Top 10</h3>
-            <ol id="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+            <ol id="leaderboard-list" class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
         </div>
     </section>
 
@@ -53,19 +53,13 @@
         <h1>Game Over</h1>
         <h2 id="final-score"></h2>
         <h3 id="final-time"></h3>
-
-    <!-- Start Screen (游戏开始界面) -->
-    <section id="start-screen" class="screen">
-        <h1>Quiz Game</h1>
-        <p id="total-question-text"></p>
-
-        <button id="start-btn">Start Game</button>
-
-        <!-- 首页排行榜列表 (添加 class="leaderboard-list" 保持统一) -->
-        <div style="margin-top: 30px;">
-            <h3>🏆 排行榜 Top 10</h3>
-            <ol id="leaderboard-list" class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+        
+        <!-- 自动保存状态提示框 -->
+        <div id="save-status-box" style="margin: 15px 0; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; background: #e3f2fd; color: #0d47a1;">
+            ⏳ 正在自动提交成绩中，请稍候...
         </div>
+
+        <button id="restart-btn" style="margin-top: 10px;">再玩一次</button>
     </section>
 </div>
 
@@ -75,9 +69,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
 <script>
-    // =========================================================
-    // ⚠️ 步骤：请把你在 index.html 用过的 Firebase 配置原封不动复制到这里
-    // =========================================================
+    // 初始化 Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
         authDomain: "my-teacher-studio.firebaseapp.com",
@@ -87,43 +79,57 @@
         appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
     };
 
-    // 初始化 Firebase
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
     let currentUser = null;
+    let currentUserProfile = null; // 存储学生的详细 Profile 数据 (包含班级)
     let hasSavedScoreThisRound = false; // 防止重复提交标记
 
-    // 2. 登录状态监听 (进入页面时自动验证身份)
-    auth.onAuthStateChanged((user) => {
+    // 2. 登录状态监听 (进入页面时自动验证身份并获取班级)
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
-            const displayName = user.displayName || user.email.split('@')[0] || "匿名学生";
+            try {
+                // 实时从 users 集合获取当前学生的班级数据
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                if (userDoc.exists) {
+                    currentUserProfile = userDoc.data();
+                }
+            } catch (err) {
+                console.error("读取学生详细 Profile 失败:", err);
+            }
+
+            const displayName = (currentUserProfile && currentUserProfile.name) || user.displayName || user.email.split('@')[0] || "未命名学生";
             
             // 在页面顶部显示名字
             const headerNameEl = document.getElementById('header-user-name');
             if (headerNameEl) headerNameEl.innerText = displayName;
 
-            // 加载排行榜
+            // 加载云端排行榜
             loadLeaderboard();
         } else {
-            // 如果没登录，弹窗并自动跳转回登录页
             alert("请先登录账号再开始做题！");
             window.location.href = "../index.html";
         }
     });
 
-    // 3. 自动保存成绩到 Firestore
-async function autoSaveScore() {
+    // 3. 自动保存成绩到 Firestore (补齐班级和多维分类数据)
+    async function autoSaveScore() {
         if (!currentUser) return;
         if (hasSavedScoreThisRound) return; // 本轮已保存过则跳过
 
-        // ⏳ 稍微延迟 300ms，确保 script.js 已经把分数和时间填入了 #final-score / #final-time 元素中
+        // 稍微延迟 300ms，确保 script.js 已经把分数和时间填入了 #final-score / #final-time
         await new Promise(resolve => setTimeout(resolve, 300));
 
         const statusBox = document.getElementById('save-status-box');
-        const displayName = currentUser.displayName || currentUser.email.split('@')[0] || "匿名学生";
+        const displayName = (currentUserProfile && currentUserProfile.name) || currentUser.displayName || "未命名学生";
+
+        // 获取学生的第一个班级 Code (解决未划分班级问题)
+        const studentClassCode = (currentUserProfile && currentUserProfile.enrolledClasses && currentUserProfile.enrolledClasses.length > 0)
+            ? currentUserProfile.enrolledClasses[0]
+            : "未划分班级";
 
         // 提取最终得分
         const scoreEl = document.getElementById('final-score');
@@ -134,23 +140,54 @@ async function autoSaveScore() {
         // 提取完成时间
         const timeEl = document.getElementById('final-time');
         const timeText = timeEl ? timeEl.innerText : "";
+        const timeMatch = timeText.match(/\d+/);
+        const secondsValue = timeMatch ? parseInt(timeMatch[0]) : 0;
+
+        // 格式化时间显示 (如 80 秒 -> "01:20")
+        const mins = Math.floor(secondsValue / 60).toString().padStart(2, '0');
+        const secs = (secondsValue % 60).toString().padStart(2, '0');
+        const formattedTimeText = `${mins}:${secs}`;
 
         try {
-            if (statusBox) statusBox.innerHTML = `⏳ 正在保存 ${displayName} 的成绩...`;
+            if (statusBox) statusBox.innerHTML = `⏳ 正在自动提交 ${displayName} 的成绩...`;
 
+            // 查询该学生此前提交过多少次本测验，自动计算尝试次数
+            const quizId = (typeof QUIZ_INFO !== 'undefined' && QUIZ_INFO.quizId) ? QUIZ_INFO.quizId : "testing_quiz_01";
+            const existingSnap = await db.collection("leaderboard")
+                .where("studentUid", "==", currentUser.uid)
+                .where("quizId", "==", quizId)
+                .get();
+
+            const attemptsCount = existingSnap.size + 1;
+            const wrongCount = (typeof wrongCount !== 'undefined') ? wrongCount : (scoreValue < 200 ? 1 : 0);
+
+            // 写入完整的 leaderboard 集合数据
             await db.collection("leaderboard").add({
-                uid: currentUser.uid,
+                studentUid: currentUser.uid,
                 playerName: displayName,
+                classCode: studentClassCode, // 👈 解决“未划分班级”问题
+
+                quizId: quizId,
+                quizTitle: (typeof QUIZ_INFO !== 'undefined' && QUIZ_INFO.quizTitle) ? QUIZ_INFO.quizTitle : "testing quiz",
+                subject: (typeof QUIZ_INFO !== 'undefined' && QUIZ_INFO.subject) ? QUIZ_INFO.subject : "chinese",
+                grade: (typeof QUIZ_INFO !== 'undefined' && QUIZ_INFO.grade) ? QUIZ_INFO.grade : 1,
+                unit: (typeof QUIZ_INFO !== 'undefined' && QUIZ_INFO.unit) ? QUIZ_INFO.unit : 1,
+
                 score: scoreValue,
-                timeText: timeText,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                timeSpent: secondsValue,
+                timeText: formattedTimeText,
+                attemptsCount: attemptsCount,
+                wrongAnswersCount: wrongCount,
+
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                status: "active"
             });
 
             hasSavedScoreThisRound = true; // 标记已提交
             if (statusBox) {
                 statusBox.style.background = '#e8f5e9';
                 statusBox.style.color = '#2e7d32';
-                statusBox.innerHTML = `🎉 成绩已自动为 <b>${displayName}</b> 成功保存！`;
+                statusBox.innerHTML = `🎉 成绩已自动为 <b>${displayName} (${studentClassCode})</b> 成功同步到教师后台！`;
             }
 
             // 重新刷新排行榜
@@ -161,19 +198,21 @@ async function autoSaveScore() {
             if (statusBox) {
                 statusBox.style.background = '#ffebee';
                 statusBox.style.color = '#c62828';
-                statusBox.innerHTML = `⚠️ 成绩保存失败: ${err.message || '权限不足或网络异常'}`;
+                statusBox.innerHTML = `⚠️ 成绩保存失败: ${err.message || '网络异常'}`;
             }
         }
     }
 
     // 4. 从 Firestore 读取排行榜 Top 10
- async function loadLeaderboard() {
-        // 兼容选取 class 或 id
+    async function loadLeaderboard() {
         const listEls = document.querySelectorAll('.leaderboard-list, #leaderboard-list');
         if (!listEls.length) return;
 
+        const currentQuizId = (typeof QUIZ_INFO !== 'undefined' && QUIZ_INFO.quizId) ? QUIZ_INFO.quizId : "testing_quiz_01";
+
         try {
             const snapshot = await db.collection("leaderboard")
+                .where("quizId", "==", currentQuizId)
                 .orderBy("score", "desc")
                 .limit(10)
                 .get();
@@ -185,22 +224,25 @@ async function autoSaveScore() {
                 return;
             }
 
+            let rank = 1;
             snapshot.forEach((doc) => {
                 const data = doc.data();
+                if (data.status === "pending_delete") return;
+
                 listEls.forEach(el => {
                     const li = document.createElement('li');
                     li.style.marginBottom = "6px";
-                    li.innerHTML = `<b>${data.playerName || '匿名'}</b> - 分数: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> (${data.timeText || ''})`;
+                    li.innerHTML = `<b>#${rank} ${data.playerName || '匿名'}</b> (${data.classCode || '无班级'}) - 得分: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> (${data.timeText || ''})`;
                     el.appendChild(li);
                 });
+                rank++;
             });
         } catch (err) {
             console.error("加载排行榜失败:", err);
-            listEls.forEach(el => el.innerHTML = `<li style="color:#c62828;">⚠️ 加载排行榜失败: ${err.message}</li>`);
         }
     }
-    
-    // 5. 监听 Result Screen（游戏结束）事件，一旦展示即触发自动保存
+
+    // 5. 监听 Result Screen 展示，自动保存成绩
     const observer = new MutationObserver(() => {
         const resultScreen = document.getElementById('result-screen');
         if (resultScreen && !resultScreen.classList.contains('hidden')) {
@@ -214,7 +256,6 @@ async function autoSaveScore() {
             observer.observe(resultScreen, { attributes: true, attributeFilter: ['class'] });
         }
 
-        // 重新开始按钮点击时重置提交标记
         const restartBtn = document.getElementById('restart-btn');
         if (restartBtn) {
             restartBtn.addEventListener('click', () => {
@@ -228,27 +269,9 @@ async function autoSaveScore() {
             });
         }
     });
-</script
-    
-<!-- 1. Firebase 核心 SDK (必须在 script.js 之前) -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</script>
 
-    <!-- 2. 初始化 Firebase 配置 -->
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
-            authDomain: "my-teacher-studio.firebaseapp.com",
-            projectId: "my-teacher-studio",
-            storageBucket: "my-teacher-studio.firebasestorage.app",
-            messagingSenderId: "82774284780",
-            appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    </script>
-    
-<!-- 6. 引入您原本的题目和游戏逻辑脚本 -->
+<!-- 6. 引入题目与游戏逻辑脚本 -->
 <script src="lesson1.js"></script>
 <script src="script.js"></script>
 
