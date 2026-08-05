@@ -28,10 +28,10 @@
 
         <button id="start-btn">Start Game</button>
 
-        <!-- 首页排行榜列表 -->
+        <!-- 游戏前排行榜 -->
         <div style="margin-top: 30px;">
             <h3>🏆 排行榜 Top 10</h3>
-            <ol id="leaderboard-list" class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+            <ol class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
         </div>
     </section>
 
@@ -60,6 +60,12 @@
         </div>
 
         <button id="restart-btn" style="margin-top: 10px;">再玩一次</button>
+
+        <!-- 👈 游戏后排行榜 (新增) -->
+        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 15px;">
+            <h3>🏆 最新排行榜 Top 10</h3>
+            <ol class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+        </div>
     </section>
 </div>
 
@@ -126,7 +132,7 @@
         const statusBox = document.getElementById('save-status-box');
         const displayName = (currentUserProfile && currentUserProfile.name) || currentUser.displayName || "未命名学生";
 
-        // 获取学生的第一个班级 Code (解决未划分班级问题)
+        // 获取学生的第一个班级 Code
         const studentClassCode = (currentUserProfile && currentUserProfile.enrolledClasses && currentUserProfile.enrolledClasses.length > 0)
             ? currentUserProfile.enrolledClasses[0]
             : "未划分班级";
@@ -192,7 +198,7 @@
                 statusBox.innerHTML = `🎉 成绩已自动为 <b>${displayName} (${studentClassCode})</b> 成功同步到教师后台！`;
             }
 
-            // 重新刷新排行榜
+            // 重新刷新首页与结算页的所有排行榜
             loadLeaderboard();
 
         } catch (err) {
@@ -205,9 +211,9 @@
         }
     }
 
-    // 4. 从 Firestore 读取排行榜 Top 10 (带精准加载状态提示)
+    // 4. 从 Firestore 读取排行榜 Top 10 (同时刷新首页和结算界面的排行榜)
     async function loadLeaderboard() {
-        const listEls = document.querySelectorAll('.leaderboard-list, #leaderboard-list');
+        const listEls = document.querySelectorAll('.leaderboard-list');
         if (!listEls.length) return;
 
         // 开启加载提示
@@ -229,19 +235,20 @@
                 return;
             }
 
-            let rank = 1;
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.status === "pending_delete") return;
+            // 动态构建列表内容
+            listEls.forEach(el => {
+                let rank = 1;
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.status === "pending_delete") return;
 
-                listEls.forEach(el => {
                     const li = document.createElement('li');
                     li.style.marginBottom = "6px";
                     const timeDisp = data.timeText || (data.timeSpent ? `${data.timeSpent}秒` : '');
                     li.innerHTML = `<b>#${rank} ${data.playerName || '匿名'}</b> <span style="color:#666; font-size:12px;">(${data.classCode || '无班级'})</span> - 得分: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> ${timeDisp ? `(${timeDisp})` : ''}`;
                     el.appendChild(li);
+                    rank++;
                 });
-                rank++;
             });
         } catch (err) {
             console.error("加载排行榜失败:", err);
@@ -254,7 +261,7 @@
         }
     }
 
-    // 5. 监听 Result Screen 展示，自动保存成绩
+    // 5. 监听 Result Screen 展示，自动保存成绩并加载排行榜
     const observer = new MutationObserver(() => {
         const resultScreen = document.getElementById('result-screen');
         if (resultScreen && !resultScreen.classList.contains('hidden')) {
