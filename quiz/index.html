@@ -148,7 +148,7 @@
         const secs = (secondsValue % 60).toString().padStart(2, '0');
         const formattedTimeText = `${mins}:${secs}`;
 
-        // 💡 修复重点：安全的全局 wrongCount 获取，彻底排除 ReferenceError
+        // 安全的全局 wrongCount 获取
         const wrongAnswers = (typeof window.wrongCount !== 'undefined') ? window.wrongCount : 0;
 
         try {
@@ -205,10 +205,13 @@
         }
     }
 
-    // 4. 从 Firestore 读取排行榜 Top 10
+    // 4. 从 Firestore 读取排行榜 Top 10 (带精准加载状态提示)
     async function loadLeaderboard() {
         const listEls = document.querySelectorAll('.leaderboard-list, #leaderboard-list');
         if (!listEls.length) return;
+
+        // 开启加载提示
+        listEls.forEach(el => el.innerHTML = "<li style='color:#888;'>⏳ 正在读取云端排行榜...</li>");
 
         const currentQuizId = (typeof QUIZ_INFO !== 'undefined' && QUIZ_INFO.quizId) ? QUIZ_INFO.quizId : "testing_quiz_01";
 
@@ -222,7 +225,7 @@
             listEls.forEach(el => el.innerHTML = "");
 
             if (snapshot.empty) {
-                listEls.forEach(el => el.innerHTML = "<li style='color:#666;'>暂无成绩记录，快来成为第一名吧！</li>");
+                listEls.forEach(el => el.innerHTML = "<li style='color:#666;'>暂无成绩记录，快来抢占第一名吧！</li>");
                 return;
             }
 
@@ -234,13 +237,20 @@
                 listEls.forEach(el => {
                     const li = document.createElement('li');
                     li.style.marginBottom = "6px";
-                    li.innerHTML = `<b>#${rank} ${data.playerName || '匿名'}</b> (${data.classCode || '无班级'}) - 得分: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> (${data.timeText || ''})`;
+                    const timeDisp = data.timeText || (data.timeSpent ? `${data.timeSpent}秒` : '');
+                    li.innerHTML = `<b>#${rank} ${data.playerName || '匿名'}</b> <span style="color:#666; font-size:12px;">(${data.classCode || '无班级'})</span> - 得分: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> ${timeDisp ? `(${timeDisp})` : ''}`;
                     el.appendChild(li);
                 });
                 rank++;
             });
         } catch (err) {
             console.error("加载排行榜失败:", err);
+            
+            if (err.message && err.message.includes("index")) {
+                listEls.forEach(el => el.innerHTML = `<li style="color:#f57c00; font-size:13px;">⚠️ 数据库复合索引生成中 (需1-2分钟)，请稍后刷新...</li>`);
+            } else {
+                listEls.forEach(el => el.innerHTML = `<li style="color:#c62828; font-size:13px;">⚠️ 加载排行榜失败: ${err.message}</li>`);
+            }
         }
     }
 
