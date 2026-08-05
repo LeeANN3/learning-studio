@@ -2,10 +2,9 @@
 // ⚙️ 老师设定区 (控制本次测验模式与元数据)
 // ==========================================
 
-// 📌 测验元数据配置 (用于控制台分类、搜索与筛选)
 const QUIZ_INFO = {
     quizId: "testing_quiz_01",       // 测验唯一 ID
-    quizTitle: "testing quiz",       // 测验名字/标题 (后台搜索时使用的名字)
+    quizTitle: "testing quiz",       // 测验名字/标题
     subject: "chinese",              // 科目: "chinese" | "malay" | "english" | "math" | "science"
     grade: 1,                        // 年级: 1 ~ 6
     unit: 1                          // 单元: 1 ~ 10
@@ -43,7 +42,6 @@ const finalScore = document.getElementById("final-score");
 const finalTime = document.getElementById("final-time");
 
 const totalQuestionText = document.getElementById("total-question-text");
-const leaderboardList = document.getElementById("leaderboard-list");
 
 
 // ==========================================
@@ -56,24 +54,14 @@ let score = 0;
 let seconds = 0;
 let timer = null;
 let wrongCount = 0; // 错题计数器
-let isSaving = false; // 防重复提交锁
 
 
 // ==========================================
-// 初始更新首页与加载 Firebase 排行榜
+// 初始更新首页
 // ==========================================
 
 if (totalQuestionText) {
     totalQuestionText.textContent = `${TOTAL_QUESTIONS} Questions`;
-}
-
-// 页面加载完成后拉取云端榜单
-if (typeof firebase !== 'undefined') {
-    firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            renderLeaderboard();
-        }
-    });
 }
 
 
@@ -82,6 +70,7 @@ if (typeof firebase !== 'undefined') {
 // ==========================================
 
 function shuffle(array) {
+    if (!array || !Array.isArray(array)) return [];
     let arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -92,11 +81,17 @@ function shuffle(array) {
 
 
 // ==========================================
-// 建立题目
+// 建立题目 (带容错校验)
 // ==========================================
 
 function generateQuestions() {
-    questionList = shuffle(words);
+    // 检查 words 变量是否存在
+    const sourceWords = (typeof words !== 'undefined') ? words : [];
+    if (sourceWords.length === 0) {
+        alert("⚠️ 错误：未找到题目数据！请检查 lesson1.js 是否成功加载且包含了 words 数组。");
+        return;
+    }
+    questionList = shuffle(sourceWords);
     if (questionList.length > TOTAL_QUESTIONS) {
         questionList = questionList.slice(0, TOTAL_QUESTIONS);
     }
@@ -104,7 +99,7 @@ function generateQuestions() {
 
 
 // ==========================================
-// 开始游戏
+// 开始游戏 (核心启动函数)
 // ==========================================
 
 function startGame() {
@@ -112,15 +107,16 @@ function startGame() {
     seconds = 0;
     wrongCount = 0;
     currentQuestionIndex = 0;
-    isSaving = false;
 
     scoreText.textContent = "Score : 0";
 
     generateQuestions();
 
-    startScreen.classList.add("hidden");
-    resultScreen.classList.add("hidden");
-    quizScreen.classList.remove("hidden");
+    if (questionList.length === 0) return; // 无题目时不跳转
+
+    if (startScreen) startScreen.classList.add("hidden");
+    if (resultScreen) resultScreen.classList.add("hidden");
+    if (quizScreen) quizScreen.classList.remove("hidden");
 
     startTimer();
     showQuestion();
@@ -138,7 +134,7 @@ function showQuestion() {
 
     questionNumber.textContent = `Question ${currentQuestionIndex + 1} / ${questionList.length}`;
 
-    const promptText = currentWord[questionType] || currentWord.english;
+    const promptText = currentWord[questionType] || currentWord.english || "题目";
     questionText.textContent = promptText;
 
     const choices = createChoices(currentWord);
@@ -147,7 +143,7 @@ function showQuestion() {
         const button = document.createElement("button");
         button.className = "option-btn";
 
-        button.textContent = choice[answerType] || choice.chinese;
+        button.textContent = choice[answerType] || choice.chinese || "选项";
         button.dataset.id = choice.id;
 
         button.addEventListener("click", () => {
@@ -164,7 +160,8 @@ function showQuestion() {
 // ==========================================
 
 function createChoices(correctWord) {
-    const wrongWords = words.filter(word => word.id !== correctWord.id);
+    const sourceWords = (typeof words !== 'undefined') ? words : [];
+    const wrongWords = sourceWords.filter(word => word.id !== correctWord.id);
     const shuffledWrong = shuffle(wrongWords);
     const choices = [
         correctWord,
@@ -176,7 +173,7 @@ function createChoices(correctWord) {
 
 
 // ==========================================
-// 答题检查 (自动记录错题数)
+// 答题检查
 // ==========================================
 
 function checkAnswer(selectedButton, selectedChoice, currentWord) {
@@ -188,7 +185,7 @@ function checkAnswer(selectedButton, selectedChoice, currentWord) {
         scoreText.textContent = `Score : ${score}`;
         selectedButton.classList.add("correct");
     } else {
-        wrongCount++; // 答错时累加错题数
+        wrongCount++;
         selectedButton.classList.add("wrong");
         buttons.forEach(btn => {
             if (parseInt(btn.dataset.id) === currentWord.id) {
@@ -223,141 +220,28 @@ function startTimer() {
 
 
 // ==========================================
-// 游戏结算 (自动保存成绩到 Firebase)
+// 游戏结算
 // ==========================================
 
-async function endGame() {
+function endGame() {
     clearInterval(timer);
 
-    quizScreen.classList.add("hidden");
-    resultScreen.classList.remove("hidden");
+    if (quizScreen) quizScreen.classList.add("hidden");
+    if (resultScreen) resultScreen.classList.remove("hidden");
 
     finalScore.textContent = `Final Score: ${score}`;
     finalTime.textContent = `Total Time: ${seconds} seconds`;
-
-    // 🎯 游戏结束立刻自动触发云端保存
-    if (!isSaving) {
-        isSaving = true;
-        await autoSaveScoreToFirebase();
-    }
 }
 
 
 // ==========================================
-// 🔥 自动同步成绩至 Firebase 数据库
+// 事件绑定 (确保 DOM 加载后正确绑定)
 // ==========================================
 
-async function autoSaveScoreToFirebase() {
-    if (typeof firebase === 'undefined') {
-        console.warn("未检测到 Firebase SDK 库，请检查 index.html 中是否成功引入。");
-        return;
-    }
-
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        console.warn("⚠️ 学生未登录账号，无法记录成绩到云端。");
-        return;
-    }
-
-    try {
-        const db = firebase.firestore();
-
-        // 1. 获取学生的最新班级与姓名数据
-        const userDoc = await db.collection("users").doc(user.uid).get();
-        const userData = userDoc.data() || {};
-
-        const studentName = userData.name || user.displayName || "未命名学生";
-        const studentClassCode = (userData.enrolledClasses && userData.enrolledClasses.length > 0)
-            ? userData.enrolledClasses[0]
-            : "未划分班级";
-
-        // 2. 查询历史做题记录 (自动算尝试次数)
-        const existingRecords = await db.collection("leaderboard")
-            .where("studentUid", "==", user.uid)
-            .where("quizId", "==", QUIZ_INFO.quizId)
-            .get();
-
-        const attemptsCount = existingRecords.size + 1;
-
-        // 3. 格式化用时字符串 (如 80 秒 -> "01:20")
-        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const secs = (seconds % 60).toString().padStart(2, '0');
-        const timeTextStr = `${mins}:${secs}`;
-
-        // 4. 提交到 leaderboard 集合
-        await db.collection("leaderboard").add({
-            studentUid: user.uid,
-            playerName: studentName,
-            classCode: studentClassCode,
-
-            quizId: QUIZ_INFO.quizId,
-            quizTitle: QUIZ_INFO.quizTitle,
-            subject: QUIZ_INFO.subject,
-            grade: QUIZ_INFO.grade,
-            unit: QUIZ_INFO.unit,
-
-            score: Number(score),
-            timeSpent: Number(seconds),
-            timeText: timeTextStr,
-            attemptsCount: attemptsCount,
-            wrongAnswersCount: wrongCount,
-
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            status: "active"
-        });
-
-        console.log("🎉 游戏成绩与多维分析数据已成功自动同步到 Firebase！");
-        renderLeaderboard();
-
-    } catch (err) {
-        console.error("⚠️ 自动保存成绩到 Firebase 失败:", err);
-    }
+if (startBtn) {
+    startBtn.addEventListener("click", startGame);
 }
 
-// 渲染本游戏云端前 10 名排行榜
-async function renderLeaderboard() {
-    if (!leaderboardList || typeof firebase === 'undefined') return;
-
-    try {
-        const db = firebase.firestore();
-        const snapshot = await db.collection("leaderboard")
-            .where("quizId", "==", QUIZ_INFO.quizId)
-            .orderBy("score", "desc")
-            .limit(10)
-            .get();
-
-        leaderboardList.innerHTML = "";
-
-        if (snapshot.empty) {
-            leaderboardList.innerHTML = "<li>暂无排名数据</li>";
-            return;
-        }
-
-        let rank = 1;
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.status === "pending_delete") return;
-
-            const li = document.createElement("li");
-            li.textContent = `#${rank} ${data.playerName} (${data.classCode || '无班级'}) - ${data.score}分 (${data.timeText || data.timeSpent + '秒'})`;
-            leaderboardList.appendChild(li);
-            rank++;
-        });
-
-    } catch (err) {
-        console.error("读取云端排行榜失败:", err);
-    }
+if (restartBtn) {
+    restartBtn.addEventListener("click", startGame);
 }
-
-
-// ==========================================
-// 事件绑定
-// ==========================================
-
-startBtn.addEventListener("click", () => {
-    startGame();
-});
-
-restartBtn.addEventListener("click", () => {
-    startGame();
-});
