@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    
+    <!-- FontAwesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- 内嵌游戏样式 -->
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 500px;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 按钮通用样式 */
+        button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(33, 150, 243, 0.2);
+        }
+
+        button:hover {
+            background-color: #1e88e5;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Quiz 界面的顶栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: #555;
+            font-size: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .question-box {
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 选项按钮列表 */
+        #options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+            box-shadow: none;
+            font-size: 20px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #e3f2fd;
+            border-color: #2196F3;
+            color: #2196F3;
+        }
+
+        /* 正确与错误动画反馈 */
+        .option-btn.correct {
+            background-color: #4CAF50 !important;
+            color: white !important;
+            border-color: #4CAF50 !important;
+        }
+
+        .option-btn.wrong {
+            background-color: #f44336 !important;
+            color: white !important;
+            border-color: #f44336 !important;
+        }
+
+        .leaderboard-list li {
+            font-size: 14px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 顶栏：显示当前登录的学生姓名 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: rgba(0,0,0,0.04); border-radius: 10px; margin-bottom: 15px;">
+        <div style="font-weight: bold; color: #333; font-size: 14px;">
+            👤 学生: <span id="header-user-name" style="color: #2196F3;">检查登录中...</span>
+        </div>
+        <a href="../dashboard.html" style="text-decoration: none; font-weight: bold; color: #666; font-size: 14px;">🏠 返回主页</a>
+    </div>
+
+    <!-- Start Screen (游戏开始界面) -->
+    <section id="start-screen" class="screen">
+        <h1 id="quiz-main-title">Quiz Game</h1>
+        <p id="total-question-text">加载题库中...</p>
+
+        <button id="start-btn">Start Game</button>
+
+        <!-- 首页排行榜 -->
+        <div style="margin-top: 25px;">
+            <h3 style="font-size: 16px; color: #333;">🏆 排行榜 Top 10</h3>
+            <ol class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+        </div>
+    </section>
+
+    <!-- Quiz Screen (做题界面) -->
+    <section id="quiz-screen" class="screen hidden">
+        <div class="top-bar">
+            <div id="question-number">Question 1 / 20</div>
+            <div id="score">Score : 0</div>
+            <div id="timer">Time: 0s</div>
+        </div>
+        <div class="question-box">
+            <h2 id="question" style="font-size: 36px; text-align: center; color: #222;"></h2>
+        </div>
+        <div id="options"></div>
+    </section>
+
+    <!-- Result Screen (结算界面) -->
+    <section id="result-screen" class="screen hidden">
+        <h1>Game Over</h1>
+        <h2 id="final-score" style="color: #2196F3; margin-top: 5px;"></h2>
+        <h3 id="final-time" style="color: #666; font-size: 18px;"></h3>
+        
+        <!-- 自动保存状态提示框 -->
+        <div id="save-status-box" style="margin: 15px 0; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; background: #e3f2fd; color: #0d47a1;">
+            ⏳ 正在自动提交成绩中，请稍候...
+        </div>
+
+        <button id="restart-btn" style="margin-top: 5px;">再玩一次</button>
+
+        <!-- 结算页排行榜 -->
+        <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px;">
+            <h3 style="font-size: 16px; color: #333;">🏆 最新排行榜 Top 10</h3>
+            <ol class="leaderboard-list" style="padding-left: 20px; margin-top: 10px; text-align: left;"></ol>
+        </div>
+    </section>
+</div>
+
+<!-- 1. Firebase SDK (Compat 兼容版) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+<script>
+    // ==========================================
+    // 1. 全局配置与状态初始化
+    // ==========================================
+    
+    // 默认测验元数据 (如果 JSON 加载失败或未指定，则回退到该默认值)
+    let QUIZ_INFO = {
+        quizId: "testing_quiz_01",
+        quizTitle: "测试测验",
+        subject: "chinese",
+        grade: 1,
+        unit: 1
+    };
+
+    let TOTAL_QUESTIONS = 20; // 默认出题数
+    let words = [];           // 全局题目数组
+
+    // Firebase 配置
+    const firebaseConfig = {
+        apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+        authDomain: "my-teacher-studio.firebaseapp.com",
+        projectId: "my-teacher-studio",
+        storageBucket: "my-teacher-studio.firebasestorage.app",
+        messagingSenderId: "82774284780",
+        appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let currentUserProfile = null;
+    let hasSavedScoreThisRound = false;
+
+    // ==========================================
+    // 2. 动态加载 JSON 题库数据 (核心逻辑)
+    // ==========================================
+    
+    async function loadQuizData() {
+        // 解析 URL 中的 ?quizId=xxx 参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetQuizId = urlParams.get('quizId') || 'g1_chinese_u1';
+
+        try {
+            const response = await fetch(`./data/${targetQuizId}.json`);
+            if (!response.ok) throw new Error(`HTTP 错误 ${response.status}`);
+            
+            const data = await response.json();
+
+            // 注入 JSON 中的元数据与题目数据
+            QUIZ_INFO = {
+                quizId: data.quizId || targetQuizId,
+                quizTitle: data.quizTitle || "未命名测验",
+                subject: data.subject || "general",
+                grade: data.grade || 1,
+                unit: data.unit || 1
+            };
+
+            words = data.words || [];
+            TOTAL_QUESTIONS = data.totalQuestions || Math.min(20, words.length);
+
+            // 更新 UI 标题和题数
+            document.getElementById('quiz-main-title').innerText = QUIZ_INFO.quizTitle;
+            document.getElementById('total-question-text').innerText = `${TOTAL_QUESTIONS} Questions`;
+
+        } catch (err) {
+            console.warn(`加载 ./data/${targetQuizId}.json 失败，切回备用本地数据:`, err);
+            
+            // 备用兜底题目 (防止找不到文件时页面挂掉)
+            words = [
+                { id: 1, english: "Apple", chinese: "苹果" },
+                { id: 2, english: "Banana", chinese: "香蕉" },
+                { id: 3, english: "Cat", chinese: "猫" },
+                { id: 4, english: "Dog", chinese: "狗" }
+            ];
+            TOTAL_QUESTIONS = words.length;
+            document.getElementById('quiz-main-title').innerText = QUIZ_INFO.quizTitle + " (演示)";
+            document.getElementById('total-question-text').innerText = `${TOTAL_QUESTIONS} Questions`;
+        }
+    }
+
+    // ==========================================
+    // 3. Auth 身份验证与排行榜同步
+    // ==========================================
+
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            currentUser = user;
+            try {
+                const userDoc = await db.collection("users").doc(user.uid).get();
+                if (userDoc.exists) currentUserProfile = userDoc.data();
+            } catch (err) {
+                console.error("读取 Profile 失败:", err);
+            }
+
+            const displayName = (currentUserProfile && currentUserProfile.name) || user.displayName || user.email.split('@')[0] || "学生";
+            const headerNameEl = document.getElementById('header-user-name');
+            if (headerNameEl) headerNameEl.innerText = displayName;
+
+            // 加载 JSON 后再加载对应的排行榜
+            await loadQuizData();
+            loadLeaderboard();
+        } else {
+            alert("请先登录账号再开始做题！");
+            window.location.href = "../index.html";
+        }
+    });
+
+    // 提交成绩到 Firestore
+    async function autoSaveScore() {
+        if (!currentUser || hasSavedScoreThisRound) return;
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        const statusBox = document.getElementById('save-status-box');
+        const displayName = (currentUserProfile && currentUserProfile.name) || currentUser.displayName || "学生";
+        const studentClassCode = (currentUserProfile && currentUserProfile.enrolledClasses && currentUserProfile.enrolledClasses.length > 0)
+            ? currentUserProfile.enrolledClasses[0] : "未划分班级";
+
+        const scoreEl = document.getElementById('final-score');
+        const scoreMatch = scoreEl ? scoreEl.innerText.match(/\d+/) : null;
+        const scoreValue = scoreMatch ? parseInt(scoreMatch[0]) : 0;
+
+        const timeEl = document.getElementById('final-time');
+        const timeMatch = timeEl ? timeEl.innerText.match(/\d+/) : null;
+        const secondsValue = timeMatch ? parseInt(timeMatch[0]) : 0;
+
+        const mins = Math.floor(secondsValue / 60).toString().padStart(2, '0');
+        const secs = (secondsValue % 60).toString().padStart(2, '0');
+        const formattedTimeText = `${mins}:${secs}`;
+
+        try {
+            if (statusBox) statusBox.innerHTML = `⏳ 正在提交 ${displayName} 的成绩...`;
+
+            const existingSnap = await db.collection("leaderboard")
+                .where("studentUid", "==", currentUser.uid)
+                .where("quizId", "==", QUIZ_INFO.quizId)
+                .get();
+
+            await db.collection("leaderboard").add({
+                studentUid: currentUser.uid,
+                playerName: displayName,
+                classCode: studentClassCode,
+
+                quizId: QUIZ_INFO.quizId,
+                quizTitle: QUIZ_INFO.quizTitle,
+                subject: QUIZ_INFO.subject,
+                grade: QUIZ_INFO.grade,
+                unit: QUIZ_INFO.unit,
+
+                score: scoreValue,
+                timeSpent: secondsValue,
+                timeText: formattedTimeText,
+                attemptsCount: existingSnap.size + 1,
+                wrongAnswersCount: window.wrongCount || 0,
+
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                status: "active"
+            });
+
+            hasSavedScoreThisRound = true;
+            if (statusBox) {
+                statusBox.style.background = '#e8f5e9';
+                statusBox.style.color = '#2e7d32';
+                statusBox.innerHTML = `🎉 成绩已自动为 <b>${displayName} (${studentClassCode})</b> 同步到后台！`;
+            }
+
+            loadLeaderboard();
+        } catch (err) {
+            console.error("保存成绩失败:", err);
+            if (statusBox) {
+                statusBox.style.background = '#ffebee';
+                statusBox.style.color = '#c62828';
+                statusBox.innerHTML = `⚠️ 成绩保存失败: ${err.message || '网络异常'}`;
+            }
+        }
+    }
+
+    // 从 Firestore 获取当前 quizId 的 Top 10 排行榜
+    async function loadLeaderboard() {
+        const listEls = document.querySelectorAll('.leaderboard-list');
+        if (!listEls.length) return;
+
+        listEls.forEach(el => el.innerHTML = "<li style='color:#888;'>⏳ 读取排行榜中...</li>");
+
+        try {
+            const snapshot = await db.collection("leaderboard")
+                .where("quizId", "==", QUIZ_INFO.quizId)
+                .orderBy("score", "desc")
+                .limit(10)
+                .get();
+
+            listEls.forEach(el => el.innerHTML = "");
+
+            if (snapshot.empty) {
+                listEls.forEach(el => el.innerHTML = "<li style='color:#666;'>暂无成绩记录，快来抢占第一名吧！</li>");
+                return;
+            }
+
+            listEls.forEach(el => {
+                let rank = 1;
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.status === "pending_delete") return;
+
+                    const li = document.createElement('li');
+                    li.style.marginBottom = "6px";
+                    const timeDisp = data.timeText || (data.timeSpent ? `${data.timeSpent}秒` : '');
+                    li.innerHTML = `<b>#${rank} ${data.playerName || '匿名'}</b> <span style="color:#666; font-size:12px;">(${data.classCode || '无班级'})</span> - 得分: <span style="color:#e91e63; font-weight:bold;">${data.score}</span> ${timeDisp ? `(${timeDisp})` : ''}`;
+                    el.appendChild(li);
+                    rank++;
+                });
+            });
+        } catch (err) {
+            console.error("加载排行榜失败:", err);
+            listEls.forEach(el => {
+                if (err.message && err.message.includes("index")) {
+                    el.innerHTML = `<li style="color:#f57c00; font-size:13px;">⚠️ 数据库复合索引生成中，请稍后刷新...</li>`;
+                } else {
+                    el.innerHTML = `<li style="color:#c62828; font-size:13px;">⚠️ 加载排行榜失败: ${err.message}</li>`;
+                }
+            });
+        }
+    }
+
+    // 监听结算界面显示
+    const observer = new MutationObserver(() => {
+        const resultScreen = document.getElementById('result-screen');
+        if (resultScreen && !resultScreen.classList.contains('hidden')) {
+            autoSaveScore();
+        }
+    });
+
+    // ==========================================
+    // 4. 纯简化游戏引擎逻辑
+    // ==========================================
+
+    let questionList = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let seconds = 0;
+    let timer = null;
+    window.wrongCount = 0;
+
+    function shuffle(array) {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function generateQuestions() {
+        if (!words || words.length === 0) {
+            alert("⚠️ 题库为空！");
+            return;
+        }
+        questionList = shuffle(words);
+        if (questionList.length > TOTAL_QUESTIONS) {
+            questionList = questionList.slice(0, TOTAL_QUESTIONS);
+        }
+    }
+
+    function startGame() {
+        score = 0;
+        seconds = 0;
+        window.wrongCount = 0;
+        currentQuestionIndex = 0;
+
+        document.getElementById("score").textContent = "Score : 0";
+        generateQuestions();
+
+        if (questionList.length === 0) return;
+
+        document.getElementById("start-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.add("hidden");
+        document.getElementById("quiz-screen").classList.remove("hidden");
+
+        startTimer();
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const optionsDiv = document.getElementById("options");
+        optionsDiv.innerHTML = "";
+
+        const currentWord = questionList[currentQuestionIndex];
+        document.getElementById("question-number").textContent = `Question ${currentQuestionIndex + 1} / ${questionList.length}`;
+
+        // 直接硬编码读取题目字段 (英文提示)
+        document.getElementById("question").textContent = currentWord.english || "题目";
+
+        const choices = createChoices(currentWord);
+
+        choices.forEach(choice => {
+            const button = document.createElement("button");
+            button.className = "option-btn";
+            // 直接硬编码读取选项字段 (中文答案)
+            button.textContent = choice.chinese || "选项";
+            button.dataset.id = choice.id;
+
+            button.addEventListener("click", () => checkAnswer(button, choice, currentWord));
+            optionsDiv.appendChild(button);
+        });
+    }
+
+    function createChoices(correctWord) {
+        const wrongWords = words.filter(w => w.id !== correctWord.id);
+        const shuffledWrong = shuffle(wrongWords);
+        return shuffle([correctWord, ...shuffledWrong.slice(0, 3)]);
+    }
+
+    function checkAnswer(selectedButton, selectedChoice, currentWord) {
+        const buttons = document.querySelectorAll(".option-btn");
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selectedChoice.id === currentWord.id) {
+            score += 10;
+            document.getElementById("score").textContent = `Score : ${score}`;
+            selectedButton.classList.add("correct");
+        } else {
+            window.wrongCount++;
+            selectedButton.classList.add("wrong");
+            buttons.forEach(btn => {
+                if (parseInt(btn.dataset.id) === currentWord.id) btn.classList.add("correct");
+            });
+        }
+
+        setTimeout(() => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questionList.length) {
+                showQuestion();
+            } else {
+                endGame();
+            }
+        }, 600);
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        document.getElementById("timer").textContent = "Time: 0s";
+        timer = setInterval(() => {
+            seconds++;
+            document.getElementById("timer").textContent = `Time: ${seconds}s`;
+        }, 1000);
+    }
+
+    function endGame() {
+        clearInterval(timer);
+        document.getElementById("quiz-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.remove("hidden");
+
+        document.getElementById("final-score").textContent = `Final Score: ${score}`;
+        document.getElementById("final-time").textContent = `Total Time: ${seconds} seconds`;
+    }
+
+    // 初始化事件绑定
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('start-btn').addEventListener('click', startGame);
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            hasSavedScoreThisRound = false;
+            const statusBox = document.getElementById('save-status-box');
+            if (statusBox) {
+                statusBox.style.background = '#e3f2fd';
+                statusBox.style.color = '#0d47a1';
+                statusBox.innerHTML = `⏳ 正在自动提交成绩中，请稍候...`;
+            }
+            startGame();
+        });
+
+        const resultScreen = document.getElementById('result-screen');
+        if (resultScreen) {
+            observer.observe(resultScreen, { attributes: true, attributeFilter: ['class'] });
+        }
+    });
+</script>
+
+</body>
+</html>
