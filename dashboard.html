@@ -25,7 +25,7 @@
         .navbar {
             background-color: #ffffff;
             border-bottom: 2px solid #1a1a1a;
-            padding: 12px 24px;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -38,25 +38,26 @@
         .brand-logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             white-space: nowrap;
         }
 
         .brand-logo i {
             background: #ffe600;
-            padding: 8px;
-            border-radius: 12px;
+            padding: 6px;
+            border-radius: 10px;
             border: 2px solid #1a1a1a;
             box-shadow: 2px 2px 0px #1a1a1a;
+            font-size: 16px;
         }
 
         .user-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             flex-wrap: wrap;
             justify-content: flex-end;
         }
@@ -64,29 +65,29 @@
         .user-info-badge {
             background: #f4f4f5;
             border: 2px solid #1a1a1a;
-            border-radius: 12px;
-            padding: 6px 12px;
-            font-size: 15px;
+            border-radius: 10px;
+            padding: 4px 8px;
+            font-size: 13px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             white-space: nowrap;
         }
 
         .btn-ui {
             background: #ffffff;
             border: 2px solid #1a1a1a;
-            border-radius: 12px;
-            padding: 6px 12px;
+            border-radius: 10px;
+            padding: 4px 10px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             box-shadow: 2px 2px 0px #1a1a1a;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             transition: all 0.15s ease;
             white-space: nowrap;
             text-decoration: none;
@@ -99,102 +100,89 @@
             box-shadow: 3px 3px 0px #1a1a1a;
         }
 
-        .btn-teacher-admin {
-            background: #ffe600;
-            border-color: #1a1a1a;
-        }
-        .btn-teacher-admin:hover {
-            background: #facc15;
-        }
-
-        .btn-logout:hover {
-            background: #ff4d4d;
-            color: #ffffff;
-        }
+        .btn-teacher-admin { background: #ffe600; border-color: #1a1a1a; }
+        .btn-teacher-admin:hover { background: #facc15; }
+        .btn-logout:hover { background: #ff4d4d; color: #ffffff; }
 
         .container {
             max-width: 900px;
-            margin: 30px auto;
-            padding: 0 20px;
+            margin: 20px auto;
+            padding: 0 16px;
         }
 
         .dashboard-header-card {
             background: #ffffff;
             border: 2px solid #1a1a1a;
-            border-radius: 20px;
-            padding: 24px;
+            border-radius: 16px;
+            padding: 16px;
             box-shadow: 4px 4px 0px #1a1a1a;
-            margin-bottom: 28px;
+            margin-bottom: 20px;
         }
 
         .title-grade {
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 28px;
-            margin-bottom: 16px;
+            font-size: 22px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .selectors-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
         }
 
         .form-group label {
             display: block;
-            font-size: 15px;
+            font-size: 13px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .form-select {
             width: 100%;
-            padding: 10px 14px;
+            padding: 8px 10px;
             border: 2px solid #1a1a1a;
-            border-radius: 12px;
+            border-radius: 10px;
             font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive;
-            font-size: 16px;
+            font-size: 15px;
             outline: none;
             background-color: #ffffff;
             box-shadow: 2px 2px 0px #1a1a1a;
             cursor: pointer;
         }
 
-        .form-select:focus {
-            box-shadow: 3px 3px 0px #ffe600;
-        }
-
         .section-card {
             background: #ffffff;
             border: 2px solid #1a1a1a;
-            border-radius: 20px;
-            padding: 24px;
+            border-radius: 16px;
+            padding: 16px;
             box-shadow: 4px 4px 0px #1a1a1a;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .section-header {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-size: 22px;
-            margin-bottom: 16px;
+            font-size: 18px;
+            margin-bottom: 12px;
             border-bottom: 2px dashed #e5e7eb;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
         .section-header i {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             border: 2px solid #1a1a1a;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 15px;
             box-shadow: 2px 2px 0px #1a1a1a;
         }
 
@@ -204,18 +192,18 @@
 
         .link-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
         }
 
         .link-item {
             background-color: #ffffff;
             border: 2px solid #1a1a1a;
-            border-radius: 14px;
-            padding: 12px 16px;
+            border-radius: 12px;
+            padding: 10px 12px;
             text-decoration: none;
             color: #1a1a1a;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -225,27 +213,13 @@
         }
 
         .link-item:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0px #1a1a1a;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #1a1a1a;
             background-color: #fff9c4;
         }
 
-        .empty-tip {
-            color: #888;
-            font-size: 15px;
-            font-style: italic;
-            padding: 10px 0;
-        }
-
-        .tag-class-type {
-            font-size: 12px;
-            padding: 2px 8px;
-            border-radius: 6px;
-            border: 1px solid #1a1a1a;
-            margin-left: 4px;
-            background: #e0f2fe;
-        }
-
+        .empty-tip { color: #888; font-size: 13px; font-style: italic; padding: 6px 0; }
+        .tag-class-type { font-size: 10px; padding: 1px 6px; border-radius: 4px; border: 1px solid #1a1a1a; background: #e0f2fe; }
         .hidden { display: none !important; }
     </style>
 </head>
@@ -260,7 +234,7 @@
         <div class="user-actions">
             <a href="admin.html" id="btn-admin-portal" class="btn-ui btn-teacher-admin hidden">
                 <i class="fa-solid fa-chalkboard-user"></i>
-                <span id="txt-admin-portal">教师管理后台</span>
+                <span id="txt-admin-portal">教室后台</span>
             </a>
 
             <button type="button" class="btn-ui" onclick="toggleLanguage()">
@@ -269,12 +243,10 @@
             </button>
             <div class="user-info-badge">
                 <i id="user-role-icon" class="fa-solid fa-user-graduate"></i>
-                <span id="user-name-display"><i class="fa-solid fa-spinner fa-spin text-slate-400"></i> 验证登录中...</span>
-                <span id="class-type-badge" class="tag-class-type">学生</span>
+                <span id="user-name-display">验证中...</span>
             </div>
             <button type="button" class="btn-ui btn-logout" onclick="handleLogout()">
                 <i class="fa-solid fa-right-from-bracket"></i>
-                <span id="txt-logout">退出</span>
             </button>
         </div>
     </div>
@@ -302,14 +274,12 @@
 
                 <div class="form-group">
                     <label for="select-subject" id="lbl-select-subject">选择科目</label>
-                    <select id="select-subject" class="form-select" onchange="onSubjectChange()">
-                    </select>
+                    <select id="select-subject" class="form-select" onchange="onSubjectChange()"></select>
                 </div>
 
                 <div class="form-group">
                     <label for="select-unit" id="lbl-select-unit">选择单元</label>
-                    <select id="select-unit" class="form-select" onchange="renderResources()">
-                    </select>
+                    <select id="select-unit" class="form-select" onchange="renderResources()"></select>
                 </div>
             </div>
         </div>
@@ -319,8 +289,7 @@
                 <i class="fa-solid fa-file-pen icon-quiz"></i>
                 <span id="txt-sec-quiz">测验 (Quizzes)</span>
             </div>
-            <div class="link-grid" id="quiz-list">
-            </div>
+            <div class="link-grid" id="quiz-list"></div>
         </div>
 
         <div class="section-card">
@@ -328,8 +297,7 @@
                 <i class="fa-solid fa-book-open icon-review"></i>
                 <span id="txt-sec-review">复习 (Revision)</span>
             </div>
-            <div class="link-grid" id="review-list">
-            </div>
+            <div class="link-grid" id="review-list"></div>
         </div>
 
         <div class="section-card">
@@ -337,8 +305,7 @@
                 <i class="fa-solid fa-dice icon-game"></i>
                 <span id="txt-sec-game">游戏 (Educational Games)</span>
             </div>
-            <div class="link-grid" id="game-list">
-            </div>
+            <div class="link-grid" id="game-list"></div>
         </div>
 
     </div>
@@ -374,69 +341,45 @@
 
         const translations = {
             zh: {
-                langBtn: "English", appTitle: "趣味学习岛", logout: "退出", adminPortal: "教师管理后台",
+                langBtn: "English", appTitle: "趣味学习岛", logout: "退出", adminPortal: "教师后台",
                 lblGrade: "选择年级", lblSubject: "选择科目", lblUnit: "选择单元",
                 secQuiz: "测验", secReview: "复习", secGame: "游戏",
-                emptyTip: "暂无相关链接资源", loadingTip: "正在载入资源...", gradeTitleSuffix: "年级学习区",
-                tagStudent: "学生", tagTeacher: "教师/管理员", unitPrefix: "单元 "
+                emptyTip: "暂无相关链接资源", loadingTip: "载入中...", gradeTitleSuffix: "年级学习区",
+                tagStudent: "学生", tagTeacher: "教师", unitPrefix: "单元 "
             },
             en: {
-                langBtn: "中文", appTitle: "Fun Learning Island", logout: "Logout", adminPortal: "Teacher Admin",
+                langBtn: "中文", appTitle: "Fun Learning", logout: "Exit", adminPortal: "Admin",
                 lblGrade: "Grade", lblSubject: "Subject", lblUnit: "Unit",
                 secQuiz: "Quizzes", secReview: "Revision", secGame: "Games",
-                emptyTip: "No resources available for now", loadingTip: "Loading resources...", gradeTitleSuffix: " Learning Area",
+                emptyTip: "No resources available", loadingTip: "Loading...", gradeTitleSuffix: " Learning Area",
                 tagStudent: "Student", tagTeacher: "Teacher", unitPrefix: "Unit "
             }
         };
 
         auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = "index.html";
-                return;
-            }
-
+            if (!user) { window.location.href = "index.html"; return; }
             try {
                 const doc = await db.collection("users").doc(user.uid).get();
                 if (doc.exists) {
                     currentUserData = doc.data();
-                    if (currentUserData.status === 'pending_delete') {
-                        alert("⚠️ 账号受限：您的账号已被暂时关停，请联系老师恢复。");
-                        await auth.signOut();
-                        window.location.href = "index.html";
-                        return;
-                    }
                 } else {
                     currentUserData = { name: user.displayName || "使用者", role: 'student', grade: 1 };
                 }
                 setupDashboardUI();
-            } catch (err) {
-                console.error("加载用户信息失败:", err);
-                window.location.href = "index.html";
-            }
+            } catch (err) { window.location.href = "index.html"; }
         });
 
         function setupDashboardUI() {
             document.getElementById('user-name-display').innerText = currentUserData.name || "使用者";
-            
-            const badge = document.getElementById('class-type-badge');
             const adminBtn = document.getElementById('btn-admin-portal');
-            const roleIcon = document.getElementById('user-role-icon');
 
             if (currentUserData.role === 'teacher') {
                 adminBtn.classList.remove('hidden');
-                badge.innerText = translations[currentLang].tagTeacher;
-                badge.style.backgroundColor = '#fef3c7';
-                roleIcon.className = "fa-solid fa-user-shield text-amber-500";
             } else {
                 adminBtn.classList.add('hidden');
-                badge.innerText = translations[currentLang].tagStudent;
-                badge.style.backgroundColor = '#e0f2fe';
-                roleIcon.className = "fa-solid fa-user-graduate";
             }
 
-            const userGrade = currentUserData.grade || 1;
-            document.getElementById('select-grade').value = userGrade;
-
+            document.getElementById('select-grade').value = currentUserData.grade || 1;
             initSubjectDropdown();
             updateGradeTitle();
         }
@@ -444,26 +387,19 @@
         function initSubjectDropdown() {
             const subjectSelect = document.getElementById('select-subject');
             subjectSelect.innerHTML = '';
-
             allSubjects.forEach(sub => {
                 const opt = document.createElement('option');
                 opt.value = sub.id;
                 opt.innerText = currentLang === 'zh' ? sub.zh : sub.en;
                 subjectSelect.appendChild(opt);
             });
-
             onSubjectChange(); 
         }
 
-        function onGradeChange() {
-            updateGradeTitle();
-            renderResources();
-        }
-
+        function onGradeChange() { updateGradeTitle(); renderResources(); }
         function onSubjectChange() {
             const unitSelect = document.getElementById('select-unit');
             unitSelect.innerHTML = '';
-
             const t = translations[currentLang];
             for (let i = 1; i <= 20; i++) {
                 const opt = document.createElement('option');
@@ -471,68 +407,48 @@
                 opt.innerText = `${t.unitPrefix}${i}`;
                 unitSelect.appendChild(opt);
             }
-
             renderResources();
         }
 
         function updateGradeTitle() {
             const gradeVal = document.getElementById('select-grade').value;
             const t = translations[currentLang];
-            if (currentLang === 'zh') {
-                const gradeZh = ['一', '二', '三', '四', '五', '六'][gradeVal - 1];
-                document.getElementById('display-grade-title').innerText = `${gradeZh}${t.gradeTitleSuffix}`;
-            } else {
-                document.getElementById('display-grade-title').innerText = `Grade ${gradeVal}${t.gradeTitleSuffix}`;
-            }
+            document.getElementById('display-grade-title').innerText = currentLang === 'zh' 
+                ? `${['一', '二', '三', '四', '五', '六'][gradeVal - 1]}${t.gradeTitleSuffix}`
+                : `Grade ${gradeVal}${t.gradeTitleSuffix}`;
         }
 
         async function renderResources() {
             const gradeVal = document.getElementById('select-grade').value;
             const subjectVal = document.getElementById('select-subject').value;
             const unitVal = document.getElementById('select-unit').value;
-
             const t = translations[currentLang];
 
-            document.getElementById('quiz-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
-            document.getElementById('review-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
-            document.getElementById('game-list').innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
+            ['quiz-list', 'review-list', 'game-list'].forEach(id => {
+                document.getElementById(id).innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
+            });
 
             try {
-                const snapshot = await db.collection("resources")
-                    .where("subject", "==", subjectVal)
-                    .get();
-
-                const quizzes = [];
-                const reviews = [];
-                const games = [];
-
+                const snapshot = await db.collection("resources").where("subject", "==", subjectVal).get();
+                const quizzes = [], reviews = [], games = [];
                 const userId = auth.currentUser ? auth.currentUser.uid : null;
                 const userRole = currentUserData ? currentUserData.role : 'student';
                 const userClasses = (currentUserData && currentUserData.enrolledClasses) ? currentUserData.enrolledClasses : [];
 
                 snapshot.forEach(doc => {
                     const item = doc.data();
-
-                    const matchGrade = (item.grade == gradeVal);
-                    const matchUnit = (item.unit == unitVal);
-
-                    if (!matchGrade || !matchUnit) return;
+                    if (item.grade != gradeVal || item.unit != unitVal) return;
 
                     let hasPermission = false;
-
                     if (userRole === 'teacher') {
                         hasPermission = true;
                     } else {
                         const isPublished = (item.isPublished !== false);
                         const unlockedClasses = item.unlockedClasses || [];
                         const excludedStudents = item.excludedStudents || [];
-
                         const inUnlockedClass = userClasses.some(cls => unlockedClasses.includes(cls));
                         const isExcluded = excludedStudents.includes(userId);
-
-                        if (isPublished && inUnlockedClass && !isExcluded) {
-                            hasPermission = true;
-                        }
+                        if (isPublished && inUnlockedClass && !isExcluded) hasPermission = true;
                     }
 
                     if (hasPermission) {
@@ -545,23 +461,16 @@
                 renderLinkGrid('quiz-list', quizzes, 'fa-circle-question');
                 renderLinkGrid('review-list', reviews, 'fa-file-lines');
                 renderLinkGrid('game-list', games, 'fa-gamepad');
-
             } catch (error) {
-                console.error("读取 Firebase 资源失败:", error);
-                document.getElementById('quiz-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
-                document.getElementById('review-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
-                document.getElementById('game-list').innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
+                ['quiz-list', 'review-list', 'game-list'].forEach(id => {
+                    document.getElementById(id).innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
+                });
             }
         }
 
         function renderLinkGrid(elementId, items, iconClass) {
             const container = document.getElementById(elementId);
-            container.innerHTML = '';
-
-            if (items.length === 0) {
-                container.innerHTML = `<div class="empty-tip">${translations[currentLang].emptyTip}</div>`;
-                return;
-            }
+            container.innerHTML = items.length === 0 ? `<div class="empty-tip">${translations[currentLang].emptyTip}</div>` : '';
 
             items.forEach(item => {
                 const a = document.createElement('a');
@@ -569,7 +478,7 @@
                 a.className = 'link-item';
                 a.target = '_blank';
                 a.innerHTML = `
-                    <span><i class="fa-solid ${iconClass}" style="margin-right:8px;"></i>${item.title || 'Untitled'}</span>
+                    <span><i class="fa-solid ${iconClass}" style="margin-right:6px;"></i>${item.title || 'Untitled'}</span>
                     <i class="fa-solid fa-chevron-right" style="font-size:12px; opacity:0.6;"></i>
                 `;
                 container.appendChild(a);
@@ -578,28 +487,11 @@
 
         function toggleLanguage() {
             currentLang = (currentLang === 'zh') ? 'en' : 'zh';
-            const t = translations[currentLang];
-
-            document.getElementById('lang-btn-text').innerText = t.langBtn;
-            document.getElementById('txt-app-title').innerText = t.appTitle;
-            document.getElementById('txt-logout').innerText = t.logout;
-            document.getElementById('txt-admin-portal').innerText = t.adminPortal;
-            document.getElementById('lbl-select-grade').innerText = t.lblGrade;
-            document.getElementById('lbl-select-subject').innerText = t.lblSubject;
-            document.getElementById('lbl-select-unit').innerText = t.lblUnit;
-            document.getElementById('txt-sec-quiz').innerText = t.secQuiz;
-            document.getElementById('txt-sec-review').innerText = t.secReview;
-            document.getElementById('txt-sec-game').innerText = t.secGame;
-
-            if (currentUserData) {
-                setupDashboardUI();
-            }
+            setupDashboardUI();
         }
 
         function handleLogout() {
-            auth.signOut().then(() => {
-                window.location.href = "index.html";
-            });
+            auth.signOut().then(() => { window.location.href = "index.html"; });
         }
     </script>
 </body>
