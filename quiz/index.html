@@ -228,8 +228,26 @@ async function autoSaveScore() {
             });
         }
     });
-</script>
+</script
+    
+<!-- 1. Firebase 核心 SDK (必须在 script.js 之前) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- 2. 初始化 Firebase 配置 -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+            authDomain: "my-teacher-studio.firebaseapp.com",
+            projectId: "my-teacher-studio",
+            storageBucket: "my-teacher-studio.firebasestorage.app",
+            messagingSenderId: "82774284780",
+            appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    </script>
+    
 <!-- 6. 引入您原本的题目和游戏逻辑脚本 -->
 <script src="lesson1.js"></script>
 <script src="script.js"></script>
