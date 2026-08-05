@@ -1,6 +1,15 @@
 // ==========================================
-// ⚙️ 老师设定区 (在这里控制本次测试的模式)
+// ⚙️ 老师设定区 (控制本次测验模式与元数据)
 // ==========================================
+
+// 📌 测验元数据配置 (用于控制台分类、搜索与筛选)
+const QUIZ_INFO = {
+    quizId: "testing_quiz_01",       // 测验唯一 ID
+    quizTitle: "testing quiz",       // 测验名字/标题 (后台搜索时使用的名字)
+    subject: "chinese",              // 科目: "chinese" | "malay" | "english" | "math" | "science"
+    grade: 1,                        // 年级: 1 ~ 6
+    unit: 1                          // 单元: 1 ~ 10
+};
 
 // 出题类型：可选 "english" | "chinese" | "pinyin"
 let questionType = "english"; 
@@ -48,14 +57,25 @@ let currentQuestionIndex = 0;
 let score = 0;
 let seconds = 0;
 let timer = null;
+let wrongCount = 0; // 错题计数器
 
 
 // ==========================================
-// 初始更新首页
+// 初始更新首页与加载 Firebase 排行榜
 // ==========================================
 
-totalQuestionText.textContent = `${TOTAL_QUESTIONS} Questions`;
-renderLeaderboard();
+if (totalQuestionText) {
+    totalQuestionText.textContent = `${TOTAL_QUESTIONS} Questions`;
+}
+
+// 页面加载完成后拉取云端榜单
+if (typeof firebase !== 'undefined') {
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            renderLeaderboard();
+        }
+    });
+}
 
 
 // ==========================================
@@ -91,6 +111,7 @@ function generateQuestions() {
 function startGame() {
     score = 0;
     seconds = 0;
+    wrongCount = 0;
     currentQuestionIndex = 0;
 
     scoreText.textContent = "Score : 0";
@@ -107,7 +128,7 @@ function startGame() {
 
 
 // ==========================================
-// 显示题目 (根据老师设定的 questionType / answerType 显示)
+// 显示题目
 // ==========================================
 
 function showQuestion() {
@@ -117,18 +138,15 @@ function showQuestion() {
 
     questionNumber.textContent = `Question ${currentQuestionIndex + 1} / ${questionList.length}`;
 
-    // 1. 读取老师设定的出题类型 (若设置不规范则默认用 english)
     const promptText = currentWord[questionType] || currentWord.english;
     questionText.textContent = promptText;
 
-    // 2. 生成选项
     const choices = createChoices(currentWord);
 
     choices.forEach(choice => {
         const button = document.createElement("button");
         button.className = "option-btn";
 
-        // 读取老师设定的答案类型 (若设置不规范则默认用 chinese)
         button.textContent = choice[answerType] || choice.chinese;
         button.dataset.id = choice.id;
 
@@ -142,7 +160,7 @@ function showQuestion() {
 
 
 // ==========================================
-// 建立选项 (1个正确答案 + 3个随机干扰项)
+// 建立选项
 // ==========================================
 
 function createChoices(correctWord) {
@@ -158,7 +176,7 @@ function createChoices(correctWord) {
 
 
 // ==========================================
-// 答题检查 (自动提供红绿视觉反馈)
+// 答题检查 (自动记录错题数)
 // ==========================================
 
 function checkAnswer(selectedButton, selectedChoice, currentWord) {
@@ -170,6 +188,7 @@ function checkAnswer(selectedButton, selectedChoice, currentWord) {
         scoreText.textContent = `Score : ${score}`;
         selectedButton.classList.add("correct");
     } else {
+        wrongCount++; // 答错时累加错题数
         selectedButton.classList.add("wrong");
         buttons.forEach(btn => {
             if (parseInt(btn.dataset.id) === currentWord.id) {
@@ -219,60 +238,117 @@ function endGame() {
 
 
 // ==========================================
-// 排行榜逻辑 (使用本地 LocalStorage 存储)
+// 🔥 Firebase 实时榜单与保存逻辑 (替换原 LocalStorage)
 // ==========================================
 
-function saveScore() {
-    const name = playerNameInput.value.trim();
-    if (!name) {
-        alert("请输入学生名字！");
+async function saveScore() {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        alert("⚠️ 未登录账号，请先登录后再提交成绩！");
         return;
     }
 
-    const leaderboard = JSON.parse(localStorage.getItem("quiz_leaderboard") || "[]");
+    if (saveScoreBtn) {
+        saveScoreBtn.disabled = true;
+        saveScoreBtn.textContent = "保存中...";
+    }
 
-    const newRecord = {
-        name: name,
-        score: score,
-        time: seconds,
-        date: new Date().toLocaleDateString()
-    };
+    try {
+        const db = firebase.firestore();
 
-    leaderboard.push(newRecord);
+        // 1. 获取学生的账号详细数据 (班级、姓名等)
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        const userData = userDoc.data() || {};
 
-    // 排序逻辑：高分优先，同分者用时短优先
-    leaderboard.sort((a, b) => {
-        if (b.score !== a.score) {
-            return b.score - a.score;
-        }
-        return a.time - b.time;
-    });
+        const studentName = playerNameInput && playerNameInput.value.trim() 
+            ? playerNameInput.value.trim() 
+            : (userData.name || user.displayName || "未命名学生");
 
-    const top10 = leaderboard.slice(0, 10);
-    localStorage.setItem("quiz_leaderboard", JSON.stringify(top10));
+        const studentClassCode = (userData.enrolledClasses && userData.enrolledClasses.length > 0)
+            ? userData.enrolledClasses[0]
+            : "未划分班级";
 
-    alert("成绩已保存！");
-    playerNameInput.value = "";
-    if (saveScoreBtn) saveScoreBtn.disabled = true;
-    renderLeaderboard();
+        // 2. 查询该学生之前提交过多少次本测验 (自动计算尝试次数)
+        const existingRecords = await db.collection("leaderboard")
+            .where("studentUid", "==", user.uid)
+            .where("quizId", "==", QUIZ_INFO.quizId)
+            .get();
+
+        const attemptsCount = existingRecords.size + 1; // 本次为第 N 次尝试
+
+        // 3. 格式化用时文本 (如 80 秒 -> "01:20")
+        const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const secs = (seconds % 60).toString().padStart(2, '0');
+        const timeTextStr = `${mins}:${secs}`;
+
+        // 4. 写入 Firebase leaderboard 集合
+        await db.collection("leaderboard").add({
+            studentUid: user.uid,
+            playerName: studentName,
+            classCode: studentClassCode,
+
+            quizId: QUIZ_INFO.quizId,
+            quizTitle: QUIZ_INFO.quizTitle,
+            subject: QUIZ_INFO.subject,
+            grade: QUIZ_INFO.grade,
+            unit: QUIZ_INFO.unit,
+
+            score: Number(score),
+            timeSpent: Number(seconds),
+            timeText: timeTextStr,
+            attemptsCount: attemptsCount,
+            wrongAnswersCount: wrongCount,
+
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            status: "active"
+        });
+
+        alert("🎉 成绩已成功同步到教师后台排行榜！");
+        if (playerNameInput) playerNameInput.value = "";
+        renderLeaderboard();
+
+    } catch (err) {
+        console.error("保存成绩到 Firebase 失败:", err);
+        alert("⚠️ 成绩保存失败：" + err.message);
+        if (saveScoreBtn) saveScoreBtn.disabled = false;
+    } finally {
+        if (saveScoreBtn) saveScoreBtn.textContent = "保存成绩";
+    }
 }
 
-function renderLeaderboard() {
-    if (!leaderboardList) return;
+// 渲染本游戏云端前 10 名排行榜
+async function renderLeaderboard() {
+    if (!leaderboardList || typeof firebase === 'undefined') return;
 
-    const leaderboard = JSON.parse(localStorage.getItem("quiz_leaderboard") || "[]");
-    leaderboardList.innerHTML = "";
+    try {
+        const db = firebase.firestore();
+        const snapshot = await db.collection("leaderboard")
+            .where("quizId", "==", QUIZ_INFO.quizId)
+            .orderBy("score", "desc")
+            .limit(10)
+            .get();
 
-    if (leaderboard.length === 0) {
-        leaderboardList.innerHTML = "<li>暂无排名数据</li>";
-        return;
+        leaderboardList.innerHTML = "";
+
+        if (snapshot.empty) {
+            leaderboardList.innerHTML = "<li>暂无排名数据</li>";
+            return;
+        }
+
+        let rank = 1;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.status === "pending_delete") return;
+
+            const li = document.createElement("li");
+            li.textContent = `#${rank} ${data.playerName} (${data.classCode || '无班级'}) - ${data.score}分 (${data.timeText || data.timeSpent + '秒'})`;
+            leaderboardList.appendChild(li);
+            rank++;
+        });
+
+    } catch (err) {
+        console.error("读取云端排行榜失败:", err);
     }
-
-    leaderboard.forEach((record, index) => {
-        const li = document.createElement("li");
-        li.textContent = `#${index + 1} ${record.name} - ${record.score}分 (${record.time}秒)`;
-        leaderboardList.appendChild(li);
-    });
 }
 
 
