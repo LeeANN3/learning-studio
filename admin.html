@@ -103,7 +103,11 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="content-manager.html" class="neo-btn neo-btn-primary px-3 py-1.5 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-slate-900"></i>
+                    <span>🎮 题库与测验管控</span>
+                </a>
                 <div class="hidden sm:flex items-center gap-2 bg-slate-100 border-2 border-slate-900 px-3 py-1.5 rounded-xl text-sm font-semibold">
                     <i class="fa-solid fa-user-shield text-amber-500"></i>
                     <span id="teacher-name"><i class="fa-solid fa-spinner fa-spin text-slate-400"></i> 验证身份中...</span>
@@ -130,13 +134,19 @@
                         🏫 补习班多班级管控中心
                     </h2>
                     <p class="text-slate-600 text-sm mt-1">
-                        快速管理学生名册、编辑班级邀请码、按年级精准解锁测验，并可以多维度追溯学生的做题错题与做题次数数据。
+                        快速管理学生名册、编辑班级邀请码、创建游戏测验，并可以多维度追溯学生的做题错题与成绩数据。
                     </p>
                 </div>
-                <button onclick="openCreateClassModal()" class="neo-btn neo-btn-primary px-4 py-2.5 flex items-center gap-2 text-base">
-                    <i class="fa-solid fa-plus-circle"></i>
-                    <span>创建新班级邀请码</span>
-                </button>
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="content-manager.html" class="neo-btn neo-btn-primary px-4 py-2.5 flex items-center gap-2 text-base">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>创建新游戏/测验题目</span>
+                    </a>
+                    <button onclick="openCreateClassModal()" class="neo-btn px-4 py-2.5 flex items-center gap-2 text-base bg-white">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>创建新班级码</span>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -296,7 +306,7 @@
             </div>
         </section>
 
-        <!-- TAB 5: SCORES & LEADERBOARD (全面重构重做) -->
+        <!-- TAB 5: SCORES & LEADERBOARD -->
         <section id="section-scores" class="space-y-4 hidden">
             <div class="neo-card p-5">
                 
@@ -395,8 +405,6 @@
     </div>
 
     <!-- MODALS SECTION -->
-
-    <!-- Modal 1: Soft Delete Confirmation -->
     <div id="delete-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <div class="flex items-center gap-3 text-red-600">
@@ -421,7 +429,6 @@
         </div>
     </div>
 
-    <!-- Modal 2: Edit Student's Enrolled Classes -->
     <div id="edit-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold flex items-center gap-2">
@@ -447,7 +454,6 @@
         </div>
     </div>
 
-    <!-- Modal 3: Create Class -->
     <div id="create-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold flex items-center gap-2">
@@ -491,7 +497,6 @@
         </div>
     </div>
 
-    <!-- Modal 4: Edit Class Info -->
     <div id="edit-class-info-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold flex items-center gap-2">
@@ -535,7 +540,6 @@
         </div>
     </div>
 
-    <!-- Modal 5: Delete Class Confirmation -->
     <div id="delete-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <div class="flex items-center gap-3 text-red-600">
@@ -560,7 +564,6 @@
         </div>
     </div>
 
-    <!-- Modal 6: Exclude Specific Students -->
     <div id="exclude-students-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-lg w-full p-6 space-y-4 max-h-[90vh] flex flex-col">
             <div>
@@ -583,7 +586,6 @@
         </div>
     </div>
 
-    <!-- Modal 7: Edit Leaderboard Score Record (全新：修改成绩/尝试次数弹窗) -->
     <div id="edit-score-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold flex items-center gap-2">
@@ -648,7 +650,6 @@
         let resourceTargetToExclude = null;
         let scoreTargetToEdit = null;
 
-        // Auth Defense
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = "index.html";
@@ -686,7 +687,6 @@
             ]);
         }
 
-        // --- FETCH STUDENTS ---
         async function fetchStudents() {
             const activeTbody = document.getElementById('student-table-body');
             activeTbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-fun text-lg"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在加载最新学生名单...</td></tr>`;
@@ -713,7 +713,6 @@
 
             document.getElementById('student-count-badge').innerText = `${activeStudents.length} 人`;
 
-            // Active Table
             if (activeStudents.length === 0) {
                 activeTbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 italic font-fun">暂无在读学生数据</td></tr>`;
             } else {
@@ -753,7 +752,6 @@
                 });
             }
 
-            // Pending Table
             if (pendingStudents.length === 0) {
                 pendingTbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-400 italic font-fun">待移除列表中暂无学生数据</td></tr>`;
             } else {
@@ -800,7 +798,6 @@
             renderStudentTables(filtered);
         }
 
-        // SOFT DELETE & RESTORE
         function openDeleteModal(uid, name, email) {
             studentTargetToDelete = { uid, name, email };
             document.getElementById('modal-delete-student-name').innerText = name;
@@ -893,7 +890,6 @@
             }
         }
 
-        // EDIT STUDENT CLASSES
         function openEditClassModal(uid, name, currentClassesStr) {
             studentTargetToEdit = uid;
             document.getElementById('modal-edit-student-info').innerText = `${name} (${uid.substring(0, 8)}...)`;
@@ -922,7 +918,6 @@
             }
         }
 
-        // CLASSES MANAGEMENT
         async function fetchClasses() {
             const container = document.getElementById('class-cards-container');
             const filterSelect = document.getElementById('filter-class-select');
@@ -1055,7 +1050,6 @@
             } catch (err) { alert("⚠️ 删除失败：" + err.message); }
         }
 
-        // --- RESOURCE UNLOCK & EXCLUSIONS ---
         async function fetchResources() {
             const tbody = document.getElementById('resource-table-body');
             const showAllGrades = document.getElementById('show-all-grades-toggle') ? document.getElementById('show-all-grades-toggle').checked : false;
@@ -1190,9 +1184,6 @@
             } catch (err) { alert("⚠️ 保存失败：" + err.message); }
         }
 
-        // ==========================================
-        // 🏆 重构版 FETCH SCORES (级联筛选 + 极简合流列)
-        // ==========================================
         async function fetchScores() {
             const tbody = document.getElementById('score-table-body');
             tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-fun text-lg"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在拉取筛选成绩...</td></tr>`;
@@ -1206,30 +1197,19 @@
 
             try {
                 let query = db.collection("leaderboard").orderBy("score", "desc");
-
-                // 粗粒度拉取最新的记录集中本地二次加工，提升前端多维度联动体验
                 const snapshot = await query.limit(300).get();
                 let records = [];
-
                 const now = new Date();
 
                 snapshot.forEach(doc => {
                     const data = { id: doc.id, ...doc.data() };
-                    if (data.status === "pending_delete") return; // 跳过被停权学生
+                    if (data.status === "pending_delete") return;
 
-                    // 1. 班级筛选
                     if (classVal !== 'ALL' && data.classCode !== classVal) return;
-
-                    // 2. 科目筛选
                     if (subjectVal !== 'ALL' && data.subject !== subjectVal) return;
-
-                    // 3. 单元筛选
                     if (unitVal !== 'ALL' && data.unit != unitVal) return;
-
-                    // 4. 测验 ID/关键词筛选
                     if (quizIdVal !== '' && !(data.quizId || '').toLowerCase().includes(quizIdVal) && !(data.quizTitle || '').toLowerCase().includes(quizIdVal)) return;
 
-                    // 5. 时间切片范围
                     if (timespanVal !== 'ALL' && data.timestamp) {
                         const recDate = new Date(data.timestamp.seconds * 1000);
                         const diffDays = (now - recDate) / (1000 * 60 * 60 * 24);
@@ -1239,13 +1219,11 @@
                     records.push(data);
                 });
 
-                // 按同分比用时从少到多二次精细排序
                 records.sort((a, b) => {
                     if (b.score !== a.score) return b.score - a.score;
                     return (a.timeSpent || 9999) - (b.timeSpent || 9999);
                 });
 
-                // 人数截取
                 records = records.slice(0, limitVal);
 
                 tbody.innerHTML = '';
@@ -1258,13 +1236,11 @@
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-slate-50 transition-colors";
 
-                    // 名次奖牌
                     let rankBadge = `<span class="font-bold text-slate-500 font-mono">#${idx + 1}</span>`;
                     if (idx === 0) rankBadge = `<span class="text-xl">🥇</span>`;
                     else if (idx === 1) rankBadge = `<span class="text-xl">🥈</span>`;
                     else if (idx === 2) rankBadge = `<span class="text-xl">🥉</span>`;
 
-                    // 极简合流胶囊徽章（尝试次数与错题数）
                     const attempts = r.attemptsCount || 1;
                     const wrongs = (r.wrongAnswersCount !== undefined) ? r.wrongAnswersCount : (r.score < 100 ? 1 : 0);
 
@@ -1319,7 +1295,6 @@
             }
         }
 
-        // 修改成绩条目 Modal 控制
         function openEditScoreModal(docId, name, score, attempts, wrongs) {
             scoreTargetToEdit = docId;
             document.getElementById('modal-score-student-name').innerText = name;
@@ -1354,7 +1329,6 @@
             }
         }
 
-        // 删除单条成绩
         async function deleteSingleScoreRecord(docId) {
             if (!confirm("确认彻底删除此条学生做题成绩记录？（不可恢复）")) return;
 
@@ -1366,7 +1340,6 @@
             }
         }
 
-        // 一键清空当前选中的测验榜单
         async function clearCurrentQuizLeaderboard() {
             const quizKey = document.getElementById('score-filter-quizid').value.trim();
             if (!quizKey) {
@@ -1402,7 +1375,6 @@
             }
         }
 
-        // TAB SWITCHING
         function switchTab(tabName) {
             const tabs = ['students', 'pending', 'classes', 'unlock', 'scores'];
             tabs.forEach(t => {
@@ -1411,7 +1383,6 @@
             });
         }
 
-        // Logout
         function handleLogout() {
             auth.signOut().then(() => {
                 window.location.href = "index.html";
