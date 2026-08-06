@@ -97,7 +97,6 @@
             border: 2px solid #1a1a1a; border-radius: 14px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 18px; font-weight: 700;
             cursor: pointer; box-shadow: 3px 3px 0px #1a1a1a; margin-top: 6px;
-            transition: all 0.15s ease;
         }
         .btn-submit:hover { background-color: #ffe600; color: #1a1a1a; box-shadow: 4px 4px 0px #1a1a1a; }
 
@@ -162,20 +161,20 @@
                 <label for="display-name" id="lbl-name">姓名 / 昵称</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="display-name" class="form-control" placeholder="例如：小明">
+                    <input type="text" id="display-name" class="form-control" placeholder="例如：小明 / Alex">
                 </div>
             </div>
 
-            <!-- 班级邀请码 (仅学生注册时可见，推荐使用) -->
+            <!-- 班级邀请码 (仅学生注册时可见) -->
             <div class="form-group hidden" id="group-class-code">
                 <label for="class-code" id="lbl-class-code">班级邀请码 (选填/老师提供)</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-ticket"></i>
-                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01、M1-01（输入后自动加入班级）">
+                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01、M1-01（未填可后续分配）">
                 </div>
             </div>
 
-            <!-- 教师验证口令 (仅老师注册时可见，防止学生乱注册) -->
+            <!-- 教师验证口令 (仅老师注册时可见) -->
             <div class="form-group hidden" id="group-teacher-key">
                 <label for="teacher-key" id="lbl-teacher-key">教师验证口令 (Teacher Key)</label>
                 <div class="input-wrapper">
@@ -212,7 +211,6 @@
         </form>
     </div>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -231,7 +229,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 默认教师注册验证码
         const DEFAULT_TEACHER_KEY = "TEACHER888";
 
         let currentMode = 'login';
@@ -246,12 +243,11 @@
                 lblIdentity: "注册身份：", roleStudent: "我是学生", roleTeacher: "我是老师",
                 lblName: "姓名 / 昵称", namePlaceholder: "例如：小明",
                 lblClassCode: "班级邀请码 (选填/老师提供)", classCodePlaceholder: "如：G1-GRAM-01、M1-01（输入后自动加入班级）",
-                lblTeacherKey: "教师验证口令 (Teacher Key)", teacherKeyPlaceholder: "请输入教师注册密钥（默认 TEACHER888）",
+                lblTeacherKey: "教师验证口令 (Teacher Key)",
                 lblEmail: "电子邮箱", lblPassword: "密码", pwdPlaceholder: "至少6位",
                 forgotPwd: "忘记密码？", btnLogin: "立即登录", btnRegister: "注册并登录",
                 processing: "处理中...", successLogin: "登录成功！", successRegister: "注册成功！",
-                errWrongTeacherKey: "教师验证口令错误！请联系管理员。", errRequireName: "请输入姓名！",
-                pwdResetSent: "密码重置邮件已发送，请检查您的邮箱！", errEnterEmail: "请先输入电子邮箱！"
+                errWrongTeacherKey: "教师验证口令错误！请联系管理员。", errRequireName: "请输入姓名！"
             },
             en: {
                 langBtn: "中文", title: "Fun Learning Island", subtitle: "Log in to start learning!",
@@ -259,14 +255,18 @@
                 lblIdentity: "Identity:", roleStudent: "Student", roleTeacher: "Teacher",
                 lblName: "Name / Nickname", namePlaceholder: "e.g., Alex",
                 lblClassCode: "Class Code (Optional)", classCodePlaceholder: "e.g. G1-GRAM-01, M1-01",
-                lblTeacherKey: "Teacher Security Key", teacherKeyPlaceholder: "Enter Teacher Key (Default: TEACHER888)",
+                lblTeacherKey: "Teacher Security Key",
                 lblEmail: "Email", lblPassword: "Password", pwdPlaceholder: "Min 6 characters",
                 forgotPwd: "Forgot Password?", btnLogin: "Log In", btnRegister: "Register",
                 processing: "Processing...", successLogin: "Logged in!", successRegister: "Registered!",
-                errWrongTeacherKey: "Incorrect Teacher Security Key!", errRequireName: "Please enter your name!",
-                pwdResetSent: "Password reset link sent!", errEnterEmail: "Please enter your email!"
+                errWrongTeacherKey: "Incorrect Teacher Security Key!", errRequireName: "Please enter your name!"
             }
         };
+
+        // 随机 Session ID 生成器（防多设备单号并发登录）
+        function generateSessionId() {
+            return 'sess_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+        }
 
         function toggleLanguage() {
             currentLang = (currentLang === 'zh') ? 'en' : 'zh';
@@ -288,7 +288,6 @@
             document.getElementById('lbl-class-code').innerText = t.lblClassCode;
             document.getElementById('class-code').placeholder = t.classCodePlaceholder;
             document.getElementById('lbl-teacher-key').innerText = t.lblTeacherKey;
-            document.getElementById('teacher-key').placeholder = t.teacherKeyPlaceholder;
             document.getElementById('lbl-email').innerText = t.lblEmail;
             document.getElementById('lbl-password').innerText = t.lblPassword;
             document.getElementById('password').placeholder = t.pwdPlaceholder;
@@ -300,20 +299,9 @@
             }
         }
 
-        auth.onAuthStateChanged(async (user) => {
+        auth.onAuthStateChanged((user) => {
             if (user && !isSubmitting) {
-                try {
-                    const userDoc = await db.collection("users").doc(user.uid).get();
-                    if (userDoc.exists) {
-                        const role = userDoc.data().role;
-                        if (role === 'teacher') window.location.href = "admin.html";
-                        else window.location.href = "profile.html";
-                    } else {
-                        window.location.href = "profile.html";
-                    }
-                } catch (e) {
-                    window.location.href = "profile.html";
-                }
+                window.location.href = "dashboard.html";
             }
         });
 
@@ -364,15 +352,22 @@
             isSubmitting = true;
 
             try {
+                // 【闸门三实现】：每次登录或注册，生成独一无二的 Session Token 存入本地与云端
+                const newSessionId = generateSessionId();
+
                 if (currentMode === 'login') {
-                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                    const userDoc = await db.collection("users").doc(userCredential.user.uid).get();
+                    const cred = await auth.signInWithEmailAndPassword(email, password);
                     
-                    if (userDoc.exists && userDoc.data().role === 'teacher') {
-                        window.location.href = "admin.html";
-                    } else {
-                        window.location.href = "profile.html";
-                    }
+                    // 登录成功：更新云端的 currentSessionId，挤掉其他已登录的设备
+                    await db.collection("users").doc(cred.user.uid).set({
+                        currentSessionId: newSessionId,
+                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+
+                    // 写入本机的 LocalStorage 用于实时跟云端对比
+                    localStorage.setItem("my_app_session_id", newSessionId);
+
+                    window.location.href = "dashboard.html";
                 } else {
                     if (!displayName) throw { message: t.errRequireName };
 
@@ -380,34 +375,30 @@
                         throw { message: t.errWrongTeacherKey };
                     }
 
+                    // 1. 创建 Firebase Auth 账号
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
                     await cred.user.updateProfile({ displayName: displayName });
 
+                    // 2. 提取班级码
                     let enrolledClasses = [];
-                    let initialStatus = 'active';
-
-                    if (selectedRole === 'student') {
-                        if (classCodeRaw) {
-                            enrolledClasses.push(classCodeRaw.toUpperCase());
-                        } else {
-                            initialStatus = 'pending_approval';
-                        }
+                    if (selectedRole === 'student' && classCodeRaw) {
+                        enrolledClasses.push(classCodeRaw.toUpperCase());
                     }
 
+                    // 3. 写入 Firestore 个人文档 (【闸门一/二/三的基础数据结构】)
                     await db.collection("users").doc(cred.user.uid).set({
                         name: displayName,
                         email: email,
-                        role: selectedRole,
-                        status: initialStatus,
+                        role: selectedRole, // 'student' 或 'teacher'
                         enrolledClasses: enrolledClasses,
+                        currentSessionId: newSessionId,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    if (selectedRole === 'teacher') {
-                        window.location.href = "admin.html";
-                    } else {
-                        window.location.href = "profile.html";
-                    }
+                    // 本地保存 sessionId
+                    localStorage.setItem("my_app_session_id", newSessionId);
+
+                    window.location.href = "dashboard.html";
                 }
             } catch (err) {
                 isSubmitting = false;
@@ -425,13 +416,12 @@
 
         function handleForgotPassword() {
             const email = document.getElementById('email').value.trim();
-            const t = translations[currentLang];
             if (!email) {
-                showMessage(t.errEnterEmail, "error");
+                showMessage("请先在上方输入框填写您的电子邮箱！", "error");
                 return;
             }
             auth.sendPasswordResetEmail(email).then(() => {
-                showMessage(t.pwdResetSent, "success");
+                showMessage("重置密码邮件已发送，请检查您的邮箱！", "success");
             }).catch(err => {
                 showMessage(err.message, "error");
             });
