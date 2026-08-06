@@ -375,13 +375,13 @@
                 if (doc.exists) {
                     currentUserData = { uid: user.uid, ...doc.data() };
                     
-                    // 🛡️ 闸门四：拦截待分配/未审批的学生
+                    // 🛡️ 拦截待分配/未审批的学生，优雅返回个人主页
                     if (currentUserData.role === 'student' && currentUserData.status === 'pending_approval') {
                         window.location.href = "profile.html";
                         return;
                     }
 
-                    // 🛡️ 闸门三：启动多设备单点登录 (SSO) 监听
+                    // 🛡️ 启动多设备单点登录 (SSO) 监听
                     listenSessionToken(user.uid);
 
                     setupDashboardUI();
@@ -484,7 +484,7 @@
             });
 
             try {
-                // 🛡️ 闸门一：数据库查询比对已解锁项目
+                // 🛡️ 数据库查询比对已解锁项目
                 const snapshot = await db.collection("resources").where("subject", "==", subjectVal).get();
                 const quizzes = [], reviews = [], games = [];
                 const userId = auth.currentUser ? auth.currentUser.uid : null;
