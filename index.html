@@ -144,7 +144,7 @@
 
         <form id="auth-form" onsubmit="handleAuth(event)">
             
-            <!-- 1. 注册身份选择（学生 or 老师） -->
+            <!-- 注册时选择：学生 or 老师 -->
             <div class="form-group hidden" id="group-role-select">
                 <label id="lbl-identity">注册身份 / Identity:</label>
                 <div class="role-selector">
@@ -157,25 +157,25 @@
                 </div>
             </div>
 
-            <!-- 2. 姓名/昵称 (注册时可见) -->
+            <!-- 姓名/昵称 (注册时可见) -->
             <div class="form-group hidden" id="group-display-name">
                 <label for="display-name" id="lbl-name">姓名 / 昵称</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-user"></i>
-                    <input type="text" id="display-name" class="form-control" placeholder="例如：小明 / Alex">
+                    <input type="text" id="display-name" class="form-control" placeholder="例如：小明">
                 </div>
             </div>
 
-            <!-- 3. 班级邀请码 (仅学生注册时可见) -->
+            <!-- 班级邀请码 (仅学生注册时可见，推荐使用) -->
             <div class="form-group hidden" id="group-class-code">
                 <label for="class-code" id="lbl-class-code">班级邀请码 (选填/老师提供)</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-ticket"></i>
-                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01、M1-01（未填可后续分配）">
+                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01、M1-01（输入后自动加入班级）">
                 </div>
             </div>
 
-            <!-- 4. 教师验证口令 (仅老师注册时可见) -->
+            <!-- 教师验证口令 (仅老师注册时可见，防止学生乱注册) -->
             <div class="form-group hidden" id="group-teacher-key">
                 <label for="teacher-key" id="lbl-teacher-key">教师验证口令 (Teacher Key)</label>
                 <div class="input-wrapper">
@@ -184,7 +184,7 @@
                 </div>
             </div>
 
-            <!-- 5. 电子邮箱 -->
+            <!-- 邮箱输入框 -->
             <div class="form-group">
                 <label for="email" id="lbl-email">电子邮箱</label>
                 <div class="input-wrapper">
@@ -193,7 +193,7 @@
                 </div>
             </div>
 
-            <!-- 6. 密码 -->
+            <!-- 密码输入框 -->
             <div class="form-group">
                 <label for="password" id="lbl-password">密码</label>
                 <div class="input-wrapper">
@@ -231,7 +231,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 默认教师注册密钥
+        // 默认教师注册验证码
         const DEFAULT_TEACHER_KEY = "TEACHER888";
 
         let currentMode = 'login';
@@ -244,14 +244,14 @@
                 langBtn: "English", title: "趣味学习岛", subtitle: "登录账号开启学习冒险！",
                 tabLogin: "登录", tabRegister: "新用户注册",
                 lblIdentity: "注册身份：", roleStudent: "我是学生", roleTeacher: "我是老师",
-                lblName: "姓名 / 昵称", namePlaceholder: "例如：小明 / Alex",
-                lblClassCode: "班级邀请码 (选填/老师提供)", classCodePlaceholder: "如：G1-GRAM-01、M1-01（未填可后续分配）",
+                lblName: "姓名 / 昵称", namePlaceholder: "例如：小明",
+                lblClassCode: "班级邀请码 (选填/老师提供)", classCodePlaceholder: "如：G1-GRAM-01、M1-01（输入后自动加入班级）",
                 lblTeacherKey: "教师验证口令 (Teacher Key)", teacherKeyPlaceholder: "请输入教师注册密钥（默认 TEACHER888）",
                 lblEmail: "电子邮箱", lblPassword: "密码", pwdPlaceholder: "至少6位",
                 forgotPwd: "忘记密码？", btnLogin: "立即登录", btnRegister: "注册并登录",
                 processing: "处理中...", successLogin: "登录成功！", successRegister: "注册成功！",
                 errWrongTeacherKey: "教师验证口令错误！请联系管理员。", errRequireName: "请输入姓名！",
-                pwdResetSent: "密码重置邮件已发送，请检查您的邮箱！", errEnterEmail: "请先在上方输入框填写您的电子邮箱！"
+                pwdResetSent: "密码重置邮件已发送，请检查您的邮箱！", errEnterEmail: "请先输入电子邮箱！"
             },
             en: {
                 langBtn: "中文", title: "Fun Learning Island", subtitle: "Log in to start learning!",
@@ -264,7 +264,7 @@
                 forgotPwd: "Forgot Password?", btnLogin: "Log In", btnRegister: "Register",
                 processing: "Processing...", successLogin: "Logged in!", successRegister: "Registered!",
                 errWrongTeacherKey: "Incorrect Teacher Security Key!", errRequireName: "Please enter your name!",
-                pwdResetSent: "Password reset link sent to your email!", errEnterEmail: "Please enter your email above first!"
+                pwdResetSent: "Password reset link sent!", errEnterEmail: "Please enter your email!"
             }
         };
 
@@ -300,10 +300,20 @@
             }
         }
 
-        // 仅在非表单提交操作时（例如刷新页面已登录状态）跳转
-        auth.onAuthStateChanged((user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user && !isSubmitting) {
-                window.location.href = "profile.html";
+                try {
+                    const userDoc = await db.collection("users").doc(user.uid).get();
+                    if (userDoc.exists) {
+                        const role = userDoc.data().role;
+                        if (role === 'teacher') window.location.href = "admin.html";
+                        else window.location.href = "profile.html";
+                    } else {
+                        window.location.href = "profile.html";
+                    }
+                } catch (e) {
+                    window.location.href = "profile.html";
+                }
             }
         });
 
@@ -355,21 +365,24 @@
 
             try {
                 if (currentMode === 'login') {
-                    await auth.signInWithEmailAndPassword(email, password);
-                    window.location.href = "profile.html";
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    const userDoc = await db.collection("users").doc(userCredential.user.uid).get();
+                    
+                    if (userDoc.exists && userDoc.data().role === 'teacher') {
+                        window.location.href = "admin.html";
+                    } else {
+                        window.location.href = "profile.html";
+                    }
                 } else {
                     if (!displayName) throw { message: t.errRequireName };
 
-                    // 1. 校验教师注册密钥
                     if (selectedRole === 'teacher' && teacherKey !== DEFAULT_TEACHER_KEY) {
                         throw { message: t.errWrongTeacherKey };
                     }
 
-                    // 2. 创建 Firebase Auth 账号
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
                     await cred.user.updateProfile({ displayName: displayName });
 
-                    // 3. 提取班级码与状态设定
                     let enrolledClasses = [];
                     let initialStatus = 'active';
 
@@ -377,22 +390,24 @@
                         if (classCodeRaw) {
                             enrolledClasses.push(classCodeRaw.toUpperCase());
                         } else {
-                            initialStatus = 'pending_approval'; // 没填班级码设为待分配状态
+                            initialStatus = 'pending_approval';
                         }
                     }
 
-                    // 4. 写入 Firestore 数据库
                     await db.collection("users").doc(cred.user.uid).set({
                         name: displayName,
                         email: email,
-                        role: selectedRole, // 'student' 或 'teacher'
-                        status: initialStatus, // 'active' 或 'pending_approval'
+                        role: selectedRole,
+                        status: initialStatus,
                         enrolledClasses: enrolledClasses,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // 5. 跳转至 Profile 个人中枢
-                    window.location.href = "profile.html";
+                    if (selectedRole === 'teacher') {
+                        window.location.href = "admin.html";
+                    } else {
+                        window.location.href = "profile.html";
+                    }
                 }
             } catch (err) {
                 isSubmitting = false;
