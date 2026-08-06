@@ -21,76 +21,23 @@
             min-height: 100vh;
             color: #0f172a;
         }
-
         .font-fun { font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; }
-
-        .neo-card {
-            background-color: #ffffff;
-            border: 2px solid #0f172a;
-            border-radius: 16px;
-            box-shadow: 4px 4px 0px #0f172a;
-        }
-
-        .neo-btn {
-            background-color: #ffffff;
-            border: 2px solid #0f172a;
-            border-radius: 12px;
-            box-shadow: 2px 2px 0px #0f172a;
-            transition: all 0.15s ease;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-weight: 600;
-        }
-
-        .neo-btn:hover {
-            transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px #0f172a;
-        }
-
+        .neo-card { background-color: #ffffff; border: 2px solid #0f172a; border-radius: 16px; box-shadow: 4px 4px 0px #0f172a; }
+        .neo-btn { background-color: #ffffff; border: 2px solid #0f172a; border-radius: 12px; box-shadow: 2px 2px 0px #0f172a; transition: all 0.15s ease; font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-weight: 600; }
+        .neo-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #0f172a; }
         .neo-btn-primary { background-color: #ffe600; }
         .neo-btn-primary:hover { background-color: #facc15; }
-
-        .neo-btn-success { background-color: #bbf7d0; color: #166534; }
-        .neo-btn-success:hover { background-color: #86efac; }
-
         .neo-btn-danger { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; box-shadow: 2px 2px 0px #dc2626; }
-        .neo-btn-danger:hover { background-color: #ef4444; color: #ffffff; box-shadow: 3px 3px 0px #0f172a; }
-
-        .neo-input {
-            border: 2px solid #0f172a;
-            border-radius: 10px;
-            outline: none;
-            padding: 8px 12px;
-            box-shadow: 2px 2px 0px #cbd5e1;
-        }
-        .neo-input:focus { box-shadow: 2px 2px 0px #ffe600; }
-
-        .tab-btn {
-            padding: 10px 18px;
-            border-radius: 12px;
-            border: 2px solid #0f172a;
-            background: #ffffff;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 2px 2px 0px #0f172a;
-            white-space: nowrap;
-        }
-        .tab-btn.active {
-            background: #ffe600;
-            box-shadow: 3px 3px 0px #0f172a;
-        }
-
-        .modal-overlay {
-            background-color: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(2px);
-        }
+        .neo-input { border: 2px solid #0f172a; border-radius: 10px; outline: none; padding: 8px 12px; box-shadow: 2px 2px 0px #cbd5e1; }
+        .tab-btn { padding: 10px 18px; border-radius: 12px; border: 2px solid #0f172a; background: #ffffff; font-weight: 700; cursor: pointer; box-shadow: 2px 2px 0px #0f172a; white-space: nowrap; }
+        .tab-btn.active { background: #ffe600; box-shadow: 3px 3px 0px #0f172a; }
+        .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); }
     </style>
 </head>
 <body class="pb-10">
 
-    <!-- 📱 响应式 Top Nav 导航栏 -->
     <nav class="bg-white border-b-2 border-slate-900 sticky top-0 z-40 px-3 sm:px-6 py-2.5 shadow-[0_4px_0_#0f172a]">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-            
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <div class="bg-amber-300 p-2 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#0f172a]">
@@ -101,186 +48,74 @@
                         <p class="text-[10px] sm:text-xs text-slate-500 font-sans">Teacher Admin Dashboard</p>
                     </div>
                 </div>
-
-                <div class="sm:hidden text-xs font-bold bg-amber-100 border border-slate-900 px-2 py-1 rounded-lg flex items-center gap-1">
-                    <i class="fa-solid fa-user-shield text-amber-600"></i>
-                    <span id="teacher-name-mobile">验证中...</span>
-                </div>
             </div>
 
             <div class="grid grid-cols-2 sm:flex items-center gap-2">
-                <div class="hidden sm:flex items-center gap-2 bg-slate-100 border-2 border-slate-900 px-3 py-1.5 rounded-xl text-sm font-semibold">
-                    <i class="fa-solid fa-user-shield text-amber-500"></i>
-                    <span id="teacher-name"><i class="fa-solid fa-spinner fa-spin text-slate-400"></i> 验证身份中...</span>
-                </div>
-
-                <a href="dashboard.html" class="neo-btn px-3 py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-sky-100 hover:bg-sky-200">
+                <a href="profile.html" class="neo-btn px-3 py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-amber-100">
+                    <i class="fa-solid fa-user-gear"></i>
+                    <span>个人 Profile</span>
+                </a>
+                <a href="dashboard.html" class="neo-btn px-3 py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1.5 bg-sky-100">
                     <i class="fa-solid fa-graduation-cap"></i>
                     <span>学生端</span>
                 </a>
-
-                <button onclick="handleLogout()" class="neo-btn neo-btn-danger px-3 py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>退出</span>
-                </button>
             </div>
         </div>
     </nav>
 
     <div class="max-w-7xl mx-auto px-4 mt-6">
 
-        <!-- Banner Card -->
-        <div class="neo-card p-5 sm:p-6 mb-6 bg-amber-50 relative overflow-hidden">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+        <div class="neo-card p-5 sm:p-6 mb-6 bg-amber-50">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 class="font-fun text-xl sm:text-2xl font-bold flex items-center gap-2">
-                        🏫 补习班多班级管控中心
-                    </h2>
-                    <p class="text-slate-600 text-xs sm:text-sm mt-1">
-                        快速管理学生名册、分配/修改多班级，并精准解锁课程资料。
-                    </p>
+                    <h2 class="font-fun text-xl sm:text-2xl font-bold">🏫 补习班多班级管控中心</h2>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full md:w-auto">
-                    <a href="content-manager.html" class="neo-btn neo-btn-primary px-4 py-2.5 flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-folder-plus"></i>
-                        <span>题库与测验管控</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full md:w-auto">
+                    <a href="content-manager.html" class="neo-btn neo-btn-primary px-3.5 py-2 flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <i class="fa-solid fa-folder-plus"></i> 题库管控
                     </a>
-                    <a href="leaderboard-admin.html" class="neo-btn bg-amber-200 hover:bg-amber-300 px-4 py-2.5 flex items-center justify-center gap-2 text-sm">
-                        <i class="fa-solid fa-trophy text-amber-700"></i>
-                        <span>独立成绩分析榜</span>
+                    <a href="leaderboard-admin.html" class="neo-btn bg-amber-200 px-3.5 py-2 flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <i class="fa-solid fa-trophy"></i> 独立成绩榜
+                    </a>
+                    <a href="announcement-admin.html" class="neo-btn bg-sky-200 px-3.5 py-2 flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <i class="fa-solid fa-bullhorn"></i> 布告管理
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="flex gap-2 sm:gap-3 overflow-x-auto pb-2 mb-6 scrollbar-none">
-            <button onclick="switchTab('students')" id="tab-students" class="tab-btn active font-fun text-xs sm:text-sm flex items-center gap-2">
-                <i class="fa-solid fa-users"></i>
-                <span>学生账号与名册管理</span>
-            </button>
-            <button onclick="switchTab('pending')" id="tab-pending" class="tab-btn font-fun text-xs sm:text-sm flex items-center gap-2 bg-orange-100">
-                <i class="fa-solid fa-user-clock text-orange-600"></i>
-                <span>待移除学生列表</span>
-            </button>
-            <button onclick="switchTab('classes')" id="tab-classes" class="tab-btn font-fun text-xs sm:text-sm flex items-center gap-2">
-                <i class="fa-solid fa-layer-group"></i>
-                <span>班级码 (Class Codes)</span>
-            </button>
-            <button onclick="switchTab('unlock')" id="tab-unlock" class="tab-btn font-fun text-xs sm:text-sm flex items-center gap-2">
-                <i class="fa-solid fa-lock-open"></i>
-                <span>课程/测验可见性开关</span>
-            </button>
+        <div class="flex gap-2 sm:gap-3 overflow-x-auto pb-2 mb-6">
+            <button onclick="switchTab('students')" id="tab-students" class="tab-btn active font-fun text-xs sm:text-sm">学生账号与名册管理</button>
+            <button onclick="switchTab('classes')" id="tab-classes" class="tab-btn font-fun text-xs sm:text-sm">班级码与时间段设置</button>
+            <button onclick="switchTab('unlock')" id="tab-unlock" class="tab-btn font-fun text-xs sm:text-sm">课程/测验可见性开关</button>
         </div>
 
         <!-- TAB 1: STUDENTS -->
         <section id="section-students" class="space-y-4">
             <div class="neo-card p-4 sm:p-5">
-                <div class="flex flex-col md:flex-row justify-between gap-3 mb-4">
-                    <div class="flex flex-wrap items-center gap-2 flex-1">
-                        <div class="relative flex-1 min-w-[200px]">
-                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="student-search-input" onkeyup="filterStudents()" placeholder="搜索姓名或 Email..." class="neo-input w-full pl-9 text-xs sm:text-sm">
-                        </div>
-                        
-                        <select id="filter-class-select" onchange="filterStudents()" class="neo-input bg-white font-fun text-xs sm:text-sm">
-                            <option value="ALL">所有班级 (All)</option>
-                        </select>
-                    </div>
-
-                    <div class="text-xs sm:text-sm font-semibold text-slate-600 flex items-center gap-2">
-                        <span>在读学生：</span>
-                        <span id="student-count-badge" class="bg-amber-300 border border-slate-900 px-2 py-0.5 rounded-full font-bold text-slate-900">0 人</span>
-                    </div>
-                </div>
-
                 <div class="overflow-x-auto rounded-xl border-2 border-slate-900">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-100 border-b-2 border-slate-900 text-slate-800 font-fun text-xs sm:text-sm">
+                            <tr class="bg-slate-100 border-b-2 border-slate-900 font-fun text-xs sm:text-sm">
                                 <th class="p-3">学生姓名</th>
                                 <th class="p-3">Email</th>
-                                <th class="p-3">所属班级 (可多班)</th>
-                                <th class="p-3">注册时间</th>
-                                <th class="p-3 text-center">操作</th>
+                                <th class="p-3">所属班级</th>
+                                <th class="p-3 text-center">操作 (修改名字/班级)</th>
                             </tr>
                         </thead>
-                        <tbody id="student-table-body" class="divide-y border-slate-200 text-xs sm:text-sm font-sans">
-                            <tr>
-                                <td colspan="5" class="p-8 text-center text-slate-400 font-fun text-base">
-                                    <i class="fa-solid fa-spinner fa-spin text-xl mb-2"></i><br>正在获取学生名册...
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody id="student-table-body" class="divide-y border-slate-200 text-xs sm:text-sm font-sans"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <!-- TAB 2: PENDING DELETE -->
-        <section id="section-pending" class="space-y-4 hidden">
-            <div class="neo-card p-4 sm:p-5 bg-orange-50/50">
-                <div class="mb-4">
-                    <h3 class="font-fun text-lg sm:text-xl font-bold flex items-center gap-2 text-orange-900">
-                        <i class="fa-solid fa-triangle-exclamation text-orange-500"></i>
-                        <span>待移除学生账号列表 (Pending Delete)</span>
-                    </h3>
-                </div>
-
-                <div class="overflow-x-auto rounded-xl border-2 border-slate-900 bg-white">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-amber-100 border-b-2 border-slate-900 text-slate-800 font-fun text-xs sm:text-sm">
-                                <th class="p-3">UID</th>
-                                <th class="p-3">学生姓名</th>
-                                <th class="p-3">原备份班级</th>
-                                <th class="p-3">状态</th>
-                                <th class="p-3 text-center">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pending-table-body" class="divide-y border-slate-200 text-xs sm:text-sm font-sans">
-                            <tr><td colspan="5" class="p-8 text-center text-slate-400 font-fun">加载中...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: CLASSES (带分类与筛选，支持修改与删除) -->
+        <!-- TAB 3: CLASSES (含时间段) -->
         <section id="section-classes" class="space-y-4 hidden">
             <div class="neo-card p-4 sm:p-5">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
-                    <h3 class="font-fun text-lg sm:text-xl font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-layer-group text-amber-500"></i>
-                        <span>当前活跃班级列表</span>
-                    </h3>
-
-                    <button onclick="openCreateClassModal()" class="neo-btn neo-btn-primary px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1.5 self-end md:self-auto">
-                        <i class="fa-solid fa-plus-circle"></i> 新增班级 Code
-                    </button>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-fun text-lg font-bold">班级列表与上课时间配置</h3>
+                    <button onclick="openCreateClassModal()" class="neo-btn neo-btn-primary px-3 py-1.5 text-xs sm:text-sm">+ 新增班级 Code</button>
                 </div>
-
-                <div class="bg-slate-50 p-3 rounded-xl border-2 border-slate-900 mb-4 flex flex-wrap gap-2.5 items-center">
-                    <div class="relative flex-1 min-w-[180px]">
-                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="class-search-input" onkeyup="filterClasses()" placeholder="搜索班级 Code 或班级名称..." class="neo-input w-full pl-9 text-xs">
-                    </div>
-
-                    <div class="flex items-center gap-1.5">
-                        <label class="text-xs font-bold text-slate-600">筛选年级：</label>
-                        <select id="class-grade-filter" onchange="filterClasses()" class="neo-input bg-white font-fun text-xs">
-                            <option value="ALL">全部年级 (All Grades)</option>
-                            <option value="0">学前 / 通用</option>
-                            <option value="1">一年级 (Grade 1)</option>
-                            <option value="2">二年级 (Grade 2)</option>
-                            <option value="3">三年级 (Grade 3)</option>
-                            <option value="4">四年级 (Grade 4)</option>
-                            <option value="5">五年级 (Grade 5)</option>
-                            <option value="6">六年级 (Grade 6)</option>
-                        </select>
-                    </div>
-                </div>
-
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5" id="class-cards-container"></div>
             </div>
         </section>
@@ -288,54 +123,6 @@
         <!-- TAB 4: UNLOCK -->
         <section id="section-unlock" class="space-y-4 hidden">
             <div class="neo-card p-4 sm:p-5">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
-                    <div>
-                        <h3 class="font-fun text-lg sm:text-xl font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-lock-open text-amber-500"></i>
-                            <span>课程/测验可见性（精准开关）</span>
-                        </h3>
-                    </div>
-
-                    <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-300 text-xs">
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold">
-                            <input type="checkbox" id="show-all-grades-toggle" onchange="fetchResources()" class="rounded border-slate-400">
-                            <span>跨年级显示所有班级</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="bg-amber-100/50 p-3 rounded-xl border-2 border-slate-900 mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                    <div class="relative">
-                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="resource-search-input" onkeyup="filterResources()" placeholder="搜索测验/资料标题..." class="neo-input w-full pl-9 text-xs">
-                    </div>
-
-                    <div class="flex items-center gap-1.5">
-                        <label class="text-xs font-bold text-slate-600 whitespace-nowrap">年级：</label>
-                        <select id="resource-grade-filter" onchange="filterResources()" class="neo-input w-full bg-white font-fun text-xs">
-                            <option value="ALL">全部年级 (All)</option>
-                            <option value="1">一年级</option>
-                            <option value="2">二年级</option>
-                            <option value="3">三年级</option>
-                            <option value="4">四年级</option>
-                            <option value="5">五年级</option>
-                            <option value="6">六年级</option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center gap-1.5">
-                        <label class="text-xs font-bold text-slate-600 whitespace-nowrap">单元：</label>
-                        <select id="resource-unit-filter" onchange="filterResources()" class="neo-input w-full bg-white font-fun text-xs">
-                            <option value="ALL">全部单元 (All)</option>
-                            <option value="1">单元 1</option>
-                            <option value="2">单元 2</option>
-                            <option value="3">单元 3</option>
-                            <option value="4">单元 4</option>
-                            <option value="5">单元 5</option>
-                        </select>
-                    </div>
-                </div>
-
                 <div class="overflow-x-auto rounded-xl border-2 border-slate-900 bg-white">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -343,8 +130,6 @@
                                 <th class="p-3">资源名称</th>
                                 <th class="p-3">科目/年级/单元</th>
                                 <th class="p-3">授权班级</th>
-                                <th class="p-3 text-center">屏蔽特定学生</th>
-                                <th class="p-3 text-center">总状态</th>
                             </tr>
                         </thead>
                         <tbody id="resource-table-body" class="divide-y border-slate-200 text-xs sm:text-sm font-sans"></tbody>
@@ -355,150 +140,64 @@
 
     </div>
 
-    <!-- MODALS SECTION -->
-    <!-- 1. 修改/分配学生班级 Modal -->
-    <div id="edit-student-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
+    <!-- ✏️ 4. 修改学生姓名与班级 Modal -->
+    <div id="edit-student-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold flex items-center gap-2">
                 <i class="fa-solid fa-user-pen text-amber-500"></i>
-                <span>修改学生所属班级</span>
+                <span>修改学生资料</span>
             </h3>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">学生信息</label>
-                <p id="modal-student-info" class="font-bold text-sm bg-slate-100 p-2.5 rounded-lg border border-slate-300"></p>
+                <label class="block text-xs font-bold text-slate-700 mb-1">学生真实姓名 (修正乱取名字)</label>
+                <input type="text" id="modal-student-name-input" class="neo-input w-full text-sm font-bold">
             </div>
 
             <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">勾选包含的班级 (可多选)：</label>
-                <div id="modal-class-checkboxes" class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2.5 bg-slate-50 border-2 border-slate-900 rounded-xl">
-                    <!-- Dynamic Class Checkboxes -->
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">或手动输入/补充班级代码 (多个用逗号隔开)</label>
-                <input type="text" id="modal-student-class-input" class="neo-input w-full font-mono text-xs uppercase" placeholder="例如: G1-GRAM-01, DAYCARE-G1">
+                <label class="block text-xs font-bold text-slate-700 mb-1">勾选包含班级：</label>
+                <div id="modal-class-checkboxes" class="grid grid-cols-2 gap-2 max-h-36 overflow-y-auto p-2 bg-slate-50 border-2 border-slate-900 rounded-xl"></div>
             </div>
 
             <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeEditStudentClassModal()" class="neo-btn px-4 py-2 text-xs sm:text-sm">取消</button>
-                <button onclick="saveStudentClasses()" class="neo-btn neo-btn-primary px-4 py-2 text-xs sm:text-sm">保存修改</button>
+                <button onclick="closeEditStudentModal()" class="neo-btn px-4 py-2 text-xs">取消</button>
+                <button onclick="saveStudentProfile()" class="neo-btn neo-btn-primary px-4 py-2 text-xs">保存更新</button>
             </div>
         </div>
     </div>
 
-    <!-- 2. 移除学生 Modal -->
-    <div id="delete-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
+    <!-- 🏫 新建/修改班级 Modal (包含时间) -->
+    <div id="class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <h3 class="font-fun text-xl font-bold text-red-600">将学生移入待移除列表？</h3>
-            <p class="text-xs sm:text-sm text-slate-600">把学生 <b id="modal-delete-student-name">--</b> 移入待移除列表。移除后该学生将无法进入课程。</p>
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeDeleteModal()" class="neo-btn px-4 py-2 text-xs sm:text-sm">取消</button>
-                <button id="btn-confirm-delete" onclick="executeSoftDeleteStudent()" class="neo-btn neo-btn-danger px-4 py-2 text-xs sm:text-sm">确认移除</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. 新建班级 Modal -->
-    <div id="create-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-plus-circle text-amber-500"></i>
-                <span>设定新班级 Code</span>
-            </h3>
+            <h3 class="font-fun text-xl font-bold" id="class-modal-title">班级配置</h3>
             <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级代码 (Class Code)</label>
-                <input type="text" id="new-code-input" class="neo-input w-full font-mono font-bold uppercase text-xs sm:text-sm" placeholder="例如: G1-GRAM-01">
+                <label class="block text-xs font-bold text-slate-700 mb-1">班级代码 (Class Code)</label>
+                <input type="text" id="class-code-input" class="neo-input w-full font-mono uppercase text-xs">
             </div>
             <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级全称</label>
-                <input type="text" id="new-name-input" class="neo-input w-full text-xs sm:text-sm" placeholder="例如: 一年级华文 1 班">
+                <label class="block text-xs font-bold text-slate-700 mb-1">班级全称</label>
+                <input type="text" id="class-name-input" class="neo-input w-full text-xs" placeholder="如: 一年级华文班">
             </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">适用年级</label>
-                    <select id="new-grade-select" class="neo-input w-full bg-white font-fun text-xs">
-                        <option value="0">学前 / 通用</option>
-                        <option value="1">一年级</option>
-                        <option value="2">二年级</option>
-                        <option value="3">三年级</option>
-                        <option value="4">四年级</option>
-                        <option value="5">五年级</option>
-                        <option value="6">六年级</option>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">上课星期</label>
+                    <select id="class-day-select" class="neo-input w-full text-xs font-fun bg-white">
+                        <option value="星期一">星期一</option>
+                        <option value="星期二">星期二</option>
+                        <option value="星期三">星期三</option>
+                        <option value="星期四">星期四</option>
+                        <option value="星期五">星期五</option>
+                        <option value="星期六">星期六</option>
+                        <option value="星期日">星期日</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">带班老师</label>
-                    <input type="text" id="new-teacher-input" class="neo-input w-full text-xs" placeholder="例如: 陈老师">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">上课时间段</label>
+                    <input type="text" id="class-time-input" class="neo-input w-full text-xs" placeholder="如: 2:00 PM - 3:30 PM">
                 </div>
             </div>
             <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeCreateClassModal()" class="neo-btn px-4 py-2 text-xs sm:text-sm">取消</button>
-                <button onclick="executeCreateClass()" class="neo-btn neo-btn-primary px-4 py-2 text-xs sm:text-sm">确认创建</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 4. 编辑班级 Modal -->
-    <div id="edit-class-info-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-pen-to-square text-amber-500"></i>
-                <span>修改班级资料</span>
-            </h3>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级代码 (Code 不可变)</label>
-                <input type="text" id="edit-class-code-input" class="neo-input w-full font-mono font-bold bg-slate-100 text-slate-500 cursor-not-allowed text-xs sm:text-sm" readonly>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-500 mb-1">班级全称</label>
-                <input type="text" id="edit-class-name-input" class="neo-input w-full text-xs sm:text-sm">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">适用年级</label>
-                    <select id="edit-class-grade-select" class="neo-input w-full bg-white font-fun text-xs">
-                        <option value="0">学前 / 通用</option>
-                        <option value="1">一年级</option>
-                        <option value="2">二年级</option>
-                        <option value="3">三年级</option>
-                        <option value="4">四年级</option>
-                        <option value="5">五年级</option>
-                        <option value="6">六年级</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 mb-1">带班老师</label>
-                    <input type="text" id="edit-class-teacher-input" class="neo-input w-full text-xs">
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeEditClassInfoModal()" class="neo-btn px-4 py-2 text-xs sm:text-sm">取消</button>
-                <button onclick="executeEditClassInfo()" class="neo-btn neo-btn-primary px-4 py-2 text-xs sm:text-sm">保存修改</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 5. 彻底删除班级 Modal -->
-    <div id="delete-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <h3 class="font-fun text-xl font-bold text-red-600 flex items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>确认删除此班级？</span>
-            </h3>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                您即将彻底删除班级代码：<b id="modal-delete-class-code" class="text-slate-900 font-mono font-bold underline">--</b> (<span id="modal-delete-class-name">--</span>)。<br><br>
-                <span class="text-red-600 text-xs font-semibold">⚠️ 系统将自动从所有学生账号和测验资料授权中同步清除此班级，学生将立刻无法看到该班级下的资料。</span>
-            </p>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeDeleteClassModal()" class="neo-btn px-4 py-2 text-xs sm:text-sm">取消</button>
-                <button onclick="executeDeleteClass()" class="neo-btn neo-btn-danger px-4 py-2 text-xs sm:text-sm">彻底删除并解绑</button>
+                <button onclick="closeClassModal()" class="neo-btn px-4 py-2 text-xs">取消</button>
+                <button onclick="saveClassData()" class="neo-btn neo-btn-primary px-4 py-2 text-xs">保存班级</button>
             </div>
         </div>
     </div>
@@ -522,393 +221,157 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let allStudentsList = [], allClassCodesList = [], allResourcesList = [];
-        let studentTargetToDelete = null, studentTargetToEdit = null;
-        let classTargetToEdit = null, classTargetToDelete = null;
+        let allStudents = [], allClasses = [], targetStudentUid = null, editingClassCode = null;
 
         auth.onAuthStateChanged(async (user) => {
-            if (!user) { window.location.href = "index.html"; return; }
-            try {
-                const userDoc = await db.collection("users").doc(user.uid).get();
-                if (userDoc.exists && userDoc.data().role === 'teacher') {
-                    const name = userDoc.data().name || "老师";
-                    document.getElementById('teacher-name').innerText = name + " (Admin)";
-                    document.getElementById('teacher-name-mobile').innerText = name;
-                    loadAllData();
-                } else {
-                    window.location.href = "dashboard.html";
-                }
-            } catch (err) { window.location.href = "index.html"; }
+            if (!user) window.location.href = "index.html";
+            else loadData();
         });
 
-        async function loadAllData() {
-            await Promise.all([fetchClasses(), fetchStudents(), fetchResources()]);
+        async function loadData() {
+            await fetchClasses();
+            await fetchStudents();
+            await fetchResources();
         }
 
-        // --- 学生管理逻辑 ---
         async function fetchStudents() {
             const tbody = document.getElementById('student-table-body');
-            try {
-                const snapshot = await db.collection("users").where("role", "==", "student").get();
-                allStudentsList = [];
-                snapshot.forEach(doc => allStudentsList.push({ id: doc.id, ...doc.data() }));
-                renderStudentTables(allStudentsList);
-            } catch (err) { tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">读取失败</td></tr>`; }
-        }
+            const snap = await db.collection("users").where("role", "==", "student").get();
+            tbody.innerHTML = '';
+            allStudents = [];
 
-        function renderStudentTables(students) {
-            const activeTbody = document.getElementById('student-table-body');
-            const activeStudents = students.filter(s => (s.status || 'active') === 'active');
-            document.getElementById('student-count-badge').innerText = `${activeStudents.length} 人`;
+            snap.forEach(doc => {
+                const s = { id: doc.id, ...doc.data() };
+                allStudents.push(s);
 
-            activeTbody.innerHTML = activeStudents.length === 0 ? `<tr><td colspan="5" class="p-6 text-center text-slate-400">暂无数据</td></tr>` : '';
-            activeStudents.forEach(s => {
-                const tr = document.createElement('tr');
-                const classesBadge = (s.enrolledClasses && s.enrolledClasses.length > 0)
-                    ? s.enrolledClasses.map(c => `<span class="bg-sky-100 text-sky-800 border border-sky-300 font-mono text-xs px-1.5 py-0.5 rounded font-bold">${c}</span>`).join(' ')
-                    : `<span class="text-slate-400 text-xs italic">未分配班级</span>`;
+                const classesBadge = (s.enrolledClasses || []).map(c => `<span class="bg-sky-100 text-sky-800 border border-sky-300 font-mono text-[10px] px-1.5 py-0.5 rounded font-bold">${c}</span>`).join(' ');
 
-                const enrolledJson = JSON.stringify(s.enrolledClasses || []);
-
-                tr.innerHTML = `
-                    <td class="p-2.5 font-bold text-slate-800">${s.name || '未填写'}</td>
-                    <td class="p-2.5 font-mono text-xs text-slate-600">${s.email || '-'}</td>
-                    <td class="p-2.5">${classesBadge}</td>
-                    <td class="p-2.5 text-slate-500 text-xs">${s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleDateString('zh-CN') : '-'}</td>
-                    <td class="p-2.5 text-center">
-                        <div class="flex items-center justify-center gap-1.5">
-                            <button onclick='openEditStudentClassModal("${s.id}", "${s.name || '学生'}", ${enrolledJson})' class="neo-btn px-2 py-0.5 text-xs bg-amber-100 hover:bg-amber-200">
-                                <i class="fa-solid fa-pen-to-square"></i> 改班级
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2.5 font-bold text-slate-800">${s.name || '未填'}</td>
+                        <td class="p-2.5 font-mono text-xs text-slate-500">${s.email || '-'}</td>
+                        <td class="p-2.5">${classesBadge || '无'}</td>
+                        <td class="p-2.5 text-center">
+                            <button onclick="openEditStudentModal('${s.id}', '${s.name || ''}')" class="neo-btn px-2.5 py-1 text-xs bg-amber-100">
+                                ✏️ 改姓名与班级
                             </button>
-                            <button onclick="openDeleteModal('${s.id}', '${s.name || '未命名'}')" class="neo-btn neo-btn-danger px-2 py-0.5 text-xs">
-                                移除
-                            </button>
-                        </div>
-                    </td>
+                        </td>
+                    </tr>
                 `;
-                activeTbody.appendChild(tr);
             });
         }
 
-        function filterStudents() {
-            const query = document.getElementById('student-search-input').value.toLowerCase().trim();
-            const classFilter = document.getElementById('filter-class-select').value;
+        function openEditStudentModal(uid, currentName) {
+            targetStudentUid = uid;
+            const student = allStudents.find(s => s.id === uid);
+            document.getElementById('modal-student-name-input').value = student ? student.name : currentName;
 
-            const filtered = allStudentsList.filter(s => {
-                const matchName = (s.name || '').toLowerCase().includes(query) || (s.email || '').toLowerCase().includes(query);
-                const matchClass = (classFilter === 'ALL') || (s.enrolledClasses && s.enrolledClasses.includes(classFilter));
-                return matchName && matchClass;
-            });
-            renderStudentTables(filtered);
-        }
-
-        // --- 班级分配与多选弹窗 ---
-        function openEditStudentClassModal(uid, name, enrolledArray) {
-            studentTargetToEdit = uid;
-            document.getElementById('modal-student-info').innerText = `${name}`;
-            
             const container = document.getElementById('modal-class-checkboxes');
             container.innerHTML = '';
+            const enrolled = (student && student.enrolledClasses) ? student.enrolledClasses : [];
 
-            allClassCodesList.forEach(c => {
-                const isChecked = enrolledArray.includes(c.id);
+            allClasses.forEach(c => {
+                const checked = enrolled.includes(c.id) ? 'checked' : '';
                 container.innerHTML += `
-                    <label class="inline-flex items-center gap-1.5 p-1.5 bg-white border border-slate-300 rounded-lg text-xs cursor-pointer hover:bg-amber-100">
-                        <input type="checkbox" value="${c.id}" class="student-class-checkbox rounded text-amber-500" ${isChecked ? 'checked' : ''} onchange="syncStudentClassInput()">
+                    <label class="inline-flex items-center gap-1 p-1 bg-white border border-slate-300 rounded text-xs cursor-pointer">
+                        <input type="checkbox" value="${c.id}" class="student-cls-cb" ${checked}>
                         <span class="font-mono font-bold">${c.id}</span>
                     </label>
                 `;
             });
 
-            document.getElementById('modal-student-class-input').value = enrolledArray.join(', ');
-            document.getElementById('edit-student-class-modal').classList.remove('hidden');
+            document.getElementById('edit-student-modal').classList.remove('hidden');
         }
+        function closeEditStudentModal() { document.getElementById('edit-student-modal').classList.add('hidden'); }
 
-        function closeEditStudentClassModal() {
-            studentTargetToEdit = null;
-            document.getElementById('edit-student-class-modal').classList.add('hidden');
-        }
-
-        function syncStudentClassInput() {
-            const checkboxes = document.querySelectorAll('.student-class-checkbox');
-            const selected = [];
-            checkboxes.forEach(cb => { if (cb.checked) selected.push(cb.value); });
-            document.getElementById('modal-student-class-input').value = selected.join(', ');
-        }
-
-        async function saveStudentClasses() {
-            if (!studentTargetToEdit) return;
-            const rawInput = document.getElementById('modal-student-class-input').value;
-            const classArray = rawInput.split(',').map(c => c.trim().toUpperCase()).filter(c => c.length > 0);
+        async function saveStudentProfile() {
+            if (!targetStudentUid) return;
+            const newName = document.getElementById('modal-student-name-input').value.trim();
+            const cbs = document.querySelectorAll('.student-cls-cb');
+            const newClasses = [];
+            cbs.forEach(cb => { if (cb.checked) newClasses.push(cb.value); });
 
             try {
-                await db.collection("users").doc(studentTargetToEdit).update({
-                    enrolledClasses: classArray
+                await db.collection("users").doc(targetStudentUid).update({
+                    name: newName,
+                    enrolledClasses: newClasses
                 });
-                closeEditStudentClassModal();
+                closeEditStudentModal();
                 fetchStudents();
-            } catch (err) {
-                alert("更新班级失败：" + err.message);
-            }
+            } catch (err) { alert("更新失败"); }
         }
 
-        function openDeleteModal(uid, name) {
-            studentTargetToDelete = { uid, name };
-            document.getElementById('modal-delete-student-name').innerText = name;
-            document.getElementById('delete-modal').classList.remove('hidden');
-        }
-        function closeDeleteModal() { document.getElementById('delete-modal').classList.add('hidden'); }
-
-        async function executeSoftDeleteStudent() {
-            if (!studentTargetToDelete) return;
-            try {
-                await db.collection("users").doc(studentTargetToDelete.uid).update({ status: "pending_delete" });
-                closeDeleteModal();
-                fetchStudents();
-            } catch (err) { alert("操作失败"); }
-        }
-
-        // --- 班级 Code 管理逻辑 (包含修改、删除与自动三方同步) ---
         async function fetchClasses() {
-            const filterSelect = document.getElementById('filter-class-select');
-            try {
-                const snapshot = await db.collection("classes").get();
-                allClassCodesList = [];
-                filterSelect.innerHTML = `<option value="ALL">所有班级 (All)</option>`;
-
-                snapshot.forEach(doc => {
-                    const c = { id: doc.id, ...doc.data() };
-                    allClassCodesList.push(c);
-                    filterSelect.innerHTML += `<option value="${c.id}">${c.id} - ${c.className || ''}</option>`;
-                });
-
-                renderClassCards(allClassCodesList);
-            } catch (err) { console.error(err); }
-        }
-
-        function renderClassCards(classList) {
             const container = document.getElementById('class-cards-container');
-            container.innerHTML = classList.length === 0 ? `<div class="col-span-full p-8 text-center text-slate-400 font-fun">无匹配班级</div>` : '';
+            const snap = await db.collection("classes").get();
+            allClasses = [];
+            container.innerHTML = '';
 
-            classList.forEach(c => {
-                const card = document.createElement('div');
-                card.className = "neo-card p-4 bg-white flex flex-col justify-between hover:bg-amber-50/50 transition-colors";
-                card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-start mb-2">
+            snap.forEach(doc => {
+                const c = { id: doc.id, ...doc.data() };
+                allClasses.push(c);
+                container.innerHTML += `
+                    <div class="neo-card p-3.5 bg-white space-y-1">
+                        <div class="flex justify-between items-center">
                             <span class="font-mono font-bold bg-amber-300 border border-slate-900 px-2 py-0.5 rounded text-xs">${c.id}</span>
-                            <span class="text-xs bg-slate-100 border border-slate-300 px-2 py-0.5 rounded font-bold text-slate-600">${c.grade || 0} 年级</span>
+                            <span class="text-xs font-bold text-slate-500">${c.scheduleDay || '星期未设'}</span>
                         </div>
-                        <h4 class="font-fun text-base font-bold text-slate-800">${c.className || '未命名班级'}</h4>
-                        <p class="text-xs text-slate-500 mt-1">负责老师：${c.teacherName || '未指定'}</p>
-                    </div>
-                    <div class="flex justify-end gap-2 mt-3 pt-2.5 border-t border-slate-200">
-                        <button onclick="openEditClassInfoModal('${c.id}', '${c.className || ''}', ${c.grade || 0}, '${c.teacherName || ''}')" class="neo-btn px-2.5 py-1 text-xs bg-sky-100 hover:bg-sky-200 flex items-center gap-1">
-                            <i class="fa-solid fa-pen-to-square"></i> 修改
-                        </button>
-                        <button onclick="openDeleteClassModal('${c.id}', '${c.className || ''}')" class="neo-btn neo-btn-danger px-2.5 py-1 text-xs flex items-center gap-1">
-                            <i class="fa-solid fa-trash"></i> 删除
-                        </button>
+                        <h4 class="font-fun font-bold text-slate-800 text-sm">${c.className || ''}</h4>
+                        <p class="text-xs text-slate-500 font-mono"><i class="fa-regular fa-clock"></i> ${c.scheduleTime || '时间未设'}</p>
                     </div>
                 `;
-                container.appendChild(card);
             });
         }
 
-        function filterClasses() {
-            const query = document.getElementById('class-search-input').value.toLowerCase().trim();
-            const gradeVal = document.getElementById('class-grade-filter').value;
-
-            const filtered = allClassCodesList.filter(c => {
-                const matchQuery = c.id.toLowerCase().includes(query) || (c.className || '').toLowerCase().includes(query);
-                const matchGrade = (gradeVal === 'ALL') || (c.grade == gradeVal);
-                return matchQuery && matchGrade;
-            });
-
-            renderClassCards(filtered);
+        function openCreateClassModal() {
+            editingClassCode = null;
+            document.getElementById('class-code-input').value = '';
+            document.getElementById('class-name-input').value = '';
+            document.getElementById('class-modal').classList.remove('hidden');
         }
+        function closeClassModal() { document.getElementById('class-modal').classList.add('hidden'); }
 
-        function openCreateClassModal() { document.getElementById('create-class-modal').classList.remove('hidden'); }
-        function closeCreateClassModal() { document.getElementById('create-class-modal').classList.add('hidden'); }
+        async function saveClassData() {
+            const code = document.getElementById('class-code-input').value.trim().toUpperCase();
+            const name = document.getElementById('class-name-input').value.trim();
+            const day = document.getElementById('class-day-select').value;
+            const time = document.getElementById('class-time-input').value.trim();
 
-        async function executeCreateClass() {
-            const code = document.getElementById('new-code-input').value.trim().toUpperCase();
-            const name = document.getElementById('new-name-input').value.trim();
-            const grade = parseInt(document.getElementById('new-grade-select').value);
-            const teacher = document.getElementById('new-teacher-input').value.trim();
+            if (!code || !name) return alert("请填写代码与名称");
 
-            if (!code || !name) return alert("请填写完整信息！");
             try {
-                await db.collection("classes").doc(code).set({ className: name, grade: grade, teacherName: teacher || "陈老师" });
-                closeCreateClassModal();
+                await db.collection("classes").doc(code).set({
+                    className: name,
+                    scheduleDay: day,
+                    scheduleTime: time || "14:00 - 15:30"
+                }, { merge: true });
+
+                closeClassModal();
                 fetchClasses();
-                fetchResources();
-            } catch (err) { alert("创建失败：" + err.message); }
+            } catch (e) { alert("保存失败"); }
         }
 
-        function openEditClassInfoModal(id, name, grade, teacher) {
-            classTargetToEdit = id;
-            document.getElementById('edit-class-code-input').value = id;
-            document.getElementById('edit-class-name-input').value = name;
-            document.getElementById('edit-class-grade-select').value = grade;
-            document.getElementById('edit-class-teacher-input').value = teacher;
-            document.getElementById('edit-class-info-modal').classList.remove('hidden');
-        }
-        function closeEditClassInfoModal() { document.getElementById('edit-class-info-modal').classList.add('hidden'); }
-
-        async function executeEditClassInfo() {
-            if (!classTargetToEdit) return;
-            try {
-                await db.collection("classes").doc(classTargetToEdit).update({
-                    className: document.getElementById('edit-class-name-input').value.trim(),
-                    grade: parseInt(document.getElementById('edit-class-grade-select').value),
-                    teacherName: document.getElementById('edit-class-teacher-input').value.trim()
-                });
-                closeEditClassInfoModal();
-                fetchClasses();
-                fetchResources();
-            } catch (err) { alert("修改失败：" + err.message); }
-        }
-
-        function openDeleteClassModal(id, name) {
-            classTargetToDelete = id;
-            document.getElementById('modal-delete-class-code').innerText = id;
-            document.getElementById('modal-delete-class-name').innerText = name;
-            document.getElementById('delete-class-modal').classList.remove('hidden');
-        }
-        function closeDeleteClassModal() { document.getElementById('delete-class-modal').classList.add('hidden'); }
-
-        // 🌟 彻底删除班级并联动自动清理学生账号与资料库权限
-        async function executeDeleteClass() {
-            if (!classTargetToDelete) return;
-            
-            try {
-                const classCode = classTargetToDelete;
-                const batch = db.batch();
-
-                // 1. 删除班级本身
-                const classRef = db.collection("classes").doc(classCode);
-                batch.delete(classRef);
-
-                // 2. 自动从所有学生的账号中移除这个班级 Code
-                const studentsSnap = await db.collection("users")
-                    .where("role", "==", "student")
-                    .where("enrolledClasses", "array-contains", classCode)
-                    .get();
-
-                studentsSnap.forEach(doc => {
-                    batch.update(doc.ref, {
-                        enrolledClasses: firebase.firestore.FieldValue.arrayRemove(classCode)
-                    });
-                });
-
-                // 3. 自动从所有课程/测验资料中撤销对这个班级 Code 的解锁授权
-                const resourcesSnap = await db.collection("resources")
-                    .where("unlockedClasses", "array-contains", classCode)
-                    .get();
-
-                resourcesSnap.forEach(doc => {
-                    batch.update(doc.ref, {
-                        unlockedClasses: firebase.firestore.FieldValue.arrayRemove(classCode)
-                    });
-                });
-
-                // 提交批量同步删除
-                await batch.commit();
-
-                alert(`🎉 班级【${classCode}】已彻底删除！\n所有绑定学生的名册及课程解锁权限已同步解绑生效。`);
-                closeDeleteClassModal();
-                fetchClasses();
-                fetchStudents();
-                fetchResources();
-            } catch (err) {
-                alert("⚠️ 删除班级失败：" + err.message);
-            }
-        }
-
-        // --- 课程可见性逻辑 ---
         async function fetchResources() {
-            try {
-                const snapshot = await db.collection("resources").get();
-                allResourcesList = [];
-                snapshot.forEach(doc => allResourcesList.push({ id: doc.id, ...doc.data() }));
-                filterResources();
-            } catch (err) { console.error(err); }
-        }
-
-        function filterResources() {
             const tbody = document.getElementById('resource-table-body');
-            const query = document.getElementById('resource-search-input').value.toLowerCase().trim();
-            const gradeFilter = document.getElementById('resource-grade-filter').value;
-            const unitFilter = document.getElementById('resource-unit-filter').value;
-            const showAllGrades = document.getElementById('show-all-grades-toggle').checked;
-
-            const filtered = allResourcesList.filter(r => {
-                const matchQuery = (r.title || '').toLowerCase().includes(query);
-                const matchGrade = (gradeFilter === 'ALL') || (r.grade == gradeFilter);
-                const matchUnit = (unitFilter === 'ALL') || (r.unit == unitFilter);
-                return matchQuery && matchGrade && matchUnit;
-            });
-
-            tbody.innerHTML = filtered.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-slate-400 font-fun">无匹配资料</td></tr>` : '';
-
-            filtered.forEach(r => {
-                const tr = document.createElement('tr');
-                const unlockedClasses = r.unlockedClasses || [];
-
-                let relevantClasses = allClassCodesList;
-                if (!showAllGrades && r.grade) {
-                    relevantClasses = allClassCodesList.filter(c => c.grade == r.grade || c.grade == 0);
-                }
-
-                const classCheckboxes = relevantClasses.map(c => `
-                    <label class="inline-flex items-center gap-1 bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded text-xs cursor-pointer hover:bg-amber-100">
-                        <input type="checkbox" onchange="toggleResourceClass('${r.id}', '${c.id}', this.checked)" ${unlockedClasses.includes(c.id) ? 'checked' : ''}>
-                        <span class="font-mono font-bold">${c.id}</span>
-                    </label>
-                `).join(' ');
-
-                tr.innerHTML = `
-                    <td class="p-2.5 font-bold text-slate-800">${r.title || '无标题'}</td>
-                    <td class="p-2.5 text-xs text-slate-500">${r.subject || ''} / ${r.grade || 1}年级 / U${r.unit || 1}</td>
-                    <td class="p-2.5"><div class="flex flex-wrap gap-1">${classCheckboxes || '<span class="text-xs text-slate-400 italic">无匹配班级</span>'}</div></td>
-                    <td class="p-2.5 text-center text-xs text-slate-500">${(r.excludedStudents || []).length} 人隐藏</td>
-                    <td class="p-2.5 text-center">
-                        <button onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2 py-0.5 text-xs ${r.isPublished !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
-                            ${r.isPublished !== false ? '已发布' : '隐藏'}
-                        </button>
-                    </td>
+            const snap = await db.collection("resources").get();
+            tbody.innerHTML = '';
+            snap.forEach(doc => {
+                const r = doc.data();
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-2.5 font-bold">${r.title}</td>
+                        <td class="p-2.5 text-xs text-slate-500">${r.subject} / U${r.unit}</td>
+                        <td class="p-2.5 text-xs font-mono font-bold">${(r.unlockedClasses || []).join(', ') || '未开放'}</td>
+                    </tr>
                 `;
-                tbody.appendChild(tr);
             });
         }
 
-        async function toggleResourceClass(resourceId, classCode, isChecked) {
-            try {
-                const docRef = db.collection("resources").doc(resourceId);
-                if (isChecked) await docRef.update({ unlockedClasses: firebase.firestore.FieldValue.arrayUnion(classCode) });
-                else await docRef.update({ unlockedClasses: firebase.firestore.FieldValue.arrayRemove(classCode) });
-            } catch (err) { alert("更新授权失败"); }
-        }
-
-        async function toggleResourcePublish(resourceId, newStatus) {
-            try {
-                await db.collection("resources").doc(resourceId).update({ isPublished: newStatus });
-                fetchResources();
-            } catch (err) {}
-        }
-
-        function switchTab(tabName) {
-            ['students', 'pending', 'classes', 'unlock'].forEach(t => {
-                if (document.getElementById(`tab-${t}`)) {
-                    document.getElementById(`tab-${t}`).classList.toggle('active', t === tabName);
-                    document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tabName);
-                }
+        function switchTab(t) {
+            ['students', 'classes', 'unlock'].forEach(tab => {
+                document.getElementById(`tab-${tab}`).classList.toggle('active', tab === t);
+                document.getElementById(`section-${tab}`).classList.toggle('hidden', tab !== t);
             });
-        }
-
-        function handleLogout() {
-            auth.signOut().then(() => { window.location.href = "index.html"; });
         }
     </script>
 </body>
