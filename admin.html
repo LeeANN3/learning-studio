@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fun Learning Island - Teacher Admin Dashboard</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
@@ -536,7 +536,7 @@
             </h3>
             <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
                 您即将彻底删除班级代码：<b id="modal-delete-class-code" class="text-slate-900 font-mono font-bold underline">--</b> (<span id="modal-delete-class-name">--</span>)。<br><br>
-                <span class="text-red-600 text-xs font-semibold">⚠️ 系统将自动从所有学生账号及测验解锁授权中同步清除此 Code，学生将立刻无法查看该班级下的资料。</span>
+                <span class="text-red-600 text-xs font-semibold">⚠️ 系统将自动从所有学生账号及测验解锁授权中同步清除此 Code，学生将力刻无法查看该班级下的资料。</span>
             </p>
 
             <div class="flex justify-end gap-3 pt-2">
@@ -617,7 +617,7 @@
             } catch (err) { window.location.href = "index.html"; }
         });
 
-        // 🌟 核心调整：顺序控制，确保先取到完整学生数据，再渲染资源管理界面
+        // 🌟 核心：明确的数据依赖加载链，保证底层名册与班级数据准备完毕后才渲染视图
         async function loadAllData() {
             await fetchClasses();
             await fetchStudents();
@@ -923,7 +923,7 @@
             } catch (err) { alert("彻底删除班级失败：" + err.message); }
         }
 
-        // --- 课程可见性逻辑 ---
+        // --- 课程可见性逻辑 (超强容错保护机制) ---
         async function fetchResources() {
             try {
                 const snapshot = await db.collection("resources").get();
@@ -935,14 +935,16 @@
 
         function filterResources() {
             const tbody = document.getElementById('resource-table-body');
-            const query = document.getElementById('resource-search-input').value.toLowerCase().trim();
-            const gradeFilter = document.getElementById('resource-grade-filter').value;
-            const unitFilter = document.getElementById('resource-unit-filter').value;
+            if (!tbody) return;
+
+            const query = (document.getElementById('resource-search-input')?.value || '').toLowerCase().trim();
+            const gradeFilter = document.getElementById('resource-grade-filter')?.value || 'ALL';
+            const unitFilter = document.getElementById('resource-unit-filter')?.value || 'ALL';
 
             const filtered = allResourcesList.filter(r => {
                 const matchQuery = (r.title || '').toLowerCase().includes(query);
-                const matchGrade = (gradeFilter === 'ALL') || (r.grade == gradeFilter);
-                const matchUnit = (unitFilter === 'ALL') || (r.unit == unitFilter);
+                const matchGrade = (gradeFilter === 'ALL') || (String(r.grade) === String(gradeFilter));
+                const matchUnit = (unitFilter === 'ALL') || (String(r.unit) === String(unitFilter));
                 return matchQuery && matchGrade && matchUnit;
             });
 
@@ -954,12 +956,13 @@
 
             filtered.forEach(r => {
                 const tr = document.createElement('tr');
-                const unlockedClasses = r.unlockedClasses || [];
-                const excludedStudents = r.excludedStudents || [];
+                const unlockedClasses = Array.isArray(r.unlockedClasses) ? r.unlockedClasses : [];
+                const excludedStudents = Array.isArray(r.excludedStudents) ? r.excludedStudents : [];
 
-                let relevantClasses = allClassCodesList;
-                if (r.grade) {
-                    relevantClasses = allClassCodesList.filter(c => c.grade == r.grade || c.grade == 0);
+                // 🛡️ 容错保护：安全的班级匹配逻辑（绝对不因 grade 的类型差异崩掉渲染）
+                let relevantClasses = Array.isArray(allClassCodesList) ? allClassCodesList : [];
+                if (r.grade !== undefined && r.grade !== null && r.grade !== '') {
+                    relevantClasses = relevantClasses.filter(c => String(c.grade) === String(r.grade) || String(c.grade) === '0');
                 }
 
                 const classCheckboxes = relevantClasses.map(c => `
@@ -969,7 +972,7 @@
                     </label>
                 `).join(' ');
 
-                // 🛑 核心改进：保障该处的按钮能够稳定被调用
+                // 🛑 渲染关键列与屏蔽特定学生按钮
                 tr.innerHTML = `
                     <td class="p-2.5 font-bold text-slate-800">${r.title || '无标题'}</td>
                     <td class="p-2.5 text-xs text-slate-500">${r.subject || ''} / ${r.grade || 1}年级 / U${r.unit || 1}</td>
