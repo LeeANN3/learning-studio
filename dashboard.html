@@ -3,173 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun Learning Island - 学生端学习岛</title>
+    <title>Fun Learning Island - Student Dashboard</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        * { box-sizing: border-box; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
             font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
-            background-color: #f8fafc;
-            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+            background-color: #fafafa;
+            background-image: radial-gradient(#e5e7eb 1.2px, transparent 1.2px);
             background-size: 20px 20px;
             min-height: 100vh;
-            color: #0f172a;
+            color: #1a1a1a;
+            padding-bottom: 40px;
         }
 
-        .font-fun { font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; }
-
-        .neo-card {
+        .navbar {
             background-color: #ffffff;
-            border: 2px solid #0f172a;
-            border-radius: 16px;
-            box-shadow: 4px 4px 0px #0f172a;
+            border-bottom: 2px solid #1a1a1a;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0px 4px 0px #1a1a1a;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .neo-btn {
-            background-color: #ffffff;
-            border: 2px solid #0f172a;
-            border-radius: 12px;
-            box-shadow: 2px 2px 0px #0f172a;
-            transition: all 0.15s ease;
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
+            white-space: nowrap;
         }
 
-        .neo-btn:hover {
-            transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px #0f172a;
-        }
-
-        .neo-btn-primary { background-color: #ffe600; }
-        .neo-btn-primary:hover { background-color: #facc15; }
-
-        .neo-input {
-            border: 2px solid #0f172a;
+        .brand-logo i {
+            background: #ffe600;
+            padding: 6px;
             border-radius: 10px;
-            outline: none;
-            padding: 8px 12px;
-            box-shadow: 2px 2px 0px #cbd5e1;
+            border: 2px solid #1a1a1a;
+            box-shadow: 2px 2px 0px #1a1a1a;
+            font-size: 16px;
         }
-        .neo-input:focus { box-shadow: 2px 2px 0px #ffe600; }
 
-        .resource-card {
-            border: 2px solid #0f172a;
-            border-radius: 14px;
-            box-shadow: 3px 3px 0px #0f172a;
-            transition: transform 0.15s ease;
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
-        .resource-card:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 5px 5px 0px #0f172a;
+
+        .user-info-badge {
+            background: #f4f4f5;
+            border: 2px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 4px 8px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
         }
+
+        .btn-ui {
+            background: #ffffff;
+            border: 2px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 4px 10px;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            text-decoration: none;
+            color: #1a1a1a;
+        }
+
+        .btn-ui:hover {
+            background: #ffe600;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #1a1a1a;
+        }
+
+        .btn-profile-portal { background: #bae6fd; }
+        .btn-profile-portal:hover { background: #7dd3fc; }
+        .btn-teacher-admin { background: #ffe600; border-color: #1a1a1a; }
+        .btn-teacher-admin:hover { background: #facc15; }
+        .btn-logout:hover { background: #ff4d4d; color: #ffffff; }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 16px;
+        }
+
+        .dashboard-header-card {
+            background: #ffffff;
+            border: 2px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 4px 4px 0px #1a1a1a;
+            margin-bottom: 20px;
+        }
+
+        .title-grade {
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+            font-size: 22px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .selectors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 2px solid #1a1a1a;
+            border-radius: 10px;
+            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive;
+            font-size: 15px;
+            outline: none;
+            background-color: #ffffff;
+            box-shadow: 2px 2px 0px #1a1a1a;
+            cursor: pointer;
+        }
+
+        .section-card {
+            background: #ffffff;
+            border: 2px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 4px 4px 0px #1a1a1a;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
+            font-size: 18px;
+            margin-bottom: 12px;
+            border-bottom: 2px dashed #e5e7eb;
+            padding-bottom: 8px;
+        }
+
+        .section-header i {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 2px solid #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            box-shadow: 2px 2px 0px #1a1a1a;
+        }
+
+        .icon-quiz { background-color: #ffe600; }
+        .icon-review { background-color: #4da6ff; color: white; }
+        .icon-game { background-color: #ff66b2; color: white; }
+
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .link-item {
+            background-color: #ffffff;
+            border: 2px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 10px 12px;
+            text-decoration: none;
+            color: #1a1a1a;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 2px 2px 0px #1a1a1a;
+            transition: all 0.15s ease;
+        }
+
+        .link-item:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px #1a1a1a;
+            background-color: #fff9c4;
+        }
+
+        .empty-tip { color: #888; font-size: 13px; font-style: italic; padding: 6px 0; }
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="pb-12">
+<body>
 
-    <!-- Top Navigation Bar -->
-    <nav class="bg-white border-b-2 border-slate-900 sticky top-0 z-40 px-3 sm:px-6 py-2.5 shadow-[0_4px_0_#0f172a]">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            
-            <div class="flex items-center gap-2.5">
-                <div class="bg-amber-300 p-2 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#0f172a]">
-                    <i class="fa-solid fa-gamepad text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-fun text-lg sm:text-xl font-bold leading-tight">趣味学习岛</h1>
-                    <p class="text-[10px] sm:text-xs text-slate-500 font-sans">Fun Learning Island</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <!-- 个人中心 Portal 入口 -->
-                <a href="profile.html" class="neo-btn bg-amber-100 hover:bg-amber-200 px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-gear"></i>
-                    <span class="hidden sm:inline">个人主页</span>
-                </a>
-
-                <!-- 教师后台快捷入口 (仅 Teacher 角色可见) -->
-                <a href="admin.html" id="nav-teacher-btn" class="neo-btn bg-amber-300 hover:bg-amber-400 px-3 py-1.5 text-xs sm:text-sm items-center gap-1.5 hidden">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                    <span class="hidden sm:inline">教师后台</span>
-                </a>
-
-                <button onclick="handleLogout()" class="neo-btn bg-rose-100 hover:bg-rose-200 text-rose-700 px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
-            </div>
+    <div class="navbar">
+        <div class="brand-logo">
+            <i class="fa-solid fa-gamepad"></i>
+            <span id="txt-app-title">趣味学习岛</span>
         </div>
-    </nav>
 
-    <div class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+        <div class="user-actions">
+            <!-- 👤 个人 Profile 快捷入口 -->
+            <a href="profile.html" class="btn-ui btn-profile-portal">
+                <i class="fa-solid fa-user-gear"></i>
+                <span id="txt-profile-portal">个人主页</span>
+            </a>
 
-        <!-- 🔒 商业防护级 Dynamic Dropdown Selector (仅渲染已解锁项目) -->
-        <div class="neo-card p-4 bg-amber-50/80">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-                <h2 class="font-fun text-base sm:text-lg font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-filter text-amber-500"></i>
-                    <span>已授权课程单元筛选</span>
-                </h2>
-                <div class="text-xs text-slate-500 font-bold" id="user-status-tip">
-                    <i class="fa-solid fa-spinner fa-spin"></i> 正在加载权限...
-                </div>
+            <!-- 🏫 教师后台入口 (仅 Teacher 可见) -->
+            <a href="admin.html" id="btn-admin-portal" class="btn-ui btn-teacher-admin hidden">
+                <i class="fa-solid fa-chalkboard-user"></i>
+                <span id="txt-admin-portal">教室后台</span>
+            </a>
+
+            <button type="button" class="btn-ui" onclick="toggleLanguage()">
+                <i class="fa-solid fa-globe"></i>
+                <span id="lang-btn-text">English</span>
+            </button>
+            <div class="user-info-badge">
+                <i id="user-role-icon" class="fa-solid fa-user-graduate"></i>
+                <span id="user-name-display">验证中...</span>
+            </div>
+            <button type="button" class="btn-ui btn-logout" onclick="handleLogout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="dashboard-header-card">
+            <div class="title-grade">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <span id="display-grade-title">学习区</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">科目 (Subject)</label>
-                    <select id="select-subject" onchange="filterResources()" class="neo-input w-full bg-white font-fun text-xs sm:text-sm">
-                        <option value="">加载中...</option>
+            <div class="selectors-grid">
+                <div class="form-group">
+                    <label for="select-grade" id="lbl-select-grade">选择年级</label>
+                    <select id="select-grade" class="form-select" onchange="onGradeChange()">
+                        <option value="1">一年级 (Grade 1)</option>
+                        <option value="2">二年级 (Grade 2)</option>
+                        <option value="3">三年级 (Grade 3)</option>
+                        <option value="4">四年级 (Grade 4)</option>
+                        <option value="5">五年级 (Grade 5)</option>
+                        <option value="6">六年级 (Grade 6)</option>
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">年级 (Grade)</label>
-                    <select id="select-grade" onchange="filterResources()" class="neo-input w-full bg-white font-fun text-xs sm:text-sm">
-                        <option value="">加载中...</option>
-                    </select>
+                <div class="form-group">
+                    <label for="select-subject" id="lbl-select-subject">选择科目</label>
+                    <select id="select-subject" class="form-select" onchange="onSubjectChange()"></select>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">单元 (Unit)</label>
-                    <select id="select-unit" onchange="filterResources()" class="neo-input w-full bg-white font-fun text-xs sm:text-sm">
-                        <option value="">加载中...</option>
-                    </select>
+                <div class="form-group">
+                    <label for="select-unit" id="lbl-select-unit">选择单元</label>
+                    <select id="select-unit" class="form-select" onchange="renderResources()"></select>
                 </div>
             </div>
         </div>
 
-        <!-- 🎮 游戏机制 & 测验板块 -->
-        <div class="space-y-4">
-            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-trophy text-amber-500"></i>
-                <span>互动测验与游戏 (Quizzes & Games)</span>
-            </h3>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="quiz-list">
-                <div class="col-span-full p-8 text-center neo-card bg-white text-slate-400 font-fun">
-                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在拉取您的授权课程...
-                </div>
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-file-pen icon-quiz"></i>
+                <span id="txt-sec-quiz">测验 (Quizzes)</span>
             </div>
+            <div class="link-grid" id="quiz-list"></div>
         </div>
 
-        <!-- 📖 复习与学习资料板块 -->
-        <div class="space-y-4">
-            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-book-open text-sky-500"></i>
-                <span>复习指南与讲义 (Review Materials)</span>
-            </h3>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="review-list">
-                <div class="col-span-full p-8 text-center neo-card bg-white text-slate-400 font-fun">
-                    <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在加载复习讲义...
-                </div>
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-book-open icon-review"></i>
+                <span id="txt-sec-review">复习 (Revision)</span>
             </div>
+            <div class="link-grid" id="review-list"></div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fa-solid fa-dice icon-game"></i>
+                <span id="txt-sec-game">游戏 (Educational Games)</span>
+            </div>
+            <div class="link-grid" id="game-list"></div>
         </div>
 
     </div>
@@ -194,194 +338,220 @@
         const db = firebase.firestore();
 
         let currentUserData = null;
-        let myAllowedResources = []; // 存储该学生有权限访问的所有资源
+        let currentLang = 'zh';
+        let sessionUnsubscribe = null;
 
-        // 🎮 Runner 页面映射字典 (方便后续扩展新游戏)
-        const runnerMap = {
-            'multiple_choice': 'quiz-runner.html',
-            'card_matching': 'card-runner.html',
-            'spelling_game': 'spelling-runner.html'
+        const allSubjects = [
+            { id: 'chinese', zh: '华文', en: 'Chinese' },
+            { id: 'malay', zh: '马来文', en: 'Malay' },
+            { id: 'english', zh: '英文', en: 'English' },
+            { id: 'math', zh: '数学', en: 'Mathematics' },
+            { id: 'science', zh: '科学', en: 'Science' }
+        ];
+
+        const translations = {
+            zh: {
+                langBtn: "English", appTitle: "趣味学习岛", logout: "退出", adminPortal: "教师后台", profilePortal: "个人主页",
+                lblGrade: "选择年级", lblSubject: "选择科目", lblUnit: "选择单元",
+                secQuiz: "测验", secReview: "复习", secGame: "游戏",
+                emptyTip: "暂无相关链接资源", loadingTip: "载入中...", gradeTitleSuffix: "年级学习区",
+                tagStudent: "学生", tagTeacher: "教师", unitPrefix: "单元 ",
+                noClassPermission: "🔒 权限锁定：您未加入有效班级或该单元未对您解锁。请联络老师。"
+            },
+            en: {
+                langBtn: "中文", appTitle: "Fun Learning", logout: "Exit", adminPortal: "Admin", profilePortal: "Profile",
+                lblGrade: "Grade", lblSubject: "Subject", lblUnit: "Unit",
+                secQuiz: "Quizzes", secReview: "Revision", secGame: "Games",
+                emptyTip: "No resources available", loadingTip: "Loading...", gradeTitleSuffix: " Learning Area",
+                tagStudent: "Student", tagTeacher: "Teacher", unitPrefix: "Unit ",
+                noClassPermission: "🔒 Access Restricted: You are not enrolled in an active class for this unit."
+            }
         };
 
         auth.onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = "index.html"; return; }
-            
             try {
-                const userDoc = await db.collection("users").doc(user.uid).get();
-                if (userDoc.exists) {
-                    currentUserData = { uid: user.uid, ...userDoc.data() };
+                const doc = await db.collection("users").doc(user.uid).get();
+                if (doc.exists) {
+                    currentUserData = { uid: user.uid, ...doc.data() };
                     
-                    if (currentUserData.role === 'teacher') {
-                        document.getElementById('nav-teacher-btn').classList.remove('hidden');
-                        document.getElementById('nav-teacher-btn').classList.add('flex');
+                    // 🛡️ 闸门四：拦截待分配/未审批的学生
+                    if (currentUserData.role === 'student' && currentUserData.status === 'pending_approval') {
+                        window.location.href = "profile.html";
+                        return;
                     }
 
-                    document.getElementById('user-status-tip').innerText = `欢迎你，${currentUserData.name || '同学'}`;
-                    await loadAndRenderAccessibleResources();
+                    // 🛡️ 闸门三：启动多设备单点登录 (SSO) 监听
+                    listenSessionToken(user.uid);
+
+                    setupDashboardUI();
                 } else {
                     window.location.href = "index.html";
                 }
-            } catch (err) {
-                console.error("验证登录失败:", err);
-            }
+            } catch (err) { window.location.href = "index.html"; }
         });
 
-        // 🔒 核心防御：完全按“已有授权”动态反向生成下拉菜单，防竞争对手爬取课程库
-        async function loadAndRenderAccessibleResources() {
-            try {
-                const snapshot = await db.collection("resources").get();
-                myAllowedResources = [];
+        // 🛡️ 单点登录监听：第二台设备登录后，第一台强行挤掉
+        function listenSessionToken(uid) {
+            const currentLocalSession = localStorage.getItem('userSessionToken');
+            if (!currentLocalSession) return;
 
+            sessionUnsubscribe = db.collection("users").doc(uid).onSnapshot(doc => {
+                if (doc.exists) {
+                    const remoteSession = doc.data().currentSessionToken;
+                    if (remoteSession && remoteSession !== currentLocalSession) {
+                        alert("⚠️ 您的账号已在另一台设备登录！现将自动退出。");
+                        auth.signOut().then(() => { window.location.href = "index.html"; });
+                    }
+                }
+            });
+        }
+
+        function setupDashboardUI() {
+            const t = translations[currentLang];
+            document.getElementById('user-name-display').innerText = currentUserData.name || "使用者";
+            document.getElementById('txt-profile-portal').innerText = t.profilePortal;
+            document.getElementById('txt-admin-portal').innerText = t.adminPortal;
+            document.getElementById('txt-app-title').innerText = t.appTitle;
+
+            const adminBtn = document.getElementById('btn-admin-portal');
+            if (currentUserData.role === 'teacher') {
+                adminBtn.classList.remove('hidden');
+                document.getElementById('user-role-icon').className = 'fa-solid fa-chalkboard-user';
+            } else {
+                adminBtn.classList.add('hidden');
+                document.getElementById('user-role-icon').className = 'fa-solid fa-user-graduate';
+            }
+
+            document.getElementById('lbl-select-grade').innerText = t.lblGrade;
+            document.getElementById('lbl-select-subject').innerText = t.lblSubject;
+            document.getElementById('lbl-select-unit').innerText = t.lblUnit;
+            document.getElementById('txt-sec-quiz').innerText = t.secQuiz;
+            document.getElementById('txt-sec-review').innerText = t.secReview;
+            document.getElementById('txt-sec-game').innerText = t.secGame;
+
+            document.getElementById('select-grade').value = currentUserData.grade || 1;
+            initSubjectDropdown();
+            updateGradeTitle();
+        }
+
+        function initSubjectDropdown() {
+            const subjectSelect = document.getElementById('select-subject');
+            const currentSelected = subjectSelect.value;
+            subjectSelect.innerHTML = '';
+            allSubjects.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub.id;
+                opt.innerText = currentLang === 'zh' ? sub.zh : sub.en;
+                if (sub.id === currentSelected) opt.selected = true;
+                subjectSelect.appendChild(opt);
+            });
+            onSubjectChange(); 
+        }
+
+        function onGradeChange() { updateGradeTitle(); renderResources(); }
+        function onSubjectChange() {
+            const unitSelect = document.getElementById('select-unit');
+            const currentSelectedUnit = unitSelect.value;
+            unitSelect.innerHTML = '';
+            const t = translations[currentLang];
+            for (let i = 1; i <= 20; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = `${t.unitPrefix}${i}`;
+                if (i == currentSelectedUnit) opt.selected = true;
+                unitSelect.appendChild(opt);
+            }
+            renderResources();
+        }
+
+        function updateGradeTitle() {
+            const gradeVal = document.getElementById('select-grade').value;
+            const t = translations[currentLang];
+            document.getElementById('display-grade-title').innerText = currentLang === 'zh' 
+                ? `${['一', '二', '三', '四', '五', '六'][gradeVal - 1]}${t.gradeTitleSuffix}`
+                : `Grade ${gradeVal}${t.gradeTitleSuffix}`;
+        }
+
+        async function renderResources() {
+            const gradeVal = document.getElementById('select-grade').value;
+            const subjectVal = document.getElementById('select-subject').value;
+            const unitVal = document.getElementById('select-unit').value;
+            const t = translations[currentLang];
+
+            ['quiz-list', 'review-list', 'game-list'].forEach(id => {
+                document.getElementById(id).innerHTML = `<div class="empty-tip">${t.loadingTip}</div>`;
+            });
+
+            try {
+                // 🛡️ 闸门一：数据库查询比对已解锁项目
+                const snapshot = await db.collection("resources").where("subject", "==", subjectVal).get();
+                const quizzes = [], reviews = [], games = [];
+                const userId = auth.currentUser ? auth.currentUser.uid : null;
                 const userRole = currentUserData ? currentUserData.role : 'student';
                 const userClasses = (currentUserData && currentUserData.enrolledClasses) ? currentUserData.enrolledClasses : [];
-                const userId = currentUserData ? currentUserData.uid : null;
-
-                const allowedSubjects = new Set();
-                const allowedGrades = new Set();
-                const allowedUnits = new Set();
 
                 snapshot.forEach(doc => {
-                    const item = { id: doc.id, ...doc.data() };
-                    let hasPermission = false;
+                    const item = doc.data();
+                    if (item.grade != gradeVal || item.unit != unitVal) return;
 
+                    let hasPermission = false;
                     if (userRole === 'teacher') {
-                        hasPermission = true; // 教师可见所有
+                        hasPermission = true;
                     } else {
                         const isPublished = (item.isPublished !== false);
                         const unlockedClasses = item.unlockedClasses || [];
                         const excludedStudents = item.excludedStudents || [];
-
-                        // 校验：学生绑定的班级中，是否有任何一个属于资料解锁列表
                         const inUnlockedClass = userClasses.some(cls => unlockedClasses.includes(cls));
                         const isExcluded = excludedStudents.includes(userId);
-
-                        if (isPublished && inUnlockedClass && !isExcluded) {
-                            hasPermission = true;
-                        }
+                        if (isPublished && inUnlockedClass && !isExcluded) hasPermission = true;
                     }
 
                     if (hasPermission) {
-                        myAllowedResources.push(item);
-                        if (item.subject) allowedSubjects.add(item.subject);
-                        if (item.grade !== undefined && item.grade !== null) allowedGrades.add(item.grade);
-                        if (item.unit) allowedUnits.add(item.unit);
+                        if (item.type === 'quiz') quizzes.push(item);
+                        else if (item.type === 'review') reviews.push(item);
+                        else if (item.type === 'game') games.push(item);
                     }
                 });
 
-                // 如果未分配班级或未解锁任何资料，显示保密锁定
-                if (myAllowedResources.length === 0) {
-                    renderEmptyOptions('select-subject', '无解锁科目');
-                    renderEmptyOptions('select-grade', '无解锁年级');
-                    renderEmptyOptions('select-unit', '无解锁单元');
-
-                    document.getElementById('quiz-list').innerHTML = `<div class="col-span-full p-8 text-center neo-card bg-amber-50 text-slate-500 font-fun">🔒 您当前暂无解锁的测验或游戏。<br><span class="text-xs text-slate-400 font-sans">请联系补习班老师为您分配班级与解锁对应单元。</span></div>`;
-                    document.getElementById('review-list').innerHTML = `<div class="col-span-full p-8 text-center neo-card bg-amber-50 text-slate-500 font-fun">🔒 暂无复习资料</div>`;
-                    return;
-                }
-
-                // 动态构建下拉列表（防暴露其他未解锁单元）
-                populateSelect('select-subject', Array.from(allowedSubjects), val => val);
-                populateSelect('select-grade', Array.from(allowedGrades).sort((a,b)=>a-b), val => `${val} 年级`);
-                populateSelect('select-unit', Array.from(allowedUnits).sort((a,b)=>a-b), val => `单元 ${val}`);
-
-                filterResources();
-
-            } catch (err) {
-                console.error("加载资源失败:", err);
+                renderLinkGrid('quiz-list', quizzes, 'fa-circle-question');
+                renderLinkGrid('review-list', reviews, 'fa-file-lines');
+                renderLinkGrid('game-list', games, 'fa-gamepad');
+            } catch (error) {
+                ['quiz-list', 'review-list', 'game-list'].forEach(id => {
+                    document.getElementById(id).innerHTML = `<div class="empty-tip">${t.emptyTip}</div>`;
+                });
             }
         }
 
-        function populateSelect(elemId, valuesArray, formatterFn) {
-            const select = document.getElementById(elemId);
-            select.innerHTML = '<option value="ALL">全部 (All)</option>';
-            valuesArray.forEach(val => {
-                const opt = document.createElement('option');
-                opt.value = val;
-                opt.innerText = formatterFn(val);
-                select.appendChild(opt);
+        function renderLinkGrid(elementId, items, iconClass) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = items.length === 0 ? `<div class="empty-tip">${translations[currentLang].emptyTip}</div>` : '';
+
+            items.forEach(item => {
+                const a = document.createElement('a');
+                a.href = item.url || '#';
+                a.className = 'link-item';
+                a.target = '_blank';
+                a.innerHTML = `
+                    <span><i class="fa-solid ${iconClass}" style="margin-right:6px;"></i>${item.title || 'Untitled'}</span>
+                    <i class="fa-solid fa-chevron-right" style="font-size:12px; opacity:0.6;"></i>
+                `;
+                container.appendChild(a);
             });
         }
 
-        function renderEmptyOptions(elemId, text) {
-            document.getElementById(elemId).innerHTML = `<option value="">${text}</option>`;
-        }
-
-        function filterResources() {
-            const selectedSubject = document.getElementById('select-subject').value;
-            const selectedGrade = document.getElementById('select-grade').value;
-            const selectedUnit = document.getElementById('select-unit').value;
-
-            const quizContainer = document.getElementById('quiz-list');
-            const reviewContainer = document.getElementById('review-list');
-
-            quizContainer.innerHTML = '';
-            reviewContainer.innerHTML = '';
-
-            let quizCount = 0, reviewCount = 0;
-
-            myAllowedResources.forEach(r => {
-                const matchSub = (selectedSubject === 'ALL' || !selectedSubject) || r.subject === selectedSubject;
-                const matchGrade = (selectedGrade === 'ALL' || !selectedGrade) || r.grade == selectedGrade;
-                const matchUnit = (selectedUnit === 'ALL' || !selectedUnit) || r.unit == selectedUnit;
-
-                if (matchSub && matchGrade && matchUnit) {
-                    if (r.type === 'quiz' || r.type === 'game' || !r.type) {
-                        quizCount++;
-                        
-                        // 动态获取游戏路由
-                        const runnerPage = runnerMap[r.gameType] || 'quiz-runner.html';
-                        const targetUrl = `${runnerPage}?quizId=${r.id}`;
-
-                        quizContainer.innerHTML += `
-                            <div class="resource-card p-4 bg-white flex flex-col justify-between">
-                                <div>
-                                    <div class="flex justify-between items-start mb-2">
-                                        <span class="bg-amber-300 text-slate-900 border border-slate-900 font-bold px-2 py-0.5 rounded text-[11px] font-fun">${r.subject || '科目'}</span>
-                                        <span class="text-xs bg-slate-100 border border-slate-300 px-2 py-0.5 rounded font-bold text-slate-600">${r.grade || 1}年级 / U${r.unit || 1}</span>
-                                    </div>
-                                    <h4 class="font-fun font-bold text-base text-slate-800 mb-1">${r.title || '互动测验'}</h4>
-                                    <p class="text-xs text-slate-500 font-sans line-clamp-2">${r.description || '点击开始练习并积累积分！'}</p>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-slate-200 flex justify-end">
-                                    <a href="${targetUrl}" class="neo-btn neo-btn-primary px-3.5 py-1.5 text-xs flex items-center gap-1.5">
-                                        <i class="fa-solid fa-play"></i> 开始挑战
-                                    </a>
-                                </div>
-                            </div>
-                        `;
-                    } else if (r.type === 'review') {
-                        reviewCount++;
-                        reviewContainer.innerHTML += `
-                            <div class="resource-card p-4 bg-sky-50 flex flex-col justify-between">
-                                <div>
-                                    <div class="flex justify-between items-start mb-2">
-                                        <span class="bg-sky-200 text-sky-900 border border-slate-900 font-bold px-2 py-0.5 rounded text-[11px] font-fun">${r.subject || '复习'}</span>
-                                        <span class="text-xs bg-white border border-slate-300 px-2 py-0.5 rounded font-bold text-slate-600">${r.grade || 1}年级 / U${r.unit || 1}</span>
-                                    </div>
-                                    <h4 class="font-fun font-bold text-base text-slate-800 mb-1">${r.title || '复习指南'}</h4>
-                                    <p class="text-xs text-slate-500 font-sans">${r.description || '复习核心知识点'}</p>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-slate-200 flex justify-end">
-                                    <a href="${r.link || '#'}" target="_blank" class="neo-btn bg-white hover:bg-slate-100 px-3.5 py-1.5 text-xs flex items-center gap-1.5">
-                                        <i class="fa-solid fa-file-pdf text-red-500"></i> 阅读讲义
-                                    </a>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            });
-
-            if (quizCount === 0) {
-                quizContainer.innerHTML = `<div class="col-span-full p-6 text-center neo-card bg-white text-slate-400 font-fun text-xs">无匹配的测验项目</div>`;
-            }
-            if (reviewCount === 0) {
-                reviewContainer.innerHTML = `<div class="col-span-full p-6 text-center neo-card bg-white text-slate-400 font-fun text-xs">无匹配的复习讲义</div>`;
-            }
+        function toggleLanguage() {
+            currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+            setupDashboardUI();
         }
 
         function handleLogout() {
-            auth.signOut().then(() => { window.location.href = "index.html"; });
+            if (sessionUnsubscribe) sessionUnsubscribe();
+            auth.signOut().then(() => { 
+                localStorage.removeItem('userSessionToken');
+                window.location.href = "index.html"; 
+            });
         }
     </script>
 </body>
