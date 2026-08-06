@@ -223,7 +223,7 @@
             }
         };
 
-        function generateSessionId() {
+        function generateSessionToken() {
             return 'sess_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
         }
 
@@ -254,9 +254,10 @@
             }
         }
 
+        // 统一登录成功引导向个人中心 profile.html
         auth.onAuthStateChanged((user) => {
             if (user && !isSubmitting) {
-                window.location.href = "dashboard.html";
+                window.location.href = "profile.html";
             }
         });
 
@@ -288,44 +289,45 @@
             isSubmitting = true;
 
             try {
-                const newSessionId = generateSessionId();
+                const newSessionToken = generateSessionToken();
 
                 if (currentMode === 'login') {
                     const cred = await auth.signInWithEmailAndPassword(email, password);
                     
-                    // 登录成功：更新云端的 currentSessionId，挤掉其他设备
+                    // 登录成功更新 currentSessionToken
                     await db.collection("users").doc(cred.user.uid).set({
-                        currentSessionId: newSessionId,
+                        currentSessionToken: newSessionToken,
                         lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
 
-                    localStorage.setItem("my_app_session_id", newSessionId);
-                    window.location.href = "dashboard.html";
+                    localStorage.setItem('userSessionToken', newSessionToken);
+                    window.location.href = "profile.html";
                 } else {
                     if (!displayName) throw { message: t.errRequireName };
 
-                    // 1. 创建 Firebase Auth 账号
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
                     await cred.user.updateProfile({ displayName: displayName });
 
-                    // 2. 提取班级码
                     let enrolledClasses = [];
+                    let initialStatus = 'pending_approval'; // 默认待审核
+
                     if (classCodeRaw) {
                         enrolledClasses.push(classCodeRaw.toUpperCase());
+                        initialStatus = 'approved'; // 填了班级邀请码直接开通
                     }
 
-                    // 3. 写入 Firestore 个人文档：🔒 强行指定 role 必须是 'student'
                     await db.collection("users").doc(cred.user.uid).set({
                         name: displayName,
                         email: email,
-                        role: 'student', // 任何自主注册的账号绝对只能是 student
+                        role: 'student', // 注册用户强行指定只能是 student
+                        status: initialStatus,
                         enrolledClasses: enrolledClasses,
-                        currentSessionId: newSessionId,
+                        currentSessionToken: newSessionToken,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    localStorage.setItem("my_app_session_id", newSessionId);
-                    window.location.href = "dashboard.html";
+                    localStorage.setItem('userSessionToken', newSessionToken);
+                    window.location.href = "profile.html";
                 }
             } catch (err) {
                 isSubmitting = false;
