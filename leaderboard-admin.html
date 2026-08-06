@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>做题成绩与答题分析榜 - Fun Learning Island</title>
+    <title>班级做题成绩与答题分析榜 - Fun Learning Island</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,8 +54,8 @@
                     <i class="fa-solid fa-trophy text-lg sm:text-xl text-amber-800"></i>
                 </div>
                 <div>
-                    <h1 class="font-fun text-lg sm:text-xl font-bold leading-tight">做题成绩与答题分析榜</h1>
-                    <p class="text-[10px] sm:text-xs text-slate-500 font-sans">Leaderboard & Analytics Portal</p>
+                    <h1 class="font-fun text-lg sm:text-xl font-bold leading-tight">班级做题成绩与答题分析榜</h1>
+                    <p class="text-[10px] sm:text-xs text-slate-500 font-sans">Class Leaderboard & Game Analytics</p>
                 </div>
             </div>
 
@@ -69,101 +69,65 @@
     </nav>
 
     <div class="max-w-7xl mx-auto px-4 mt-6">
-        <div class="neo-card p-4 sm:p-5">
-            
-            <!-- 级联筛选栏 Header -->
-            <div class="bg-amber-100/60 p-4 rounded-xl border-2 border-slate-900 mb-5">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3">
-                    <h3 class="font-fun text-lg sm:text-xl font-bold flex items-center gap-2">
-                        <i class="fa-solid fa-filter text-amber-500"></i>
-                        <span>做题榜精准检索与多维筛选</span>
-                    </h3>
-                    <button onclick="clearCurrentQuizLeaderboard()" class="neo-btn neo-btn-danger px-3 py-1.5 text-xs flex items-center gap-1.5">
-                        <i class="fa-solid fa-broom"></i>
-                        <span>一键清空匹配记录</span>
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">1. 选择班级</label>
-                        <select id="score-filter-class" onchange="fetchScores()" class="neo-input w-full bg-white text-xs font-fun">
-                            <option value="ALL">全部班级 (All)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">2. 科目</label>
-                        <select id="score-filter-subject" onchange="fetchScores()" class="neo-input w-full bg-white text-xs font-fun">
-                            <option value="ALL">全部科目</option>
-                            <option value="chinese">华文</option>
-                            <option value="malay">马来文</option>
-                            <option value="english">英文</option>
-                            <option value="math">数学</option>
-                            <option value="science">科学</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">3. 单元</label>
-                        <select id="score-filter-unit" onchange="fetchScores()" class="neo-input w-full bg-white text-xs font-fun">
-                            <option value="ALL">全部单元</option>
-                            <option value="1">单元 1</option>
-                            <option value="2">单元 2</option>
-                            <option value="3">单元 3</option>
-                            <option value="4">单元 4</option>
-                            <option value="5">单元 5</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">4. 测验 ID/短语</label>
-                        <input type="text" id="score-filter-quizid" onkeyup="fetchScores()" placeholder="关键词..." class="neo-input w-full text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">5. 展示人数</label>
-                        <select id="score-filter-limit" onchange="fetchScores()" class="neo-input w-full bg-white text-xs font-fun">
-                            <option value="10">Top 10 名</option>
-                            <option value="20" selected>Top 20 名</option>
-                            <option value="50">Top 50 名</option>
-                            <option value="1000">全部成绩</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">6. 时间范围</label>
-                        <select id="score-filter-timespan" onchange="fetchScores()" class="neo-input w-full bg-white text-xs font-fun">
-                            <option value="ALL">全量历史</option>
-                            <option value="7">近 7 天</option>
-                            <option value="30" selected>近 30 天</option>
-                        </select>
-                    </div>
-                </div>
+        
+        <!-- 🎯 控制栏：班级 -> 科目 -> 单元级联筛选 -->
+        <div class="neo-card p-4 sm:p-5 mb-6 bg-amber-100/60">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-3">
+                <h3 class="font-fun text-lg sm:text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-filter text-amber-600"></i>
+                    <span>班级与课程单元筛选</span>
+                </h3>
+                <span class="text-xs text-slate-500 font-bold">按测验/游戏卡片分组展示成绩</span>
             </div>
 
-            <!-- 结果表格 -->
-            <div class="overflow-x-auto rounded-xl border-2 border-slate-900 bg-white">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-100 border-b-2 border-slate-900 font-fun text-xs sm:text-sm">
-                            <th class="p-3 text-center">名次</th>
-                            <th class="p-3">学生姓名 / 班级</th>
-                            <th class="p-3">做题测验名称</th>
-                            <th class="p-3 text-center">得分 / 用时</th>
-                            <th class="p-3 text-center">尝试次数 / 错题数</th>
-                            <th class="p-3">提交时间</th>
-                            <th class="p-3 text-center">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="score-table-body" class="divide-y border-slate-200 text-xs sm:text-sm font-sans">
-                        <tr>
-                            <td colspan="7" class="p-8 text-center text-slate-400 font-fun text-base">
-                                <i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>正在加载榜单数据...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">1. 目标班级 (Class)</label>
+                    <select id="select-class-code" onchange="loadLeaderboardCards()" class="neo-input w-full bg-white text-xs sm:text-sm font-fun">
+                        <option value="ALL">全部班级 (All Classes)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">2. 课程科目 (Subject)</label>
+                    <select id="select-subject" onchange="loadLeaderboardCards()" class="neo-input w-full bg-white text-xs sm:text-sm font-fun">
+                        <option value="ALL">全部科目 (All Subjects)</option>
+                        <option value="chinese">华文</option>
+                        <option value="malay">马来文</option>
+                        <option value="english">英文</option>
+                        <option value="math">数学</option>
+                        <option value="science">科学</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">3. 课程单元 (Unit)</label>
+                    <select id="select-unit" onchange="loadLeaderboardCards()" class="neo-input w-full bg-white text-xs sm:text-sm font-fun">
+                        <option value="ALL">全部单元 (All Units)</option>
+                        <!-- 动态生成 1 - 20 单元 -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">4. 搜索测验/游戏名称</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="input-search" onkeyup="loadLeaderboardCards()" placeholder="输入测验名称..." class="neo-input w-full pl-9 text-xs sm:text-sm">
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- 🃏 卡片式榜单网格容器 -->
+        <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="col-span-full p-12 text-center neo-card bg-white font-fun text-slate-400">
+                <i class="fa-solid fa-spinner fa-spin text-3xl mb-3 text-amber-500"></i><br>正在为您加载班级游戏榜单...
+            </div>
+        </div>
+
     </div>
 
-    <!-- Edit Score Modal -->
+    <!-- ✏️ 编辑成绩 Modal -->
     <div id="edit-score-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold flex items-center gap-2">
@@ -217,6 +181,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        let rawLeaderboardData = [];
         let scoreTargetToEdit = null;
 
         auth.onAuthStateChanged(async (user) => {
@@ -224,112 +189,164 @@
             try {
                 const userDoc = await db.collection("users").doc(user.uid).get();
                 if (userDoc.exists && userDoc.data().role === 'teacher') {
-                    fetchClassesOptions();
-                    fetchScores();
+                    initUnitOptions();
+                    await fetchClassOptions();
+                    await fetchAllScores();
                 } else {
                     window.location.href = "dashboard.html";
                 }
             } catch (err) { window.location.href = "index.html"; }
         });
 
-        async function fetchClassesOptions() {
-            const select = document.getElementById('score-filter-class');
-            try {
-                const snapshot = await db.collection("classes").get();
-                select.innerHTML = `<option value="ALL">全部班级 (All)</option>`;
-                snapshot.forEach(doc => {
-                    const c = doc.data();
-                    select.innerHTML += `<option value="${doc.id}">${doc.id} (${c.className || ''})</option>`;
-                });
-            } catch (e) {}
-        }
-
-        async function fetchScores() {
-            const tbody = document.getElementById('score-table-body');
-            tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 font-fun text-base"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><br>拉取中...</td></tr>`;
-
-            const classVal = document.getElementById('score-filter-class').value;
-            const subjectVal = document.getElementById('score-filter-subject').value;
-            const unitVal = document.getElementById('score-filter-unit').value;
-            const quizIdVal = document.getElementById('score-filter-quizid').value.trim().toLowerCase();
-            const limitVal = parseInt(document.getElementById('score-filter-limit').value);
-            const timespanVal = document.getElementById('score-filter-timespan').value;
-
-            try {
-                const snapshot = await db.collection("leaderboard").orderBy("score", "desc").limit(300).get();
-                let records = [];
-                const now = new Date();
-
-                snapshot.forEach(doc => {
-                    const data = { id: doc.id, ...doc.data() };
-                    if (data.status === "pending_delete") return;
-
-                    if (classVal !== 'ALL' && data.classCode !== classVal) return;
-                    if (subjectVal !== 'ALL' && data.subject !== subjectVal) return;
-                    if (unitVal !== 'ALL' && data.unit != unitVal) return;
-                    if (quizIdVal !== '' && !(data.quizId || '').toLowerCase().includes(quizIdVal) && !(data.quizTitle || '').toLowerCase().includes(quizIdVal)) return;
-
-                    if (timespanVal !== 'ALL' && data.timestamp) {
-                        const recDate = new Date(data.timestamp.seconds * 1000);
-                        if ((now - recDate) / (1000 * 60 * 60 * 24) > parseInt(timespanVal)) return;
-                    }
-                    records.push(data);
-                });
-
-                records.sort((a, b) => (b.score !== a.score) ? b.score - a.score : (a.timeSpent || 9999) - (b.timeSpent || 9999));
-                records = records.slice(0, limitVal);
-
-                tbody.innerHTML = '';
-                if (records.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-400 italic font-fun">没有匹配的成绩记录</td></tr>`;
-                    return;
-                }
-
-                records.forEach((r, idx) => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 transition-colors";
-
-                    let rankBadge = `<span class="font-bold text-slate-500 font-mono">#${idx + 1}</span>`;
-                    if (idx === 0) rankBadge = `<span class="text-xl">🥇</span>`;
-                    else if (idx === 1) rankBadge = `<span class="text-xl">🥈</span>`;
-                    else if (idx === 2) rankBadge = `<span class="text-xl">🥉</span>`;
-
-                    const attempts = r.attemptsCount || 1;
-                    const wrongs = (r.wrongAnswersCount !== undefined) ? r.wrongAnswersCount : (r.score < 100 ? 1 : 0);
-
-                    tr.innerHTML = `
-                        <td class="p-3 text-center">${rankBadge}</td>
-                        <td class="p-3">
-                            <div class="font-bold text-slate-900">${r.playerName || '匿名'}</div>
-                            <div class="text-xs font-mono text-slate-400">${r.classCode || '未划分班级'}</div>
-                        </td>
-                        <td class="p-3">
-                            <div class="font-semibold text-slate-800 text-xs">${r.quizTitle || r.quizId || '测验'}</div>
-                            <div class="text-[10px] text-slate-400 font-mono">${r.subject || ''} / U${r.unit || 1}</div>
-                        </td>
-                        <td class="p-3 text-center">
-                            <span class="font-bold text-red-600 text-sm sm:text-base">${r.score}</span> <span class="text-xs text-slate-400">分</span>
-                            <div class="text-xs font-mono text-slate-500">${r.timeText || '-'}</div>
-                        </td>
-                        <td class="p-3 text-center">
-                            <span class="bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full text-xs font-bold">第 ${attempts} 次</span>
-                            <span class="bg-red-100 text-red-700 border border-red-300 px-2 py-0.5 rounded-full text-xs font-bold">错 ${wrongs} 题</span>
-                        </td>
-                        <td class="p-3 text-xs text-slate-500">${r.timestamp ? new Date(r.timestamp.seconds * 1000).toLocaleDateString('zh-CN') : '-'}</td>
-                        <td class="p-3 text-center">
-                            <div class="flex items-center justify-center gap-1">
-                                <button onclick="openEditScoreModal('${r.id}', '${r.playerName || '学生'}', ${r.score}, ${attempts}, ${wrongs})" class="neo-btn px-2 py-1 text-xs bg-amber-100"><i class="fa-solid fa-pen-to-square"></i></button>
-                                <button onclick="deleteSingleScoreRecord('${r.id}')" class="neo-btn neo-btn-danger px-2 py-1 text-xs"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-500 font-semibold">⚠️ 读取榜单失败：${err.message}</td></tr>`;
+        function initUnitOptions() {
+            const select = document.getElementById('select-unit');
+            for (let i = 1; i <= 20; i++) {
+                select.innerHTML += `<option value="${i}">单元 ${i}</option>`;
             }
         }
 
+        async function fetchClassOptions() {
+            const select = document.getElementById('select-class-code');
+            try {
+                const snapshot = await db.collection("classes").get();
+                snapshot.forEach(doc => {
+                    const c = doc.data();
+                    select.innerHTML += `<option value="${doc.id}">${doc.id} - ${c.className || ''}</option>`;
+                });
+            } catch (err) {}
+        }
+
+        async function fetchAllScores() {
+            try {
+                const snapshot = await db.collection("leaderboard").get();
+                rawLeaderboardData = [];
+                snapshot.forEach(doc => rawLeaderboardData.push({ id: doc.id, ...doc.data() }));
+                loadLeaderboardCards();
+            } catch (err) {
+                document.getElementById('cards-container').innerHTML = `
+                    <div class="col-span-full p-8 text-center neo-card text-red-500 font-bold">
+                        读取成绩榜单失败：${err.message}
+                    </div>`;
+            }
+        }
+
+        // 🌟 核心突破：将测验/游戏按卡片 (Card) 进行分组渲染
+        function loadLeaderboardCards() {
+            const container = document.getElementById('cards-container');
+            const classFilter = document.getElementById('select-class-code').value;
+            const subjectFilter = document.getElementById('select-subject').value;
+            const unitFilter = document.getElementById('select-unit').value;
+            const searchFilter = document.getElementById('input-search').value.toLowerCase().trim();
+
+            // 1. 过滤符合条件的原始成绩
+            const filteredScores = rawLeaderboardData.filter(item => {
+                if (item.status === 'pending_delete') return false;
+                const matchClass = (classFilter === 'ALL') || (item.classCode === classFilter);
+                const matchSubject = (subjectFilter === 'ALL') || (item.subject === subjectFilter);
+                const matchUnit = (unitFilter === 'ALL') || (item.unit == unitFilter);
+                const matchSearch = (item.quizTitle || item.quizId || '').toLowerCase().includes(searchFilter);
+                return matchClass && matchSubject && matchUnit && matchSearch;
+            });
+
+            // 2. 按 quizId/quizTitle 进行卡片分组 (Group By Quiz/Game)
+            const groupedGames = {};
+            filteredScores.forEach(score => {
+                const quizKey = score.quizId || score.quizTitle || '通用练习';
+                if (!groupedGames[quizKey]) {
+                    groupedGames[quizKey] = {
+                        quizTitle: score.quizTitle || score.quizId || '未知测验',
+                        subject: score.subject || '',
+                        unit: score.unit || 1,
+                        scores: []
+                    };
+                }
+                groupedGames[quizKey].scores.push(score);
+            });
+
+            const keys = Object.keys(groupedGames);
+            container.innerHTML = '';
+
+            if (keys.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full p-12 text-center neo-card bg-white font-fun text-slate-400">
+                        <i class="fa-solid fa-ghost text-4xl mb-2"></i><br>该班级/单元暂无任何测验做题记录
+                    </div>`;
+                return;
+            }
+
+            const subjectNames = { chinese: '华文', malay: '马来文', english: '英文', math: '数学', science: '科学' };
+
+            // 3. 逐个渲染测验/游戏卡片
+            keys.forEach(key => {
+                const game = groupedGames[key];
+                
+                // 排序该游戏下的做题成绩 (分数高者优先，用时短者优先)
+                game.scores.sort((a, b) => (b.score !== a.score) ? b.score - a.score : (a.timeSpent || 9999) - (b.timeSpent || 9999));
+
+                const card = document.createElement('div');
+                card.className = "neo-card bg-white p-4 flex flex-col justify-between hover:shadow-[6px_6px_0_#0f172a] transition-all";
+
+                let rankingListHTML = '';
+                game.scores.forEach((r, idx) => {
+                    let medal = `<span class="font-mono text-xs text-slate-400">#${idx + 1}</span>`;
+                    if (idx === 0) medal = `🥇`;
+                    else if (idx === 1) medal = `🥈`;
+                    else if (idx === 2) medal = `🥉`;
+
+                    const attempts = r.attemptsCount || 1;
+                    const wrongs = (r.wrongAnswersCount !== undefined) ? r.wrongAnswersCount : 0;
+
+                    rankingListHTML += `
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs hover:bg-amber-50">
+                            <div class="flex items-center gap-2">
+                                <span class="w-5 text-center">${medal}</span>
+                                <div>
+                                    <div class="font-bold text-slate-800">${r.playerName || '匿名'}</div>
+                                    <div class="text-[10px] text-slate-400 font-mono">${r.classCode || ''}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-red-600 text-sm">${r.score} <span class="text-[10px] text-slate-500">分</span></div>
+                                <div class="text-[10px] text-slate-400">第 ${attempts} 次 · 错 ${wrongs} 题</div>
+                            </div>
+                            <div class="flex items-center gap-1 ml-1">
+                                <button onclick="openEditScoreModal('${r.id}', '${r.playerName || '学生'}', ${r.score}, ${attempts}, ${wrongs})" class="text-slate-400 hover:text-amber-600 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="deleteSingleScoreRecord('${r.id}')" class="text-slate-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div>
+                        <!-- 卡片 Header -->
+                        <div class="flex justify-between items-start border-b-2 border-slate-900 pb-2.5 mb-3">
+                            <div>
+                                <span class="bg-amber-300 border border-slate-900 px-2 py-0.5 rounded text-[10px] font-bold font-mono">
+                                    ${subjectNames[game.subject] || game.subject} · U${game.unit}
+                                </span>
+                                <h4 class="font-fun text-base font-bold text-slate-900 mt-1">${game.quizTitle}</h4>
+                            </div>
+                            <button onclick="clearSingleQuizScores('${key}', '${game.quizTitle}')" class="neo-btn neo-btn-danger px-2 py-1 text-[10px] flex items-center gap-1" title="清空该测验所有成绩">
+                                <i class="fa-solid fa-broom"></i> 清空
+                            </button>
+                        </div>
+
+                        <!-- 榜单人员列表 -->
+                        <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+                            ${rankingListHTML}
+                        </div>
+                    </div>
+
+                    <div class="mt-3 pt-2 border-t border-slate-200 text-right text-[11px] font-bold text-slate-500">
+                        共 ${game.scores.length} 人提交练习
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- 编辑与修改得分记录 ---
         function openEditScoreModal(docId, name, score, attempts, wrongs) {
             scoreTargetToEdit = docId;
             document.getElementById('modal-score-student-name').innerText = name;
@@ -353,38 +370,38 @@
                     wrongAnswersCount: parseInt(document.getElementById('modal-wrongs-input').value) || 0
                 });
                 closeEditScoreModal();
-                fetchScores();
-            } catch (err) { alert("修改失败"); }
+                fetchAllScores();
+            } catch (err) { alert("修改失败：" + err.message); }
         }
 
         async function deleteSingleScoreRecord(docId) {
-            if (!confirm("确认删除此成绩记录？")) return;
+            if (!confirm("确认彻底删除此条成绩记录？")) return;
             try {
                 await db.collection("leaderboard").doc(docId).delete();
-                fetchScores();
-            } catch (err) {}
+                fetchAllScores();
+            } catch (err) { alert("删除失败"); }
         }
 
-        async function clearCurrentQuizLeaderboard() {
-            const quizKey = document.getElementById('score-filter-quizid').value.trim();
-            if (!quizKey) return alert("请先在「第 4 步」框中输入要一键清空的测验 ID 或名称短语！");
-            if (!confirm(`确认彻底一键抹除包含「${quizKey}」的所有成绩记录吗？`)) return;
-
+        // 🌟 一键清空特定测验的所有做题记录
+        async function clearSingleQuizScores(quizKey, quizTitle) {
+            if (!confirm(`⚠️ 确认彻底抹除「${quizTitle}」的所有学生做题与得分记录吗？`)) return;
             try {
                 const snapshot = await db.collection("leaderboard").get();
                 const batch = db.batch();
                 let count = 0;
+
                 snapshot.forEach(doc => {
                     const data = doc.data();
-                    if ((data.quizId || '').toLowerCase().includes(quizKey.toLowerCase()) || (data.quizTitle || '').toLowerCase().includes(quizKey.toLowerCase())) {
+                    if ((data.quizId || data.quizTitle || '') === quizKey) {
                         batch.delete(doc.ref);
                         count++;
                     }
                 });
+
                 if (count > 0) await batch.commit();
-                alert(`🎉 已清除 ${count} 条做题记录！`);
-                fetchScores();
-            } catch (err) { alert("清空失败"); }
+                alert(`🎉 已成功清空 ${count} 条做题记录！`);
+                fetchAllScores();
+            } catch (err) { alert("清空记录失败：" + err.message); }
         }
     </script>
 </body>
