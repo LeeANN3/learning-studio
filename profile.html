@@ -1,283 +1,167 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun Learning Island - 个人中心 Profile</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <style>
-        * { box-sizing: border-box; user-select: none; }
-        body {
-            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
-            background-color: #f8fafc;
-            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
-            background-size: 20px 20px;
-            min-height: 100vh;
-            color: #0f172a;
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+        authDomain: "my-teacher-studio.firebaseapp.com",
+        projectId: "my-teacher-studio",
+        storageBucket: "my-teacher-studio.firebasestorage.app",
+        messagingSenderId: "82774284780",
+        appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+
+    auth.onAuthStateChanged(async (user) => {
+        if (!user) { window.location.href = "index.html"; return; }
+        
+        try {
+            const userDoc = await db.collection("users").doc(user.uid).get();
+            if (userDoc.exists) {
+                currentUser = { uid: user.uid, ...userDoc.data() };
+                renderProfileHeader();
+                loadStudentClasses();
+                loadAnnouncements();
+            } else {
+                // 如果 Auth 有记录但 Firestore 无文档，清理登出
+                await auth.signOut();
+                window.location.href = "index.html";
+            }
+        } catch (err) { console.error(err); }
+    });
+
+    function renderProfileHeader() {
+        const isTeacher = currentUser.role === 'teacher';
+        const isPending = currentUser.role === 'student' && currentUser.status === 'pending_approval';
+        const name = currentUser.name || "使用者";
+
+        document.getElementById('welcome-message').innerText = isTeacher ? `欢迎 ${name} 老师！` : `欢迎 ${name} 同学！`;
+        document.getElementById('user-avatar-text').innerText = name.charAt(0);
+        document.getElementById('user-identity-sub').innerText = currentUser.email || "";
+        
+        // 身份 Tag 判定
+        if (isTeacher) {
+            document.getElementById('user-role-tag').innerText = "👨‍🏫 教师/管理员";
+            document.getElementById('btn-teacher-portal').classList.remove('hidden');
+            document.getElementById('btn-manage-announcement').classList.remove('hidden');
+        } else if (isPending) {
+            document.getElementById('user-role-tag').innerText = "⏳ 待老师审核开通";
+            document.getElementById('user-role-tag').className = "bg-rose-100 text-rose-800 border-2 border-slate-900 px-3 py-1 rounded-xl text-xs font-bold font-fun shadow-[2px_2px_0_#0f172a]";
+        } else {
+            document.getElementById('user-role-tag').innerText = "🎓 在读学生";
         }
-        .font-fun { font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; }
-        .neo-card {
-            background-color: #ffffff;
-            border: 2px solid #0f172a;
-            border-radius: 20px;
-            box-shadow: 4px 4px 0px #0f172a;
-        }
-        .neo-btn {
-            background-color: #ffffff;
-            border: 2px solid #0f172a;
-            border-radius: 12px;
-            box-shadow: 2px 2px 0px #0f172a;
-            transition: all 0.15s ease;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-weight: 700;
-        }
-        .neo-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #0f172a; }
-        .neo-btn-primary { background-color: #ffe600; }
-        .neo-btn-primary:hover { background-color: #facc15; }
-        .neo-btn-danger { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; box-shadow: 2px 2px 0px #dc2626; }
-    </style>
-</head>
-<body class="pb-10">
 
-    <!-- Top Nav Header -->
-    <nav class="bg-white border-b-2 border-slate-900 sticky top-0 z-40 px-4 py-3 shadow-[0_4px_0_#0f172a]">
-        <div class="max-w-5xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-300 p-2 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#0f172a]">
-                    <i class="fa-solid fa-user-gear text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-fun text-xl font-bold leading-tight">个人中枢中心</h1>
-                    <p class="text-xs text-slate-500 font-sans">Student & Teacher Profile</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <a href="dashboard.html" class="neo-btn neo-btn-primary px-3.5 py-1.5 text-xs sm:text-sm flex items-center gap-1.5">
-                    <i class="fa-solid fa-rocket"></i>
-                    <span>进入学习岛</span>
-                </a>
-                <a href="admin.html" id="btn-teacher-portal" class="neo-btn bg-amber-200 px-3.5 py-1.5 text-xs sm:text-sm flex items-center gap-1.5 hidden">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                    <span>教师后台</span>
-                </a>
-                <button onclick="handleLogout()" class="neo-btn neo-btn-danger px-3 py-1.5 text-xs sm:text-sm flex items-center gap-1">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <div class="max-w-5xl mx-auto px-4 mt-6 space-y-6">
-
-        <!-- 🌟 a. 欢迎语 Header Card -->
-        <div class="neo-card p-6 bg-amber-100/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-amber-300 border-2 border-slate-900 flex items-center justify-center font-fun text-2xl font-bold shadow-[2px_2px_0_#0f172a]">
-                    <span id="user-avatar-text">学</span>
-                </div>
-                <div>
-                    <h2 class="font-fun text-2xl font-bold text-slate-900" id="welcome-message">欢迎回来！</h2>
-                    <p class="text-xs text-slate-600 mt-0.5" id="user-identity-sub">账号信息加载中...</p>
-                </div>
-            </div>
-
-            <div id="user-role-tag" class="bg-white border-2 border-slate-900 px-3 py-1 rounded-xl text-xs font-bold font-fun shadow-[2px_2px_0_#0f172a]">
-                学生身份
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            <!-- 🗓️ c. 报读班级与时间段日程 -->
-            <div class="md:col-span-1 space-y-4">
-                <div class="neo-card p-5 bg-white">
-                    <h3 class="font-fun text-lg font-bold flex items-center gap-2 border-b-2 border-slate-900 pb-2 mb-3">
-                        <i class="fa-solid fa-calendar-days text-amber-500"></i>
-                        <span>我的上课班级与时间</span>
-                    </h3>
-
-                    <div id="enrolled-classes-container" class="space-y-2.5">
-                        <div class="text-xs text-slate-400 italic p-2">正在获取班级课表...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 📢 b. 专属布告栏系统 -->
-            <div class="md:col-span-2 space-y-4">
-                <div class="neo-card p-5 bg-white">
-                    <div class="flex justify-between items-center border-b-2 border-slate-900 pb-2 mb-3">
-                        <h3 class="font-fun text-lg font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-bullhorn text-amber-500"></i>
-                            <span>最新公告与班级通知</span>
-                        </h3>
-                        <a href="announcement-admin.html" id="btn-manage-announcement" class="neo-btn text-xs px-2.5 py-1 bg-amber-200 hidden">
-                            <i class="fa-solid fa-pen-to-square"></i> 发布通知
-                        </a>
-                    </div>
-
-                    <div id="announcements-container" class="space-y-3">
-                        <div class="text-xs text-slate-400 italic p-4 text-center">正在读取最新通知...</div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
-            authDomain: "my-teacher-studio.firebaseapp.com",
-            projectId: "my-teacher-studio",
-            storageBucket: "my-teacher-studio.firebasestorage.app",
-            messagingSenderId: "82774284780",
-            appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
-        };
-
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        let currentUser = null;
-
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) { window.location.href = "index.html"; return; }
-            
-            try {
-                const userDoc = await db.collection("users").doc(user.uid).get();
-                if (userDoc.exists) {
-                    currentUser = { uid: user.uid, ...userDoc.data() };
-                    renderProfileHeader();
-                    loadStudentClasses();
-                    loadAnnouncements();
-                }
-            } catch (err) { console.error(err); }
-        });
-
-        function renderProfileHeader() {
-            const isTeacher = currentUser.role === 'teacher';
-            const name = currentUser.name || "使用者";
-
-            document.getElementById('welcome-message').innerText = isTeacher ? `欢迎 ${name} 老师！` : `欢迎 ${name} 同学！`;
-            document.getElementById('user-avatar-text').innerText = name.charAt(0);
-            document.getElementById('user-identity-sub').innerText = currentUser.email || "";
-            document.getElementById('user-role-tag').innerText = isTeacher ? "👨‍🏫 教师/管理员" : "🎓 在读学生";
-
-            if (isTeacher) {
-                document.getElementById('btn-teacher-portal').classList.remove('hidden');
-                document.getElementById('btn-manage-announcement').classList.remove('hidden');
+        // 🔒 按钮权限管控：如果是未审核的学生，点击“进入学习岛”按钮时弹窗提示
+        const dashboardBtn = document.querySelector('a[href="dashboard.html"]');
+        if (dashboardBtn) {
+            if (isPending) {
+                dashboardBtn.onclick = (e) => {
+                    e.preventDefault();
+                    alert("🔒 你的账号正等待老师审核分配班级，开通后方可进入学习岛！");
+                };
+                dashboardBtn.className = "neo-btn bg-slate-200 text-slate-400 opacity-70 px-3.5 py-1.5 text-xs sm:text-sm flex items-center gap-1.5 cursor-not-allowed";
+            } else {
+                dashboardBtn.onclick = null;
             }
         }
+    }
 
-        async function loadStudentClasses() {
-            const container = document.getElementById('enrolled-classes-container');
-            const userClasses = currentUser.enrolledClasses || [];
+    async function loadStudentClasses() {
+        const container = document.getElementById('enrolled-classes-container');
+        const userClasses = currentUser.enrolledClasses || [];
 
-            if (userClasses.length === 0) {
-                container.innerHTML = `<div class="p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-500 italic">您暂未加入任何班级。</div>`;
+        if (userClasses.length === 0) {
+            container.innerHTML = `<div class="p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-500 italic">您暂未加入任何班级（等待老师分配中）。</div>`;
+            return;
+        }
+
+        try {
+            const classSnap = await db.collection("classes").get();
+            container.innerHTML = '';
+
+            let count = 0;
+            classSnap.forEach(doc => {
+                if (userClasses.includes(doc.id)) {
+                    count++;
+                    const c = doc.data();
+                    container.innerHTML += `
+                        <div class="p-3 bg-amber-50 border-2 border-slate-900 rounded-xl space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="font-mono font-bold bg-amber-300 border border-slate-900 px-2 py-0.5 rounded text-xs">${doc.id}</span>
+                                <span class="text-[11px] font-bold text-slate-500">${c.grade || 0} 年级</span>
+                            </div>
+                            <h4 class="font-fun font-bold text-slate-800 text-sm">${c.className || '班级'}</h4>
+                            <div class="text-xs text-slate-600 flex items-center gap-1 mt-1 font-sans">
+                                <i class="fa-regular fa-clock text-amber-600"></i>
+                                <span>${c.scheduleDay || '未设星期'} (${c.scheduleTime || '未设时间'})</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            if (count === 0) {
+                container.innerHTML = `<div class="p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-500">已加入代码但未找到对应的活跃班级。</div>`;
+            }
+
+        } catch (err) { container.innerHTML = `<div class="text-xs text-red-500">读取课表失败</div>`; }
+    }
+
+    async function loadAnnouncements() {
+        const container = document.getElementById('announcements-container');
+        try {
+            const snap = await db.collection("announcements").orderBy("createdAt", "desc").limit(10).get();
+            container.innerHTML = '';
+
+            if (snap.empty) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs italic">当前暂无公告通知。</div>`;
                 return;
             }
 
-            try {
-                const classSnap = await db.collection("classes").get();
-                container.innerHTML = '';
+            const userClasses = currentUser.enrolledClasses || [];
+            let shownCount = 0;
 
-                let count = 0;
-                classSnap.forEach(doc => {
-                    if (userClasses.includes(doc.id)) {
-                        count++;
-                        const c = doc.data();
-                        container.innerHTML += `
-                            <div class="p-3 bg-amber-50 border-2 border-slate-900 rounded-xl space-y-1">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-mono font-bold bg-amber-300 border border-slate-900 px-2 py-0.5 rounded text-xs">${doc.id}</span>
-                                    <span class="text-[11px] font-bold text-slate-500">${c.grade || 0} 年级</span>
-                                </div>
-                                <h4 class="font-fun font-bold text-slate-800 text-sm">${c.className || '班级'}</h4>
-                                <div class="text-xs text-slate-600 flex items-center gap-1 mt-1 font-sans">
-                                    <i class="fa-regular fa-clock text-amber-600"></i>
-                                    <span>${c.scheduleDay || '未设星期'} (${c.scheduleTime || '未设时间'})</span>
-                                </div>
+            snap.forEach(doc => {
+                const a = doc.data();
+                const targetType = a.targetType || 'ALL';
+
+                let canSee = false;
+                if (currentUser.role === 'teacher') canSee = true;
+                else if (targetType === 'ALL') canSee = true;
+                else if (targetType === 'CLASS' && userClasses.includes(a.targetClass)) canSee = true;
+                else if (targetType === 'STUDENT' && a.targetStudentUid === currentUser.uid) canSee = true;
+
+                if (canSee) {
+                    shownCount++;
+                    const dateStr = a.createdAt ? new Date(a.createdAt.seconds * 1000).toLocaleDateString('zh-CN') : '-';
+                    
+                    let badgeHtml = `<span class="bg-sky-100 text-sky-800 border border-sky-300 px-2 py-0.5 rounded text-[10px] font-bold">全校公告</span>`;
+                    if (targetType === 'CLASS') badgeHtml = `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-[10px] font-bold">班级专属: ${a.targetClass}</span>`;
+                    if (targetType === 'STUDENT') badgeHtml = `<span class="bg-red-100 text-red-800 border border-red-300 px-2 py-0.5 rounded text-[10px] font-bold">个人私信/提醒</span>`;
+
+                    container.innerHTML += `
+                        <div class="p-4 bg-white border-2 border-slate-900 rounded-xl space-y-2 shadow-[2px_2px_0_#0f172a]">
+                            <div class="flex justify-between items-center">
+                                ${badgeHtml}
+                                <span class="text-[11px] text-slate-400 font-mono">${dateStr}</span>
                             </div>
-                        `;
-                    }
-                });
-
-                if (count === 0) {
-                    container.innerHTML = `<div class="p-3 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-500">已加入代码但未找到对应的活跃班级。</div>`;
+                            <h4 class="font-fun font-bold text-slate-900 text-base">${a.title}</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed font-sans whitespace-pre-line">${a.content}</p>
+                        </div>
+                    `;
                 }
+            });
 
-            } catch (err) { container.innerHTML = `<div class="text-xs text-red-500">读取课表失败</div>`; }
-        }
+            if (shownCount === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs italic">暂无与您相关的通知。</div>`;
+            }
 
-        async function loadAnnouncements() {
-            const container = document.getElementById('announcements-container');
-            try {
-                const snap = await db.collection("announcements").orderBy("createdAt", "desc").limit(10).get();
-                container.innerHTML = '';
+        } catch (err) { container.innerHTML = `<div class="text-xs text-red-500">读取公告失败</div>`; }
+    }
 
-                if (snap.empty) {
-                    container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs italic">当前暂无公告通知。</div>`;
-                    return;
-                }
-
-                const userClasses = currentUser.enrolledClasses || [];
-                let shownCount = 0;
-
-                snap.forEach(doc => {
-                    const a = doc.data();
-                    const targetType = a.targetType || 'ALL'; // ALL, CLASS, STUDENT
-
-                    let canSee = false;
-                    if (currentUser.role === 'teacher') canSee = true;
-                    else if (targetType === 'ALL') canSee = true;
-                    else if (targetType === 'CLASS' && userClasses.includes(a.targetClass)) canSee = true;
-                    else if (targetType === 'STUDENT' && a.targetStudentUid === currentUser.uid) canSee = true;
-
-                    if (canSee) {
-                        shownCount++;
-                        const dateStr = a.createdAt ? new Date(a.createdAt.seconds * 1000).toLocaleDateString('zh-CN') : '-';
-                        
-                        let badgeHtml = `<span class="bg-sky-100 text-sky-800 border border-sky-300 px-2 py-0.5 rounded text-[10px] font-bold">全校公告</span>`;
-                        if (targetType === 'CLASS') badgeHtml = `<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded text-[10px] font-bold">班级专属: ${a.targetClass}</span>`;
-                        if (targetType === 'STUDENT') badgeHtml = `<span class="bg-red-100 text-red-800 border border-red-300 px-2 py-0.5 rounded text-[10px] font-bold">个人私信/提醒</span>`;
-
-                        container.innerHTML += `
-                            <div class="p-4 bg-white border-2 border-slate-900 rounded-xl space-y-2 shadow-[2px_2px_0_#0f172a]">
-                                <div class="flex justify-between items-center">
-                                    ${badgeHtml}
-                                    <span class="text-[11px] text-slate-400 font-mono">${dateStr}</span>
-                                </div>
-                                <h4 class="font-fun font-bold text-slate-900 text-base">${a.title}</h4>
-                                <p class="text-xs text-slate-600 leading-relaxed font-sans whitespace-pre-line">${a.content}</p>
-                            </div>
-                        `;
-                    }
-                });
-
-                if (shownCount === 0) {
-                    container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs italic">暂无与您相关的通知。</div>`;
-                }
-
-            } catch (err) { container.innerHTML = `<div class="text-xs text-red-500">读取公告失败</div>`; }
-        }
-
-        function handleLogout() {
-            auth.signOut().then(() => { window.location.href = "index.html"; });
-        }
-    </script>
-</body>
-</html>
+    function handleLogout() {
+        auth.signOut().then(() => { window.location.href = "index.html"; });
+    }
+</script>
