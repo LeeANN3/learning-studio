@@ -53,7 +53,7 @@
 
         .auth-header { text-align: center; margin-bottom: 20px; margin-top: 6px; }
         .auth-header .logo-badge {
-            background-color: #ffe600; border: 2px solid #1a1a1a;
+            background-color: #ffffff; border: 2px solid #1a1a1a;
             width: 64px; height: 64px; border-radius: 18px;
             display: flex; align-items: center; justify-content: center;
             margin: 0 auto 12px; font-size: 30px; color: #1a1a1a;
@@ -68,10 +68,21 @@
         }
         .tab-btn.active { background-color: #ffe600; box-shadow: 3px 3px 0px #1a1a1a; font-weight: 700; }
 
+        .role-selector {
+            display: flex; gap: 10px; margin-bottom: 16px;
+            background: #f4f4f5; padding: 6px; border-radius: 14px; border: 2px solid #1a1a1a;
+        }
+        .role-btn {
+            flex: 1; padding: 8px; text-align: center; border-radius: 10px; cursor: pointer;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 15px; font-weight: 600;
+            border: 2px solid transparent; transition: all 0.15s ease;
+        }
+        .role-btn.active { background: #ffffff; border-color: #1a1a1a; box-shadow: 2px 2px 0px #1a1a1a; }
+
         .form-group { margin-bottom: 14px; text-align: left; }
         .form-group label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 5px; }
         .input-wrapper { position: relative; }
-        .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: #1a1a1a; }
+        .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; }
         
         .form-control {
             width: 100%; padding: 10px 14px 10px 38px;
@@ -82,24 +93,23 @@
         .form-control:focus { box-shadow: 3px 3px 0px #ffe600; }
 
         .btn-submit {
-            width: 100%; padding: 12px; background-color: #ffe600; color: #1a1a1a;
+            width: 100%; padding: 12px; background-color: #1a1a1a; color: #ffffff;
             border: 2px solid #1a1a1a; border-radius: 14px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 18px; font-weight: 700;
             cursor: pointer; box-shadow: 3px 3px 0px #1a1a1a; margin-top: 6px;
             transition: all 0.15s ease;
         }
-        .btn-submit:hover { background-color: #facc15; transform: translate(-1px, -1px); box-shadow: 4px 4px 0px #1a1a1a; }
+        .btn-submit:hover { background-color: #ffe600; color: #1a1a1a; box-shadow: 4px 4px 0px #1a1a1a; }
 
         .forgot-link-container { text-align: right; margin-top: 4px; margin-bottom: 10px; }
-        .forgot-link { font-size: 14px; text-decoration: underline; cursor: pointer; font-weight: 600; }
+        .forgot-link { font-size: 14px; text-decoration: underline; cursor: pointer; }
 
         .message-box {
             padding: 10px 14px; border-radius: 12px; font-size: 14px;
             margin-bottom: 14px; display: none; text-align: center; border: 2px solid #1a1a1a;
-            font-weight: 600;
         }
-        .message-box.error { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; display: block; }
-        .message-box.success { background-color: #bbf7d0; color: #166534; display: block; }
+        .message-box.error { background-color: #ffffff; color: #d90429; border-color: #d90429; display: block; }
+        .message-box.success { background-color: #ffe600; color: #1a1a1a; display: block; }
 
         .hidden { display: none !important; }
     </style>
@@ -134,7 +144,20 @@
 
         <form id="auth-form" onsubmit="handleAuth(event)">
             
-            <!-- 姓名/昵称 (仅注册时可见) -->
+            <!-- 1. 注册身份选择（学生 or 老师） -->
+            <div class="form-group hidden" id="group-role-select">
+                <label id="lbl-identity">注册身份 / Identity:</label>
+                <div class="role-selector">
+                    <div class="role-btn active" id="role-student" onclick="selectRole('student')">
+                        <i class="fa-solid fa-user-graduate"></i> <span id="txt-role-student">我是学生</span>
+                    </div>
+                    <div class="role-btn" id="role-teacher" onclick="selectRole('teacher')">
+                        <i class="fa-solid fa-chalkboard-user"></i> <span id="txt-role-teacher">我是老师</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 姓名/昵称 (注册时可见) -->
             <div class="form-group hidden" id="group-display-name">
                 <label for="display-name" id="lbl-name">姓名 / 昵称</label>
                 <div class="input-wrapper">
@@ -143,7 +166,25 @@
                 </div>
             </div>
 
-            <!-- 邮箱输入框 -->
+            <!-- 3. 班级邀请码 (仅学生注册时可见) -->
+            <div class="form-group hidden" id="group-class-code">
+                <label for="class-code" id="lbl-class-code">班级邀请码 (选填/老师提供)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-ticket"></i>
+                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01、M1-01（未填可后续分配）">
+                </div>
+            </div>
+
+            <!-- 4. 教师验证口令 (仅老师注册时可见) -->
+            <div class="form-group hidden" id="group-teacher-key">
+                <label for="teacher-key" id="lbl-teacher-key">教师验证口令 (Teacher Key)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="password" id="teacher-key" class="form-control" placeholder="请输入教师注册密钥（默认 TEACHER888）">
+                </div>
+            </div>
+
+            <!-- 5. 电子邮箱 -->
             <div class="form-group">
                 <label for="email" id="lbl-email">电子邮箱</label>
                 <div class="input-wrapper">
@@ -152,21 +193,12 @@
                 </div>
             </div>
 
-            <!-- 密码输入框 -->
+            <!-- 6. 密码 -->
             <div class="form-group">
                 <label for="password" id="lbl-password">密码</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-lock"></i>
                     <input type="password" id="password" class="form-control" placeholder="••••••••" required>
-                </div>
-            </div>
-
-            <!-- 班级邀请码 (仅注册时可见) -->
-            <div class="form-group hidden" id="group-class-code">
-                <label for="class-code" id="lbl-class-code">班级邀请码 (选填/老师提供)</label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-ticket"></i>
-                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01（未填需等待老师分配）">
                 </div>
             </div>
 
@@ -199,7 +231,11 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // 默认教师注册密钥
+        const DEFAULT_TEACHER_KEY = "TEACHER888";
+
         let currentMode = 'login';
+        let selectedRole = 'student';
         let currentLang = 'zh';
         let isSubmitting = false;
 
@@ -207,24 +243,28 @@
             zh: {
                 langBtn: "English", title: "趣味学习岛", subtitle: "登录账号开启学习冒险！",
                 tabLogin: "登录", tabRegister: "新用户注册",
+                lblIdentity: "注册身份：", roleStudent: "我是学生", roleTeacher: "我是老师",
                 lblName: "姓名 / 昵称", namePlaceholder: "例如：小明 / Alex",
-                lblClassCode: "班级邀请码 (选填/老师提供)", classCodePlaceholder: "如：G1-GRAM-01（未填需等待老师分配）",
+                lblClassCode: "班级邀请码 (选填/老师提供)", classCodePlaceholder: "如：G1-GRAM-01、M1-01（未填可后续分配）",
+                lblTeacherKey: "教师验证口令 (Teacher Key)", teacherKeyPlaceholder: "请输入教师注册密钥（默认 TEACHER888）",
                 lblEmail: "电子邮箱", lblPassword: "密码", pwdPlaceholder: "至少6位",
-                forgotPwd: "忘记密码？", btnLogin: "立即登录", btnRegister: "注册新账号",
+                forgotPwd: "忘记密码？", btnLogin: "立即登录", btnRegister: "注册并登录",
                 processing: "处理中...", successLogin: "登录成功！", successRegister: "注册成功！",
-                errRequireName: "请输入姓名！", pwdResetSent: "密码重置邮件已发送，请检查您的邮箱！",
-                errEnterEmail: "请先在上方输入框填写您的电子邮箱！"
+                errWrongTeacherKey: "教师验证口令错误！请联系管理员。", errRequireName: "请输入姓名！",
+                pwdResetSent: "密码重置邮件已发送，请检查您的邮箱！", errEnterEmail: "请先在上方输入框填写您的电子邮箱！"
             },
             en: {
                 langBtn: "中文", title: "Fun Learning Island", subtitle: "Log in to start learning!",
                 tabLogin: "Log In", tabRegister: "Register",
+                lblIdentity: "Identity:", roleStudent: "Student", roleTeacher: "Teacher",
                 lblName: "Name / Nickname", namePlaceholder: "e.g., Alex",
-                lblClassCode: "Class Code (Optional)", classCodePlaceholder: "e.g. G1-GRAM-01 (Pending teacher assignment if empty)",
+                lblClassCode: "Class Code (Optional)", classCodePlaceholder: "e.g. G1-GRAM-01, M1-01",
+                lblTeacherKey: "Teacher Security Key", teacherKeyPlaceholder: "Enter Teacher Key (Default: TEACHER888)",
                 lblEmail: "Email", lblPassword: "Password", pwdPlaceholder: "Min 6 characters",
-                forgotPwd: "Forgot Password?", btnLogin: "Log In", btnRegister: "Register Now",
+                forgotPwd: "Forgot Password?", btnLogin: "Log In", btnRegister: "Register",
                 processing: "Processing...", successLogin: "Logged in!", successRegister: "Registered!",
-                errRequireName: "Please enter your name!", pwdResetSent: "Password reset link sent to your email!",
-                errEnterEmail: "Please enter your email above first!"
+                errWrongTeacherKey: "Incorrect Teacher Security Key!", errRequireName: "Please enter your name!",
+                pwdResetSent: "Password reset link sent to your email!", errEnterEmail: "Please enter your email above first!"
             }
         };
 
@@ -240,10 +280,15 @@
             document.getElementById('txt-subtitle').innerText = t.subtitle;
             document.getElementById('txt-tab-login').innerText = t.tabLogin;
             document.getElementById('txt-tab-register').innerText = t.tabRegister;
+            document.getElementById('lbl-identity').innerText = t.lblIdentity;
+            document.getElementById('txt-role-student').innerText = t.roleStudent;
+            document.getElementById('txt-role-teacher').innerText = t.roleTeacher;
             document.getElementById('lbl-name').innerText = t.lblName;
             document.getElementById('display-name').placeholder = t.namePlaceholder;
             document.getElementById('lbl-class-code').innerText = t.lblClassCode;
             document.getElementById('class-code').placeholder = t.classCodePlaceholder;
+            document.getElementById('lbl-teacher-key').innerText = t.lblTeacherKey;
+            document.getElementById('teacher-key').placeholder = t.teacherKeyPlaceholder;
             document.getElementById('lbl-email').innerText = t.lblEmail;
             document.getElementById('lbl-password').innerText = t.lblPassword;
             document.getElementById('password').placeholder = t.pwdPlaceholder;
@@ -255,7 +300,7 @@
             }
         }
 
-        // 登录状态监听：成功登录后跳往 profile.html 中枢
+        // 仅在非表单提交操作时（例如刷新页面已登录状态）跳转
         auth.onAuthStateChanged((user) => {
             if (user && !isSubmitting) {
                 window.location.href = "profile.html";
@@ -268,11 +313,29 @@
             document.getElementById('tab-login').classList.toggle('active', mode === 'login');
             document.getElementById('tab-register').classList.toggle('active', mode === 'register');
             
+            document.getElementById('group-role-select').classList.toggle('hidden', mode === 'login');
             document.getElementById('group-display-name').classList.toggle('hidden', mode === 'login');
-            document.getElementById('group-class-code').classList.toggle('hidden', mode === 'login');
             document.getElementById('forgot-password-container').classList.toggle('hidden', mode === 'register');
 
+            if (mode === 'register') {
+                selectRole(selectedRole);
+            } else {
+                document.getElementById('group-class-code').classList.add('hidden');
+                document.getElementById('group-teacher-key').classList.add('hidden');
+            }
+
             document.getElementById('txt-submit-btn').innerText = mode === 'login' ? t.btnLogin : t.btnRegister;
+        }
+
+        function selectRole(role) {
+            selectedRole = role;
+            document.getElementById('role-student').classList.toggle('active', role === 'student');
+            document.getElementById('role-teacher').classList.toggle('active', role === 'teacher');
+
+            if (currentMode === 'register') {
+                document.getElementById('group-class-code').classList.toggle('hidden', role !== 'student');
+                document.getElementById('group-teacher-key').classList.toggle('hidden', role !== 'teacher');
+            }
         }
 
         async function handleAuth(event) {
@@ -281,6 +344,7 @@
             const password = document.getElementById('password').value;
             const displayName = document.getElementById('display-name').value.trim();
             const classCodeRaw = document.getElementById('class-code').value.trim();
+            const teacherKey = document.getElementById('teacher-key').value.trim();
             const t = translations[currentLang];
 
             const submitBtn = document.getElementById('submit-btn');
@@ -296,30 +360,38 @@
                 } else {
                     if (!displayName) throw { message: t.errRequireName };
 
-                    // 1. 创建 Firebase Auth 账号
+                    // 1. 校验教师注册密钥
+                    if (selectedRole === 'teacher' && teacherKey !== DEFAULT_TEACHER_KEY) {
+                        throw { message: t.errWrongTeacherKey };
+                    }
+
+                    // 2. 创建 Firebase Auth 账号
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
                     await cred.user.updateProfile({ displayName: displayName });
 
-                    // 2. 班级码解析与状态判定 (无班级码则设为 pending_approval)
+                    // 3. 提取班级码与状态设定
                     let enrolledClasses = [];
-                    let initialStatus = 'pending_approval';
+                    let initialStatus = 'active';
 
-                    if (classCodeRaw) {
-                        enrolledClasses.push(classCodeRaw.toUpperCase());
-                        initialStatus = 'active'; // 有班级码直接激活
+                    if (selectedRole === 'student') {
+                        if (classCodeRaw) {
+                            enrolledClasses.push(classCodeRaw.toUpperCase());
+                        } else {
+                            initialStatus = 'pending_approval'; // 没填班级码设为待分配状态
+                        }
                     }
 
-                    // 3. 写入 Firestore users 集合
+                    // 4. 写入 Firestore 数据库
                     await db.collection("users").doc(cred.user.uid).set({
                         name: displayName,
                         email: email,
-                        role: 'student', // 注册默认为学生
-                        status: initialStatus, // active 或 pending_approval
+                        role: selectedRole, // 'student' 或 'teacher'
+                        status: initialStatus, // 'active' 或 'pending_approval'
                         enrolledClasses: enrolledClasses,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // 4. 跳转至个人中心 Profile（未激活学生将在 Profile 看到待审核/待分配提示）
+                    // 5. 跳转至 Profile 个人中枢
                     window.location.href = "profile.html";
                 }
             } catch (err) {
