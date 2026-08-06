@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>布告与催促管理 - Fun Learning Island</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        body {
+            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            color: #0f172a;
+        }
+        .font-fun { font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; }
+        .neo-card { background-color: #ffffff; border: 2px solid #0f172a; border-radius: 16px; box-shadow: 4px 4px 0px #0f172a; }
+        .neo-btn { background-color: #ffe600; border: 2px solid #0f172a; border-radius: 12px; box-shadow: 2px 2px 0px #0f172a; font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-weight: 700; }
+        .neo-input { border: 2px solid #0f172a; border-radius: 10px; outline: none; padding: 8px 12px; box-shadow: 2px 2px 0px #cbd5e1; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <nav class="bg-white border-b-2 border-slate-900 sticky top-0 z-40 px-4 py-3 shadow-[0_4px_0_#0f172a]">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-300 p-2 rounded-xl border-2 border-slate-900 shadow-[2px_2px_0_#0f172a]">
+                    <i class="fa-solid fa-bullhorn text-xl"></i>
+                </div>
+                <h1 class="font-fun text-xl font-bold">发布公告/任务通知</h1>
+            </div>
+            <a href="admin.html" class="neo-btn bg-slate-100 px-3 py-1.5 text-xs">返回教师后台</a>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 mt-6 space-y-6">
+
+        <form onsubmit="handlePublish(event)" class="neo-card p-6 bg-white space-y-4">
+            <h3 class="font-fun text-lg font-bold border-b-2 border-slate-900 pb-2">📢 发布新通知</h3>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">通知标题</label>
+                <input type="text" id="input-title" required class="neo-input w-full text-sm" placeholder="例如: 下周一举行华文听写测验">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">推送目标范围</label>
+                <select id="select-target-type" onchange="onTargetTypeChange()" class="neo-input w-full bg-white text-xs font-fun">
+                    <option value="ALL">🌐 全校 / 所有学生公开</option>
+                    <option value="CLASS">🏫 指定特定班级可见</option>
+                    <option value="STUDENT">👤 定向私信指定学生 (催功课)</option>
+                </select>
+            </div>
+
+            <div id="container-target-class" class="hidden">
+                <label class="block text-xs font-bold text-slate-700 mb-1">选择班级 Code</label>
+                <select id="select-class-code" class="neo-input w-full bg-white text-xs font-fun"></select>
+            </div>
+
+            <div id="container-target-student" class="hidden">
+                <label class="block text-xs font-bold text-slate-700 mb-1">选择学生</label>
+                <select id="select-student-uid" class="neo-input w-full bg-white text-xs font-fun"></select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">通知详细内容</label>
+                <textarea id="input-content" rows="4" required class="neo-input w-full text-sm font-sans" placeholder="输入具体的考试范围、功课要求或提醒事项..."></textarea>
+            </div>
+
+            <button type="submit" class="neo-btn w-full py-2.5 text-sm">发布通知到 Profile</button>
+        </form>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqp_1JyuAtpQgJtnFRLhuVEmUIrx1YetI",
+            authDomain: "my-teacher-studio.firebaseapp.com",
+            projectId: "my-teacher-studio",
+            storageBucket: "my-teacher-studio.firebasestorage.app",
+            messagingSenderId: "82774284780",
+            appId: "1:82774284780:web:e29680ea7a0e5c435ec8c9"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) window.location.href = "index.html";
+            else loadOptions();
+        });
+
+        async function loadOptions() {
+            const classSelect = document.getElementById('select-class-code');
+            const classSnap = await db.collection("classes").get();
+            classSelect.innerHTML = '';
+            classSnap.forEach(doc => {
+                classSelect.innerHTML += `<option value="${doc.id}">${doc.id} (${doc.data().className || ''})</option>`;
+            });
+
+            const studentSelect = document.getElementById('select-student-uid');
+            const studentSnap = await db.collection("users").where("role", "==", "student").get();
+            studentSelect.innerHTML = '';
+            studentSnap.forEach(doc => {
+                studentSelect.innerHTML += `<option value="${doc.id}">${doc.data().name || '学生'} (${doc.data().email})</option>`;
+            });
+        }
+
+        function onTargetTypeChange() {
+            const type = document.getElementById('select-target-type').value;
+            document.getElementById('container-target-class').classList.toggle('hidden', type !== 'CLASS');
+            document.getElementById('container-target-student').classList.toggle('hidden', type !== 'STUDENT');
+        }
+
+        async function handlePublish(e) {
+            e.preventDefault();
+            const title = document.getElementById('input-title').value.trim();
+            const type = document.getElementById('select-target-type').value;
+            const content = document.getElementById('input-content').value.trim();
+
+            const docData = {
+                title: title,
+                targetType: type,
+                content: content,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (type === 'CLASS') docData.targetClass = document.getElementById('select-class-code').value;
+            if (type === 'STUDENT') docData.targetStudentUid = document.getElementById('select-student-uid').value;
+
+            try {
+                await db.collection("announcements").add(docData);
+                alert("🎉 通知发布成功！学生可以在 Profile 中看到。");
+                window.location.href = "profile.html";
+            } catch (err) { alert("发布失败：" + err.message); }
+        }
+    </script>
+</body>
+</html>
