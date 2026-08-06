@@ -308,14 +308,7 @@
                             <i class="fa-solid fa-lock-open text-amber-500"></i>
                             <span>课程/测验可见性（精准开关）</span>
                         </h3>
-                        <p class="text-xs text-slate-500">根据年级与单元精准检索，随时勾选授权的班级。</p>
-                    </div>
-
-                    <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-300 text-xs">
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold">
-                            <input type="checkbox" id="show-all-grades-toggle" onchange="fetchResources()" class="rounded border-slate-400">
-                            <span>跨年级显示所有班级</span>
-                        </label>
+                        <p class="text-xs text-slate-500">根据年级与单元精准检索，随时勾选授权班级或单独屏蔽指定学生。</p>
                     </div>
                 </div>
 
@@ -359,7 +352,7 @@
                                 <th class="p-3">资源名称</th>
                                 <th class="p-3">科目/年级/单元</th>
                                 <th class="p-3">授权班级</th>
-                                <th class="p-3 text-center">屏蔽特定学生</th>
+                                <th class="p-3 text-center">特定学生屏蔽</th>
                                 <th class="p-3 text-center">总状态</th>
                             </tr>
                         </thead>
@@ -554,6 +547,38 @@
         </div>
     </div>
 
+    <!-- 🛑 6. 屏蔽特定学生多选 Modal -->
+    <div id="exclude-students-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
+        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b-2 border-slate-900 pb-2">
+                <h3 class="font-fun text-lg font-bold flex items-center gap-2 text-slate-900">
+                    <i class="fa-solid fa-user-slash text-rose-500"></i>
+                    <span>屏蔽特定学生</span>
+                </h3>
+                <span id="modal-resource-title-badge" class="text-xs font-bold bg-amber-100 border border-slate-900 px-2 py-0.5 rounded max-w-[150px] truncate">--</span>
+            </div>
+
+            <p class="text-xs text-slate-500">勾选的学生将无法在个人学习岛中看到此测验/课程资料：</p>
+
+            <div class="relative">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="modal-exclude-search" onkeyup="filterExcludeStudentList()" placeholder="搜索学生名字..." class="neo-input w-full pl-8 text-xs">
+            </div>
+
+            <div id="modal-exclude-students-list" class="space-y-2 max-h-60 overflow-y-auto p-2 bg-slate-50 border-2 border-slate-900 rounded-xl">
+                <!-- Dynamic Checkboxes -->
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+                <span class="text-xs text-slate-500">已选屏蔽：<b id="modal-exclude-count" class="text-rose-600 font-bold">0</b> 人</span>
+                <div class="flex gap-2">
+                    <button onclick="closeExcludeStudentsModal()" class="neo-btn px-3 py-1.5 text-xs">取消</button>
+                    <button onclick="saveExcludeStudents()" class="neo-btn neo-btn-danger px-3 py-1.5 text-xs">保存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -576,6 +601,7 @@
         let allStudentsList = [], allClassCodesList = [], allResourcesList = [];
         let studentTargetToDelete = null, targetStudentToEdit = null;
         let classTargetToEdit = null, classTargetToDelete = null;
+        let resourceTargetToExclude = null;
 
         auth.onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = "index.html"; return; }
@@ -596,10 +622,9 @@
             await Promise.all([fetchClasses(), fetchStudents(), fetchResources()]);
         }
 
-        // --- 学生管理逻辑 (修改姓名 + 多班级分配) ---
+        // --- 学生管理逻辑 ---
         async function fetchStudents() {
             const tbody = document.getElementById('student-table-body');
-            const pendingTbody = document.getElementById('pending-table-body');
             try {
                 const snapshot = await db.collection("users").where("role", "==", "student").get();
                 allStudentsList = [];
@@ -677,7 +702,6 @@
             renderStudentTables(filtered);
         }
 
-        // --- 编辑学生姓名与多班级绑定 ---
         function openEditStudentModal(uid) {
             targetStudentToEdit = uid;
             const student = allStudentsList.find(s => s.id === uid);
@@ -718,7 +742,7 @@
                 await db.collection("users").doc(targetStudentToEdit).update({
                     name: newName,
                     enrolledClasses: newClasses,
-                    status: 'active' // 激活账号状态
+                    status: 'active'
                 });
                 closeEditStudentModal();
                 fetchStudents();
@@ -741,7 +765,7 @@
             } catch (err) { alert("操作失败"); }
         }
 
-        // --- 班级 Code 管理逻辑 (带日程与自动三方同步清理) ---
+        // --- 班级 Code 管理逻辑 ---
         async function fetchClasses() {
             const filterSelect = document.getElementById('filter-class-select');
             try {
@@ -869,24 +893,20 @@
         }
         function closeDeleteClassModal() { document.getElementById('delete-class-modal').classList.add('hidden'); }
 
-        // 🌟 彻底删除班级并批量解绑所有学生与资源授权 (Batch Clean Up)
         async function executeDeleteClass() {
             if (!classTargetToDelete) return;
             try {
                 const classCode = classTargetToDelete;
                 const batch = db.batch();
 
-                // 1. 删除班级自身
                 const classRef = db.collection("classes").doc(classCode);
                 batch.delete(classRef);
 
-                // 2. 从学生账号中移除班级 Code
                 const studentSnap = await db.collection("users").where("role", "==", "student").where("enrolledClasses", "array-contains", classCode).get();
                 studentSnap.forEach(doc => {
                     batch.update(doc.ref, { enrolledClasses: firebase.firestore.FieldValue.arrayRemove(classCode) });
                 });
 
-                // 3. 从资源授权中撤销班级 Code
                 const resourceSnap = await db.collection("resources").where("unlockedClasses", "array-contains", classCode).get();
                 resourceSnap.forEach(doc => {
                     batch.update(doc.ref, { unlockedClasses: firebase.firestore.FieldValue.arrayRemove(classCode) });
@@ -901,7 +921,7 @@
             } catch (err) { alert("彻底删除班级失败：" + err.message); }
         }
 
-        // --- 课程可见性逻辑 ---
+        // --- 课程可见性逻辑 (清理掉多余跨年级勾选项) ---
         async function fetchResources() {
             try {
                 const snapshot = await db.collection("resources").get();
@@ -916,7 +936,6 @@
             const query = document.getElementById('resource-search-input').value.toLowerCase().trim();
             const gradeFilter = document.getElementById('resource-grade-filter').value;
             const unitFilter = document.getElementById('resource-unit-filter').value;
-            const showAllGrades = document.getElementById('show-all-grades-toggle').checked;
 
             const filtered = allResourcesList.filter(r => {
                 const matchQuery = (r.title || '').toLowerCase().includes(query);
@@ -934,9 +953,11 @@
             filtered.forEach(r => {
                 const tr = document.createElement('tr');
                 const unlockedClasses = r.unlockedClasses || [];
+                const excludedStudents = r.excludedStudents || [];
 
+                // 规则：精准过滤对应年级的班级或全校班级 (0)
                 let relevantClasses = allClassCodesList;
-                if (!showAllGrades && r.grade) {
+                if (r.grade) {
                     relevantClasses = allClassCodesList.filter(c => c.grade == r.grade || c.grade == 0);
                 }
 
@@ -951,7 +972,12 @@
                     <td class="p-2.5 font-bold text-slate-800">${r.title || '无标题'}</td>
                     <td class="p-2.5 text-xs text-slate-500">${r.subject || ''} / ${r.grade || 1}年级 / U${r.unit || 1}</td>
                     <td class="p-2.5"><div class="flex flex-wrap gap-1">${classCheckboxes || '<span class="text-xs text-slate-400 italic">无匹配班级</span>'}</div></td>
-                    <td class="p-2.5 text-center text-xs text-slate-500">${(r.excludedStudents || []).length} 人隐藏</td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="openExcludeStudentsModal('${r.id}')" class="neo-btn px-2 py-1 text-xs ${excludedStudents.length > 0 ? 'bg-rose-100 text-rose-700 border-rose-400' : 'bg-slate-100 text-slate-600'} hover:bg-rose-200">
+                            <i class="fa-solid fa-user-slash mr-1"></i>
+                            <span>${excludedStudents.length > 0 ? `已屏蔽 ${excludedStudents.length} 人` : '屏蔽特定学生'}</span>
+                        </button>
+                    </td>
                     <td class="p-2.5 text-center">
                         <button onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2 py-0.5 text-xs ${r.isPublished !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
                             ${r.isPublished !== false ? '已发布' : '隐藏'}
@@ -975,6 +1001,87 @@
                 await db.collection("resources").doc(resourceId).update({ isPublished: newStatus });
                 fetchResources();
             } catch (err) {}
+        }
+
+        // --- 🛑 屏蔽特定学生 Modal 交互逻辑 ---
+        function openExcludeStudentsModal(resourceId) {
+            resourceTargetToExclude = resourceId;
+            const resource = allResourcesList.find(r => r.id === resourceId);
+            if (!resource) return;
+
+            document.getElementById('modal-resource-title-badge').innerText = resource.title || '无标题';
+            document.getElementById('modal-exclude-search').value = '';
+
+            renderExcludeStudentCheckboxes(resource.excludedStudents || []);
+            document.getElementById('exclude-students-modal').classList.remove('hidden');
+        }
+
+        function closeExcludeStudentsModal() {
+            resourceTargetToExclude = null;
+            document.getElementById('exclude-students-modal').classList.add('hidden');
+        }
+
+        function renderExcludeStudentCheckboxes(excludedList) {
+            const container = document.getElementById('modal-exclude-students-list');
+            const query = (document.getElementById('modal-exclude-search').value || '').toLowerCase().trim();
+            container.innerHTML = '';
+
+            const activeStudents = allStudentsList.filter(s => (s.status || 'active') === 'active');
+            const filtered = activeStudents.filter(s => (s.name || '').toLowerCase().includes(query) || (s.email || '').toLowerCase().includes(query));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">无匹配的在读学生</div>`;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const isChecked = excludedList.includes(s.id) ? 'checked' : '';
+                const clsStr = (s.enrolledClasses || []).join(', ') || '未加班级';
+
+                container.innerHTML += `
+                    <label class="flex items-center justify-between p-2 bg-white border border-slate-300 rounded-lg text-xs cursor-pointer hover:bg-rose-50">
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" value="${s.id}" class="exclude-student-cb rounded text-rose-500" ${isChecked} onchange="updateExcludeCount()">
+                            <span class="font-bold text-slate-800">${s.name || '未命名'}</span>
+                        </div>
+                        <span class="text-[10px] font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border border-slate-300">${clsStr}</span>
+                    </label>
+                `;
+            });
+
+            updateExcludeCount();
+        }
+
+        function filterExcludeStudentList() {
+            const resource = allResourcesList.find(r => r.id === resourceTargetToExclude);
+            const currentlyExcluded = resource ? (resource.excludedStudents || []) : [];
+            
+            // 实时保留已勾选状态
+            const currentChecked = Array.from(document.querySelectorAll('.exclude-student-cb:checked')).map(cb => cb.value);
+            const mergedList = Array.from(new Set([...currentlyExcluded, ...currentChecked]));
+
+            renderExcludeStudentCheckboxes(mergedList);
+        }
+
+        function updateExcludeCount() {
+            const count = document.querySelectorAll('.exclude-student-cb:checked').length;
+            document.getElementById('modal-exclude-count').innerText = count;
+        }
+
+        async function saveExcludeStudents() {
+            if (!resourceTargetToExclude) return;
+            const cbs = document.querySelectorAll('.exclude-student-cb:checked');
+            const excludedIds = Array.from(cbs).map(cb => cb.value);
+
+            try {
+                await db.collection("resources").doc(resourceTargetToExclude).update({
+                    excludedStudents: excludedIds
+                });
+                closeExcludeStudentsModal();
+                fetchResources();
+            } catch (err) {
+                alert("保存屏蔽学生列表失败：" + err.message);
+            }
         }
 
         function switchTab(tabName) {
