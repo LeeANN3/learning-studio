@@ -68,21 +68,10 @@
         }
         .tab-btn.active { background-color: #ffe600; box-shadow: 3px 3px 0px #1a1a1a; font-weight: 700; }
 
-        .role-selector {
-            display: flex; gap: 10px; margin-bottom: 16px;
-            background: #f4f4f5; padding: 6px; border-radius: 14px; border: 2px solid #1a1a1a;
-        }
-        .role-btn {
-            flex: 1; padding: 8px; text-align: center; border-radius: 10px; cursor: pointer;
-            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 15px; font-weight: 600;
-            border: 2px solid transparent; transition: all 0.15s ease;
-        }
-        .role-btn.active { background: #ffffff; border-color: #1a1a1a; box-shadow: 2px 2px 0px #1a1a1a; }
-
         .form-group { margin-bottom: 14px; text-align: left; }
         .form-group label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 5px; }
         .input-wrapper { position: relative; }
-        .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; }
+        .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: #1a1a1a; }
         
         .form-control {
             width: 100%; padding: 10px 14px 10px 38px;
@@ -97,17 +86,20 @@
             border: 2px solid #1a1a1a; border-radius: 14px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 18px; font-weight: 700;
             cursor: pointer; box-shadow: 3px 3px 0px #1a1a1a; margin-top: 6px;
+            transition: all 0.15s ease;
         }
         .btn-submit:hover { background-color: #ffe600; color: #1a1a1a; box-shadow: 4px 4px 0px #1a1a1a; }
+        .btn-submit:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; }
 
         .forgot-link-container { text-align: right; margin-top: 4px; margin-bottom: 10px; }
-        .forgot-link { font-size: 14px; text-decoration: underline; cursor: pointer; }
+        .forgot-link { font-size: 14px; text-decoration: underline; cursor: pointer; color: #1a1a1a; }
 
         .message-box {
             padding: 10px 14px; border-radius: 12px; font-size: 14px;
             margin-bottom: 14px; display: none; text-align: center; border: 2px solid #1a1a1a;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
         }
-        .message-box.error { background-color: #ffffff; color: #d90429; border-color: #d90429; display: block; }
+        .message-box.error { background-color: #ffe5e5; color: #d90429; border-color: #d90429; display: block; }
         .message-box.success { background-color: #ffe600; color: #1a1a1a; display: block; }
 
         .hidden { display: none !important; }
@@ -143,19 +135,6 @@
 
         <form id="auth-form" onsubmit="handleAuth(event)">
             
-            <!-- 注册时选择：学生 or 老师 -->
-            <div class="form-group hidden" id="group-role-select">
-                <label id="lbl-identity">注册身份 / Identity:</label>
-                <div class="role-selector">
-                    <div class="role-btn active" id="role-student" onclick="selectRole('student')">
-                        <i class="fa-solid fa-user-graduate"></i> <span id="txt-role-student">我是学生</span>
-                    </div>
-                    <div class="role-btn" id="role-teacher" onclick="selectRole('teacher')">
-                        <i class="fa-solid fa-chalkboard-user"></i> <span id="txt-role-teacher">我是老师</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- 姓名/昵称 (注册时可见) -->
             <div class="form-group hidden" id="group-display-name">
                 <label for="display-name" id="lbl-name">姓名 / 昵称</label>
@@ -165,21 +144,12 @@
                 </div>
             </div>
 
-            <!-- 班级邀请码 (仅学生注册时可见) -->
+            <!-- 班级邀请码 (仅学生注册时可见，作为闸门一防爬虫机制) -->
             <div class="form-group hidden" id="group-class-code">
-                <label for="class-code" id="lbl-class-code">班级邀请码 (选填/老师提供)</label>
+                <label for="class-code" id="lbl-class-code">班级邀请码 (老师提供/选填)</label>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-ticket"></i>
-                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01、M1-01（未填可后续分配）">
-                </div>
-            </div>
-
-            <!-- 教师验证口令 (仅老师注册时可见) -->
-            <div class="form-group hidden" id="group-teacher-key">
-                <label for="teacher-key" id="lbl-teacher-key">教师验证口令 (Teacher Key)</label>
-                <div class="input-wrapper">
-                    <i class="fa-solid fa-key"></i>
-                    <input type="password" id="teacher-key" class="form-control" placeholder="请输入教师注册密钥（默认 TEACHER888）">
+                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01（未填可后续分配）">
                 </div>
             </div>
 
@@ -229,44 +199,34 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        const DEFAULT_TEACHER_KEY = "TEACHER888";
-
         let currentMode = 'login';
-        let selectedRole = 'student';
         let currentLang = 'zh';
+        
+        // 关键标记：提交表单时阻止 onAuthStateChanged 抢跑跳转
         let isSubmitting = false;
 
         const translations = {
             zh: {
                 langBtn: "English", title: "趣味学习岛", subtitle: "登录账号开启学习冒险！",
                 tabLogin: "登录", tabRegister: "新用户注册",
-                lblIdentity: "注册身份：", roleStudent: "我是学生", roleTeacher: "我是老师",
                 lblName: "姓名 / 昵称", namePlaceholder: "例如：小明",
-                lblClassCode: "班级邀请码 (选填/老师提供)", classCodePlaceholder: "如：G1-GRAM-01、M1-01（输入后自动加入班级）",
-                lblTeacherKey: "教师验证口令 (Teacher Key)",
+                lblClassCode: "班级邀请码 (老师提供/选填)", classCodePlaceholder: "如：G1-GRAM-01（输入后加入班级）",
                 lblEmail: "电子邮箱", lblPassword: "密码", pwdPlaceholder: "至少6位",
                 forgotPwd: "忘记密码？", btnLogin: "立即登录", btnRegister: "注册并登录",
                 processing: "处理中...", successLogin: "登录成功！", successRegister: "注册成功！",
-                errWrongTeacherKey: "教师验证口令错误！请联系管理员。", errRequireName: "请输入姓名！"
+                errRequireName: "请输入姓名！"
             },
             en: {
                 langBtn: "中文", title: "Fun Learning Island", subtitle: "Log in to start learning!",
                 tabLogin: "Log In", tabRegister: "Register",
-                lblIdentity: "Identity:", roleStudent: "Student", roleTeacher: "Teacher",
                 lblName: "Name / Nickname", namePlaceholder: "e.g., Alex",
-                lblClassCode: "Class Code (Optional)", classCodePlaceholder: "e.g. G1-GRAM-01, M1-01",
-                lblTeacherKey: "Teacher Security Key",
+                lblClassCode: "Class Code (Optional)", classCodePlaceholder: "e.g. G1-GRAM-01",
                 lblEmail: "Email", lblPassword: "Password", pwdPlaceholder: "Min 6 characters",
                 forgotPwd: "Forgot Password?", btnLogin: "Log In", btnRegister: "Register",
                 processing: "Processing...", successLogin: "Logged in!", successRegister: "Registered!",
-                errWrongTeacherKey: "Incorrect Teacher Security Key!", errRequireName: "Please enter your name!"
+                errRequireName: "Please enter your name!"
             }
         };
-
-        // 随机 Session ID 生成器（防多设备单号并发登录）
-        function generateSessionId() {
-            return 'sess_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
-        }
 
         function toggleLanguage() {
             currentLang = (currentLang === 'zh') ? 'en' : 'zh';
@@ -280,14 +240,10 @@
             document.getElementById('txt-subtitle').innerText = t.subtitle;
             document.getElementById('txt-tab-login').innerText = t.tabLogin;
             document.getElementById('txt-tab-register').innerText = t.tabRegister;
-            document.getElementById('lbl-identity').innerText = t.lblIdentity;
-            document.getElementById('txt-role-student').innerText = t.roleStudent;
-            document.getElementById('txt-role-teacher').innerText = t.roleTeacher;
             document.getElementById('lbl-name').innerText = t.lblName;
             document.getElementById('display-name').placeholder = t.namePlaceholder;
             document.getElementById('lbl-class-code').innerText = t.lblClassCode;
             document.getElementById('class-code').placeholder = t.classCodePlaceholder;
-            document.getElementById('lbl-teacher-key').innerText = t.lblTeacherKey;
             document.getElementById('lbl-email').innerText = t.lblEmail;
             document.getElementById('lbl-password').innerText = t.lblPassword;
             document.getElementById('password').placeholder = t.pwdPlaceholder;
@@ -299,6 +255,7 @@
             }
         }
 
+        // 仅在非提交动作的页面刷新状态下进行自动跳转
         auth.onAuthStateChanged((user) => {
             if (user && !isSubmitting) {
                 window.location.href = "dashboard.html";
@@ -311,29 +268,16 @@
             document.getElementById('tab-login').classList.toggle('active', mode === 'login');
             document.getElementById('tab-register').classList.toggle('active', mode === 'register');
             
-            document.getElementById('group-role-select').classList.toggle('hidden', mode === 'login');
             document.getElementById('group-display-name').classList.toggle('hidden', mode === 'login');
+            document.getElementById('group-class-code').classList.toggle('hidden', mode === 'login');
             document.getElementById('forgot-password-container').classList.toggle('hidden', mode === 'register');
-
-            if (mode === 'register') {
-                selectRole(selectedRole);
-            } else {
-                document.getElementById('group-class-code').classList.add('hidden');
-                document.getElementById('group-teacher-key').classList.add('hidden');
-            }
 
             document.getElementById('txt-submit-btn').innerText = mode === 'login' ? t.btnLogin : t.btnRegister;
         }
 
-        function selectRole(role) {
-            selectedRole = role;
-            document.getElementById('role-student').classList.toggle('active', role === 'student');
-            document.getElementById('role-teacher').classList.toggle('active', role === 'teacher');
-
-            if (currentMode === 'register') {
-                document.getElementById('group-class-code').classList.toggle('hidden', role !== 'student');
-                document.getElementById('group-teacher-key').classList.toggle('hidden', role !== 'teacher');
-            }
+        // 生成唯一标识符用于异地登录检测（闸门三）
+        function generateSessionId() {
+            return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
         async function handleAuth(event) {
@@ -342,7 +286,6 @@
             const password = document.getElementById('password').value;
             const displayName = document.getElementById('display-name').value.trim();
             const classCodeRaw = document.getElementById('class-code').value.trim();
-            const teacherKey = document.getElementById('teacher-key').value.trim();
             const t = translations[currentLang];
 
             const submitBtn = document.getElementById('submit-btn');
@@ -352,51 +295,49 @@
             isSubmitting = true;
 
             try {
-                // 【闸门三实现】：每次登录或注册，生成独一无二的 Session Token 存入本地与云端
+                // 生成本次登录的随机 sessionId
                 const newSessionId = generateSessionId();
 
                 if (currentMode === 'login') {
-                    const cred = await auth.signInWithEmailAndPassword(email, password);
-                    
-                    // 登录成功：更新云端的 currentSessionId，挤掉其他已登录的设备
-                    await db.collection("users").doc(cred.user.uid).set({
+                    // 1. 登录 Authentication
+                    const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                    const uid = userCredential.user.uid;
+
+                    // 2. 闸门三：更新数据库中的 currentSessionId，挤掉旧设备的登录
+                    await db.collection("users").doc(uid).update({
                         currentSessionId: newSessionId,
                         lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
+                    });
 
-                    // 写入本机的 LocalStorage 用于实时跟云端对比
-                    localStorage.setItem("my_app_session_id", newSessionId);
+                    // 将 sessionId 保存到本地 localStorage，用于 dashboard.html 实时校验
+                    localStorage.setItem('sessionId', newSessionId);
 
                     window.location.href = "dashboard.html";
                 } else {
                     if (!displayName) throw { message: t.errRequireName };
 
-                    if (selectedRole === 'teacher' && teacherKey !== DEFAULT_TEACHER_KEY) {
-                        throw { message: t.errWrongTeacherKey };
-                    }
-
-                    // 1. 创建 Firebase Auth 账号
+                    // 1. 创建账号
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
                     await cred.user.updateProfile({ displayName: displayName });
 
                     // 2. 提取班级码
                     let enrolledClasses = [];
-                    if (selectedRole === 'student' && classCodeRaw) {
+                    if (classCodeRaw) {
                         enrolledClasses.push(classCodeRaw.toUpperCase());
                     }
 
-                    // 3. 写入 Firestore 个人文档 (【闸门一/二/三的基础数据结构】)
+                    // 3. 闸门二安全要求：前端注册强制设定 role = 'student'，无法篡改
                     await db.collection("users").doc(cred.user.uid).set({
                         name: displayName,
                         email: email,
-                        role: selectedRole, // 'student' 或 'teacher'
+                        role: 'student', // 规则固定，不提供前端修改选项
                         enrolledClasses: enrolledClasses,
                         currentSessionId: newSessionId,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
 
-                    // 本地保存 sessionId
-                    localStorage.setItem("my_app_session_id", newSessionId);
+                    // 将 sessionId 保存到本地
+                    localStorage.setItem('sessionId', newSessionId);
 
                     window.location.href = "dashboard.html";
                 }
