@@ -3,117 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun Learning Island - 登录/注册</title>
+    <title>Fun Learning Island - Login & Register</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Patrick+Hand&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        * { box-sizing: border-box; user-select: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
             font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive, sans-serif;
-            background-color: #f8fafc;
-            background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+            background-color: #fafafa;
+            background-image: radial-gradient(#e5e7eb 1.2px, transparent 1.2px);
             background-size: 20px 20px;
             min-height: 100vh;
-            color: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #1a1a1a;
         }
-        .font-fun { font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; }
-        .neo-card {
+
+        .auth-card {
             background-color: #ffffff;
-            border: 2px solid #0f172a;
             border-radius: 20px;
-            box-shadow: 4px 4px 0px #0f172a;
+            border: 2px solid #1a1a1a;
+            box-shadow: 4px 4px 0px #1a1a1a;
+            width: 100%;
+            max-width: 460px;
+            padding: 32px 28px 28px;
+            position: relative;
         }
-        .neo-btn {
-            background-color: #ffe600;
-            border: 2px solid #0f172a;
+
+        .lang-switch-container { position: absolute; top: 18px; right: 20px; }
+        .btn-lang {
+            background: #ffffff;
+            border: 2px solid #1a1a1a;
             border-radius: 12px;
-            box-shadow: 2px 2px 0px #0f172a;
-            transition: all 0.15s ease;
+            padding: 4px 12px;
             font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #1a1a1a;
+            display: flex; align-items: center; gap: 6px;
         }
-        .neo-btn:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #0f172a; background-color: #facc15; }
-        .neo-input {
-            border: 2px solid #0f172a; border-radius: 10px; outline: none; padding: 10px 14px; box-shadow: 2px 2px 0px #cbd5e1;
+        .btn-lang:hover { background: #ffe600; transform: translate(-1px, -1px); box-shadow: 3px 3px 0px #1a1a1a; }
+
+        .auth-header { text-align: center; margin-bottom: 20px; margin-top: 6px; }
+        .auth-header .logo-badge {
+            background-color: #ffe600; border: 2px solid #1a1a1a;
+            width: 64px; height: 64px; border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px; font-size: 30px; color: #1a1a1a;
+            box-shadow: 3px 3px 0px #1a1a1a;
         }
-        .neo-input:focus { box-shadow: 2px 2px 0px #ffe600; }
-        .modal-overlay { background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); }
+
+        .tab-switch { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn {
+            flex: 1; padding: 10px; border: 2px solid #1a1a1a; background: #ffffff;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 15px; font-weight: 600;
+            border-radius: 14px; cursor: pointer; box-shadow: 2px 2px 0px #1a1a1a;
+        }
+        .tab-btn.active { background-color: #ffe600; box-shadow: 3px 3px 0px #1a1a1a; font-weight: 700; }
+
+        .form-group { margin-bottom: 14px; text-align: left; }
+        .form-group label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 5px; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: #1a1a1a; }
+        
+        .form-control {
+            width: 100%; padding: 10px 14px 10px 38px;
+            border: 2px solid #1a1a1a; border-radius: 12px;
+            font-family: 'Patrick Hand', 'ZCOOL KuaiLe', cursive; font-size: 16px;
+            outline: none; background-color: #ffffff;
+        }
+        .form-control:focus { box-shadow: 3px 3px 0px #ffe600; }
+
+        .btn-submit {
+            width: 100%; padding: 12px; background-color: #ffe600; color: #1a1a1a;
+            border: 2px solid #1a1a1a; border-radius: 14px;
+            font-family: 'Fredoka', 'ZCOOL KuaiLe', cursive; font-size: 18px; font-weight: 700;
+            cursor: pointer; box-shadow: 3px 3px 0px #1a1a1a; margin-top: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-submit:hover { background-color: #facc15; transform: translate(-1px, -1px); box-shadow: 4px 4px 0px #1a1a1a; }
+
+        .forgot-link-container { text-align: right; margin-top: 4px; margin-bottom: 10px; }
+        .forgot-link { font-size: 14px; text-decoration: underline; cursor: pointer; font-weight: 600; }
+
+        .message-box {
+            padding: 10px 14px; border-radius: 12px; font-size: 14px;
+            margin-bottom: 14px; display: none; text-align: center; border: 2px solid #1a1a1a;
+            font-weight: 600;
+        }
+        .message-box.error { background-color: #fee2e2; color: #dc2626; border-color: #dc2626; display: block; }
+        .message-box.success { background-color: #bbf7d0; color: #166534; display: block; }
+
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="flex items-center justify-center p-4 min-h-screen">
+<body>
 
-    <div class="neo-card max-w-md w-full p-6 sm:p-8 space-y-6 bg-white relative">
-        <div class="text-center space-y-2">
-            <div class="inline-block bg-amber-300 p-3 rounded-2xl border-2 border-slate-900 shadow-[3px_3px_0_#0f172a] mb-2">
-                <i class="fa-solid fa-gamepad text-3xl"></i>
-            </div>
-            <h1 class="font-fun text-3xl font-bold text-slate-900">趣味学习岛</h1>
-            <p class="text-xs text-slate-500 font-sans">Fun Learning Island - 学习中枢系统</p>
+    <div class="auth-card">
+        <div class="lang-switch-container">
+            <button type="button" class="btn-lang" onclick="toggleLanguage()">
+                <i class="fa-solid fa-globe"></i>
+                <span id="lang-btn-text">English</span>
+            </button>
         </div>
 
-        <!-- 登录与注册 Toggle -->
-        <div class="flex border-2 border-slate-900 rounded-xl p-1 bg-slate-100 gap-1 font-fun">
-            <button id="btn-toggle-login" onclick="switchAuthMode('login')" class="flex-1 py-1.5 text-sm font-bold rounded-lg bg-amber-300 border border-slate-900 shadow-[1px_1px_0_#0f172a]">登录账号</button>
-            <button id="btn-toggle-register" onclick="switchAuthMode('register')" class="flex-1 py-1.5 text-sm font-bold rounded-lg text-slate-600 hover:text-slate-900">注册新账号</button>
+        <div class="auth-header">
+            <div class="logo-badge"><i class="fa-solid fa-gamepad"></i></div>
+            <h1 id="txt-title" style="font-family:'Fredoka', 'ZCOOL KuaiLe'; font-size:24px;">趣味学习岛</h1>
+            <p id="txt-subtitle" style="font-size:15px; color:#666;">登录账号开启学习冒险！</p>
         </div>
 
-        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-            <div id="field-name" class="hidden">
-                <label class="block text-xs font-bold text-slate-700 mb-1">您的姓名 / Name</label>
-                <input type="text" id="input-name" class="neo-input w-full text-sm" placeholder="例如: 小明">
-            </div>
+        <!-- 登录 / 注册 Tab -->
+        <div class="tab-switch">
+            <button type="button" class="tab-btn active" id="tab-login" onclick="switchTab('login')">
+                <span id="txt-tab-login">登录</span>
+            </button>
+            <button type="button" class="tab-btn" id="tab-register" onclick="switchTab('register')">
+                <span id="txt-tab-register">新用户注册</span>
+            </button>
+        </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">电子邮箱 / Email</label>
-                <input type="email" id="input-email" required class="neo-input w-full text-sm" placeholder="student@example.com">
-            </div>
+        <div id="message-box" class="message-box"></div>
 
-            <div>
-                <div class="flex justify-between items-center mb-1">
-                    <label class="block text-xs font-bold text-slate-700">密码 / Password</label>
-                    <button type="button" onclick="openResetPasswordModal()" class="text-xs text-sky-600 hover:underline font-bold">忘记密码？</button>
+        <form id="auth-form" onsubmit="handleAuth(event)">
+            
+            <!-- 姓名/昵称 (仅注册时可见) -->
+            <div class="form-group hidden" id="group-display-name">
+                <label for="display-name" id="lbl-name">姓名 / 昵称</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="display-name" class="form-control" placeholder="例如：小明 / Alex">
                 </div>
-                <input type="password" id="input-password" required class="neo-input w-full text-sm" placeholder="******">
             </div>
 
-            <div id="field-class-code" class="hidden">
-                <label class="block text-xs font-bold text-slate-700 mb-1">班级邀请码 / Class Code (选填)</label>
-                <input type="text" id="input-class-code" class="neo-input w-full text-sm font-mono uppercase" placeholder="例如: G1-CHI-01">
+            <!-- 邮箱输入框 -->
+            <div class="form-group">
+                <label for="email" id="lbl-email">电子邮箱</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="email" class="form-control" placeholder="student@school.com" required>
+                </div>
             </div>
 
-            <button type="submit" id="btn-submit" class="neo-btn w-full py-3 text-base flex items-center justify-center gap-2 mt-2">
-                <i class="fa-solid fa-right-to-bracket"></i>
-                <span id="btn-submit-text">登录系统</span>
+            <!-- 密码输入框 -->
+            <div class="form-group">
+                <label for="password" id="lbl-password">密码</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                </div>
+            </div>
+
+            <!-- 班级邀请码 (仅注册时可见) -->
+            <div class="form-group hidden" id="group-class-code">
+                <label for="class-code" id="lbl-class-code">班级邀请码 (选填/老师提供)</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-ticket"></i>
+                    <input type="text" id="class-code" class="form-control" placeholder="如：G1-GRAM-01（未填需等待老师分配）">
+                </div>
+            </div>
+
+            <div class="forgot-link-container" id="forgot-password-container">
+                <span class="forgot-link" id="txt-forgot-password" onclick="handleForgotPassword()">忘记密码？</span>
+            </div>
+
+            <button type="submit" id="submit-btn" class="btn-submit">
+                <span id="txt-submit-btn">立即登录</span>
             </button>
         </form>
-    </div>
-
-    <!-- 🔐 忘记密码 Modal -->
-    <div id="reset-password-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
-        <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
-            <h3 class="font-fun text-xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-key text-amber-500"></i>
-                <span>重置您的账号密码</span>
-            </h3>
-            <p class="text-xs text-slate-600 leading-relaxed">
-                请输入您注册时使用的电子邮箱，系统将发送一封密码重置邮件到您的邮箱。
-            </p>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">注册 Email</label>
-                <input type="email" id="reset-email-input" class="neo-input w-full text-sm" placeholder="your-email@example.com">
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="closeResetPasswordModal()" class="neo-btn bg-slate-100 hover:bg-slate-200 px-4 py-2 text-xs">取消</button>
-                <button type="button" onclick="sendPasswordResetEmail()" class="neo-btn px-4 py-2 text-xs">发送重置邮件</button>
-            </div>
-        </div>
     </div>
 
     <!-- Firebase SDK -->
@@ -135,80 +199,155 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let authMode = 'login';
+        let currentMode = 'login';
+        let currentLang = 'zh';
+        let isSubmitting = false;
 
-        // 登录自动拦截跳到 profile.html
-        auth.onAuthStateChanged(user => {
-            if (user) {
+        const translations = {
+            zh: {
+                langBtn: "English", title: "趣味学习岛", subtitle: "登录账号开启学习冒险！",
+                tabLogin: "登录", tabRegister: "新用户注册",
+                lblName: "姓名 / 昵称", namePlaceholder: "例如：小明 / Alex",
+                lblClassCode: "班级邀请码 (选填/老师提供)", classCodePlaceholder: "如：G1-GRAM-01（未填需等待老师分配）",
+                lblEmail: "电子邮箱", lblPassword: "密码", pwdPlaceholder: "至少6位",
+                forgotPwd: "忘记密码？", btnLogin: "立即登录", btnRegister: "注册新账号",
+                processing: "处理中...", successLogin: "登录成功！", successRegister: "注册成功！",
+                errRequireName: "请输入姓名！", pwdResetSent: "密码重置邮件已发送，请检查您的邮箱！",
+                errEnterEmail: "请先在上方输入框填写您的电子邮箱！"
+            },
+            en: {
+                langBtn: "中文", title: "Fun Learning Island", subtitle: "Log in to start learning!",
+                tabLogin: "Log In", tabRegister: "Register",
+                lblName: "Name / Nickname", namePlaceholder: "e.g., Alex",
+                lblClassCode: "Class Code (Optional)", classCodePlaceholder: "e.g. G1-GRAM-01 (Pending teacher assignment if empty)",
+                lblEmail: "Email", lblPassword: "Password", pwdPlaceholder: "Min 6 characters",
+                forgotPwd: "Forgot Password?", btnLogin: "Log In", btnRegister: "Register Now",
+                processing: "Processing...", successLogin: "Logged in!", successRegister: "Registered!",
+                errRequireName: "Please enter your name!", pwdResetSent: "Password reset link sent to your email!",
+                errEnterEmail: "Please enter your email above first!"
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = (currentLang === 'zh') ? 'en' : 'zh';
+            updatePageText();
+        }
+
+        function updatePageText() {
+            const t = translations[currentLang];
+            document.getElementById('lang-btn-text').innerText = t.langBtn;
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-subtitle').innerText = t.subtitle;
+            document.getElementById('txt-tab-login').innerText = t.tabLogin;
+            document.getElementById('txt-tab-register').innerText = t.tabRegister;
+            document.getElementById('lbl-name').innerText = t.lblName;
+            document.getElementById('display-name').placeholder = t.namePlaceholder;
+            document.getElementById('lbl-class-code').innerText = t.lblClassCode;
+            document.getElementById('class-code').placeholder = t.classCodePlaceholder;
+            document.getElementById('lbl-email').innerText = t.lblEmail;
+            document.getElementById('lbl-password').innerText = t.lblPassword;
+            document.getElementById('password').placeholder = t.pwdPlaceholder;
+            document.getElementById('txt-forgot-password').innerText = t.forgotPwd;
+
+            const submitBtn = document.getElementById('submit-btn');
+            if (!submitBtn.disabled) {
+                document.getElementById('txt-submit-btn').innerText = currentMode === 'login' ? t.btnLogin : t.btnRegister;
+            }
+        }
+
+        // 登录状态监听：成功登录后跳往 profile.html 中枢
+        auth.onAuthStateChanged((user) => {
+            if (user && !isSubmitting) {
                 window.location.href = "profile.html";
             }
         });
 
-        function switchAuthMode(mode) {
-            authMode = mode;
-            const isReg = mode === 'register';
-            document.getElementById('field-name').classList.toggle('hidden', !isReg);
-            document.getElementById('field-class-code').classList.toggle('hidden', !isReg);
+        function switchTab(mode) {
+            currentMode = mode;
+            const t = translations[currentLang];
+            document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+            document.getElementById('tab-register').classList.toggle('active', mode === 'register');
             
-            document.getElementById('btn-toggle-login').className = !isReg 
-                ? 'flex-1 py-1.5 text-sm font-bold rounded-lg bg-amber-300 border border-slate-900 shadow-[1px_1px_0_#0f172a]' 
-                : 'flex-1 py-1.5 text-sm font-bold rounded-lg text-slate-600 hover:text-slate-900';
-            
-            document.getElementById('btn-toggle-register').className = isReg 
-                ? 'flex-1 py-1.5 text-sm font-bold rounded-lg bg-amber-300 border border-slate-900 shadow-[1px_1px_0_#0f172a]' 
-                : 'flex-1 py-1.5 text-sm font-bold rounded-lg text-slate-600 hover:text-slate-900';
+            document.getElementById('group-display-name').classList.toggle('hidden', mode === 'login');
+            document.getElementById('group-class-code').classList.toggle('hidden', mode === 'login');
+            document.getElementById('forgot-password-container').classList.toggle('hidden', mode === 'register');
 
-            document.getElementById('btn-submit-text').innerText = isReg ? '创建新账号' : '登录系统';
+            document.getElementById('txt-submit-btn').innerText = mode === 'login' ? t.btnLogin : t.btnRegister;
         }
 
-        async function handleAuthSubmit(e) {
-            e.preventDefault();
-            const email = document.getElementById('input-email').value.trim();
-            const password = document.getElementById('input-password').value.trim();
+        async function handleAuth(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const displayName = document.getElementById('display-name').value.trim();
+            const classCodeRaw = document.getElementById('class-code').value.trim();
+            const t = translations[currentLang];
 
-            if (authMode === 'login') {
-                try {
-                    await auth.signInWithEmailAndPassword(email, password);
-                } catch (err) {
-                    alert("⚠️ 登录失败：" + err.message);
-                }
-            } else {
-                const name = document.getElementById('input-name').value.trim();
-                const classCode = document.getElementById('input-class-code').value.trim().toUpperCase();
-                if (!name) return alert("请填写您的姓名！");
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            document.getElementById('txt-submit-btn').innerText = t.processing;
 
-                try {
-                    const res = await auth.createUserWithEmailAndPassword(email, password);
-                    const initialClasses = classCode ? [classCode] : [];
-
-                    await db.collection("users").doc(res.user.uid).set({
-                        name: name,
-                        email: email,
-                        role: "student",
-                        status: "active",
-                        enrolledClasses: initialClasses,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } catch (err) {
-                    alert("⚠️ 注册失败：" + err.message);
-                }
-            }
-        }
-
-        function openResetPasswordModal() { document.getElementById('reset-password-modal').classList.remove('hidden'); }
-        function closeResetPasswordModal() { document.getElementById('reset-password-modal').classList.add('hidden'); }
-
-        async function sendPasswordResetEmail() {
-            const email = document.getElementById('reset-email-input').value.trim();
-            if (!email) return alert("请输入 Email！");
+            isSubmitting = true;
 
             try {
-                await auth.sendPasswordResetEmail(email);
-                alert("🎉 重置邮件已发送！请检查您的邮箱 inbox 或垃圾邮件箱。");
-                closeResetPasswordModal();
+                if (currentMode === 'login') {
+                    await auth.signInWithEmailAndPassword(email, password);
+                    window.location.href = "profile.html";
+                } else {
+                    if (!displayName) throw { message: t.errRequireName };
+
+                    // 1. 创建 Firebase Auth 账号
+                    const cred = await auth.createUserWithEmailAndPassword(email, password);
+                    await cred.user.updateProfile({ displayName: displayName });
+
+                    // 2. 班级码解析与状态判定 (无班级码则设为 pending_approval)
+                    let enrolledClasses = [];
+                    let initialStatus = 'pending_approval';
+
+                    if (classCodeRaw) {
+                        enrolledClasses.push(classCodeRaw.toUpperCase());
+                        initialStatus = 'active'; // 有班级码直接激活
+                    }
+
+                    // 3. 写入 Firestore users 集合
+                    await db.collection("users").doc(cred.user.uid).set({
+                        name: displayName,
+                        email: email,
+                        role: 'student', // 注册默认为学生
+                        status: initialStatus, // active 或 pending_approval
+                        enrolledClasses: enrolledClasses,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    // 4. 跳转至个人中心 Profile（未激活学生将在 Profile 看到待审核/待分配提示）
+                    window.location.href = "profile.html";
+                }
             } catch (err) {
-                alert("⚠️ 发送失败：" + err.message);
+                isSubmitting = false;
+                showMessage(err.message, 'error');
+                submitBtn.disabled = false;
+                document.getElementById('txt-submit-btn').innerText = currentMode === 'login' ? t.btnLogin : t.btnRegister;
             }
+        }
+
+        function showMessage(msg, type) {
+            const msgBox = document.getElementById('message-box');
+            msgBox.innerText = msg;
+            msgBox.className = `message-box ${type}`;
+        }
+
+        function handleForgotPassword() {
+            const email = document.getElementById('email').value.trim();
+            const t = translations[currentLang];
+            if (!email) {
+                showMessage(t.errEnterEmail, "error");
+                return;
+            }
+            auth.sendPasswordResetEmail(email).then(() => {
+                showMessage(t.pwdResetSent, "success");
+            }).catch(err => {
+                showMessage(err.message, "error");
+            });
         }
     </script>
 </body>
