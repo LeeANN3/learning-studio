@@ -256,7 +256,7 @@
             </div>
         </section>
 
-        <!-- TAB 3: CLASSES (带日程配置与批量联动清理) -->
+        <!-- TAB 3: CLASSES -->
         <section id="section-classes" class="space-y-4 hidden">
             <div class="neo-card p-4 sm:p-5">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
@@ -292,7 +292,6 @@
                     </div>
                 </div>
 
-                <!-- 班级卡片网格 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5" id="class-cards-container">
                     <!-- Dynamic Class Cards -->
                 </div>
@@ -407,7 +406,7 @@
         </div>
     </div>
 
-    <!-- 3. 新建班级 Modal (包含上课日程) -->
+    <!-- 3. 新建班级 Modal -->
     <div id="create-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold flex items-center gap-2">
@@ -465,7 +464,7 @@
         </div>
     </div>
 
-    <!-- 4. 编辑班级资料 Modal (包含日程修改) -->
+    <!-- 4. 编辑班级资料 Modal -->
     <div id="edit-class-info-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold flex items-center gap-2">
@@ -528,7 +527,7 @@
         </div>
     </div>
 
-    <!-- 5. 彻底删除班级 Modal (包含同步批量清理提示) -->
+    <!-- 5. 彻底删除班级 Modal -->
     <div id="delete-class-modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4 hidden">
         <div class="neo-card bg-white max-w-md w-full p-6 space-y-4">
             <h3 class="font-fun text-xl font-bold text-red-600 flex items-center gap-2">
@@ -618,8 +617,11 @@
             } catch (err) { window.location.href = "index.html"; }
         });
 
+        // 🌟 核心调整：顺序控制，确保先取到完整学生数据，再渲染资源管理界面
         async function loadAllData() {
-            await Promise.all([fetchClasses(), fetchStudents(), fetchResources()]);
+            await fetchClasses();
+            await fetchStudents();
+            await fetchResources();
         }
 
         // --- 学生管理逻辑 ---
@@ -921,7 +923,7 @@
             } catch (err) { alert("彻底删除班级失败：" + err.message); }
         }
 
-        // --- 课程可见性逻辑 (清理掉多余跨年级勾选项) ---
+        // --- 课程可见性逻辑 ---
         async function fetchResources() {
             try {
                 const snapshot = await db.collection("resources").get();
@@ -955,7 +957,6 @@
                 const unlockedClasses = r.unlockedClasses || [];
                 const excludedStudents = r.excludedStudents || [];
 
-                // 规则：精准过滤对应年级的班级或全校班级 (0)
                 let relevantClasses = allClassCodesList;
                 if (r.grade) {
                     relevantClasses = allClassCodesList.filter(c => c.grade == r.grade || c.grade == 0);
@@ -968,18 +969,19 @@
                     </label>
                 `).join(' ');
 
+                // 🛑 核心改进：保障该处的按钮能够稳定被调用
                 tr.innerHTML = `
                     <td class="p-2.5 font-bold text-slate-800">${r.title || '无标题'}</td>
                     <td class="p-2.5 text-xs text-slate-500">${r.subject || ''} / ${r.grade || 1}年级 / U${r.unit || 1}</td>
                     <td class="p-2.5"><div class="flex flex-wrap gap-1">${classCheckboxes || '<span class="text-xs text-slate-400 italic">无匹配班级</span>'}</div></td>
                     <td class="p-2.5 text-center">
-                        <button onclick="openExcludeStudentsModal('${r.id}')" class="neo-btn px-2 py-1 text-xs ${excludedStudents.length > 0 ? 'bg-rose-100 text-rose-700 border-rose-400' : 'bg-slate-100 text-slate-600'} hover:bg-rose-200">
+                        <button type="button" onclick="openExcludeStudentsModal('${r.id}')" class="neo-btn px-2.5 py-1 text-xs ${excludedStudents.length > 0 ? 'bg-rose-100 text-rose-700 border-rose-400' : 'bg-slate-100 text-slate-600'} hover:bg-rose-200">
                             <i class="fa-solid fa-user-slash mr-1"></i>
                             <span>${excludedStudents.length > 0 ? `已屏蔽 ${excludedStudents.length} 人` : '屏蔽特定学生'}</span>
                         </button>
                     </td>
                     <td class="p-2.5 text-center">
-                        <button onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2 py-0.5 text-xs ${r.isPublished !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
+                        <button type="button" onclick="toggleResourcePublish('${r.id}', ${!r.isPublished})" class="neo-btn px-2 py-0.5 text-xs ${r.isPublished !== false ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
                             ${r.isPublished !== false ? '已发布' : '隐藏'}
                         </button>
                     </td>
@@ -1056,7 +1058,6 @@
             const resource = allResourcesList.find(r => r.id === resourceTargetToExclude);
             const currentlyExcluded = resource ? (resource.excludedStudents || []) : [];
             
-            // 实时保留已勾选状态
             const currentChecked = Array.from(document.querySelectorAll('.exclude-student-cb:checked')).map(cb => cb.value);
             const mergedList = Array.from(new Set([...currentlyExcluded, ...currentChecked]));
 
