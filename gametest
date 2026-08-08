@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>升级版词句重组游戏</title>
+    
+    <!-- 🛡️ 智能防盗链防护网开始 -->
+    <script>
+      (function() {
+        // 检查网页是否被嵌入在 Softr 官方平台内
+        var isInIframe = false;
+        try {
+          isInIframe = window.self !== window.top;
+        } catch (e) {
+          isInIframe = true;
+        }
+
+        // 获取上层来源域名
+        var referrer = document.referrer;
+        var isSoftrDomain = referrer.indexOf('softr.app') !== -1 || referrer.indexOf('softr.io') !== -1;
+
+        // 如果既不是在 iframe 里，也不是从 softr 域名加载的，直接拦截！
+        if (!isInIframe && !isSoftrDomain) {
+          window.stop(); // 停止加载游戏资源
+          document.addEventListener("DOMContentLoaded", function() {
+            document.body.innerHTML = `
+              <div style="display:flex; justify-content:center; align-items:center; height:100vh; background-color:#FFF5F5; font-family:sans-serif;">
+                <div style="background:#fff; padding:40px; border-radius:15px; border:3px solid #FF85A2; text-align:center; box-shadow:0 10px 20px rgba(0,0,0,0.1);">
+                  <h1 style="color:#FF85A2; margin-bottom:10px;">⚠️ 非法访问警告</h1>
+                  <p style="font-size:18px; color:#333; margin-bottom:20px;">为了保护教学资源，本游戏禁止独立打开。</p>
+                  <p style="font-size:16px; color:#666;">请先登录补习中心官方学习平台进行游玩！</p>
+                </div>
+              </div>
+            `;
+          });
+        }
+      })();
+    </script>
+    <!-- 🛡️ 智能防盗链防护网结束 -->
+
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Marker Felt', '微软雅黑', sans-serif;
+            background-color: #FFF5F5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .container {
+            background-color: #FFD6E0;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #FF85A2;
+            margin-bottom: 20px;
+        }
+        
+        .start-screen, .game-screen, .end-screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .word-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+        
+        .word {
+            background-color: #FFC2D1;
+            color: #FFF;
+            padding: 10px 15px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .word:hover {
+            background-color: #FF85A2;
+            transform: translateY(-3px);
+        }
+        
+        .selected-words {
+            min-height: 60px;
+            background-color: #FFF;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        button {
+            background-color: #A0E7E5;
+            color: #FFF;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            background-color: #7FD8D6;
+            transform: translateY(-2px);
+        }
+        
+        .timer {
+            font-size: 24px;
+            color: #FF85A2;
+            margin: 20px 0;
+        }
+        
+        .score {
+            font-size: 20px;
+            color: #FF85A2;
+            margin: 10px 0;
+        }
+        
+        .result {
+            font-size: 20px;
+            margin: 20px 0;
+            color: #FF85A2;
+        }
+        
+        .character {
+            font-size: 60px;
+            margin: 20px 0;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 开始页面 -->
+        <div class="start-screen active">
+            <h1>词句重组游戏</h1>
+            <div class="character">🧩</div>
+            <p>请将打乱的词语按正确顺序排列！</p>
+            <p>你有60秒钟的时间完成尽可能多的句子！</p>
+            <p>每答对一句得3分！</p>
+            <button id="start-btn">开始游戏</button>
+        </div>
+        
+        <!-- 游戏页面 -->
+        <div class="game-screen">
+            <h1>重组句子</h1>
+            <div class="timer">剩余时间: <span id="time">60</span>秒</div>
+            <div class="score">得分: <span id="score">0</span>分</div>
+            <div class="selected-words" id="selected-words"></div>
+            <div class="word-container" id="word-container"></div>
+            <div class="button-group">
+                <button id="submit-btn">提交答案</button>
+                <button id="change-btn">换一题</button>
+            </div>
+        </div>
+        
+        <!-- 结束页面 -->
+        <div class="end-screen">
+            <h1>游戏结束</h1>
+            <div class="character" id="end-character">🎉</div>
+            <div class="result" id="result"></div>
+            <div class="score">最终得分: <span id="final-score">0</span>分</div>
+            <button id="restart-btn">再玩一次</button>
+        </div>
+    </div>
+
+    <script>
+        // 游戏数据
+        const allSentences = [
+            "我们一家人和和气气地生活在一起",
+            "我要邀请亲戚朋友来聚一聚",
+            "我认为一间理想的房子应该要很舒适",
+            "我要让我的宠物有个玩乐的空间",
+            "这就是我理想中的房子了",
+            "我的房子不需要很大",
+            "我的房子只要足够一家人住就行了",
+            "小狗可以在小庭院里玩耍",
+            "妈妈在厨房里煮饭",
+            "我们一家人在客厅里聊天"
+        ];
+        
+        // 游戏变量
+        let currentSentence = "";
+        let shuffledWords = [];
+        let selectedWords = [];
+        let timer;
+        let timeLeft = 60;
+        let score = 0;
+        let usedSentences = [];
+        let availableSentences = [...allSentences];
+        
+        // DOM元素
+        const startScreen = document.querySelector('.start-screen');
+        const gameScreen = document.querySelector('.game-screen');
+        const endScreen = document.querySelector('.end-screen');
+        const startBtn = document.getElementById('start-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const changeBtn = document.getElementById('change-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const wordContainer = document.getElementById('word-container');
+        const selectedWordsContainer = document.getElementById('selected-words');
+        const timeDisplay = document.getElementById('time');
+        const scoreDisplay = document.getElementById('score');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const resultDisplay = document.getElementById('result');
+        const endCharacter = document.getElementById('end-character');
+        
+        // 开始游戏
+        startBtn.addEventListener('click', startGame);
+        
+        // 提交答案
+        submitBtn.addEventListener('click', checkAnswer);
+        
+        // 换一题
+        changeBtn.addEventListener('click', changeSentence);
+        
+        // 重新开始
+        restartBtn.addEventListener('click', resetGame);
+        
+        function startGame() {
+            // 重置游戏状态
+            resetGame();
+            
+            // 显示游戏界面
+            startScreen.classList.remove('active');
+            endScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+            
+            // 选择第一个句子
+            selectNewSentence();
+            
+            // 开始计时
+            timer = setInterval(updateTimer, 1000);
+        }
+        
+        function resetGame() {
+            // 重置所有变量
+            selectedWords = [];
+            timeLeft = 60;
+            score = 0;
+            usedSentences = [];
+            availableSentences = [...allSentences];
+            
+            // 更新显示
+            timeDisplay.textContent = timeLeft;
+            scoreDisplay.textContent = score;
+        }
+        
+        function selectNewSentence() {
+            if (availableSentences.length === 0) {
+                // 所有句子都用完了
+                endGame(true);
+                return;
+            }
+            
+            // 重置当前状态
+            selectedWords = [];
+            
+            // 随机选择一个新句子
+            const randomIndex = Math.floor(Math.random() * availableSentences.length);
+            currentSentence = availableSentences[randomIndex];
+            
+            // 从可用句子中移除
+            availableSentences.splice(randomIndex, 1);
+            usedSentences.push(currentSentence);
+            
+            // 分割句子并打乱顺序
+            shuffledWords = shuffleArray(currentSentence.split(''));
+            
+            // 更新词语显示
+            updateWordDisplay();
+        }
+        
+        function changeSentence() {
+            selectNewSentence();
+        }
+        
+        function updateWordDisplay() {
+            // 清空容器
+            wordContainer.innerHTML = '';
+            selectedWordsContainer.innerHTML = '';
+            
+            // 添加可选的词语
+            shuffledWords.forEach((word, index) => {
+                const wordElement = document.createElement('div');
+                wordElement.className = 'word';
+                wordElement.textContent = word;
+                wordElement.dataset.index = index;
+                wordElement.addEventListener('click', () => selectWord(word, index));
+                wordContainer.appendChild(wordElement);
+            });
+            
+            // 添加已选的词语
+            selectedWords.forEach((word, index) => {
+                const selectedWordElement = document.createElement('div');
+                selectedWordElement.className = 'word';
+                selectedWordElement.textContent = word;
+                selectedWordElement.dataset.index = index;
+                selectedWordElement.addEventListener('click', () => removeWord(index));
+                selectedWordsContainer.appendChild(selectedWordElement);
+            });
+        }
+        
+        function selectWord(word, index) {
+            // 从可选词语中移除
+            shuffledWords.splice(index, 1);
+            
+            // 添加到已选词语
+            selectedWords.push(word);
+            
+            // 更新显示
+            updateWordDisplay();
+        }
+        
+        function removeWord(index) {
+            // 从已选词语中移除
+            const word = selectedWords.splice(index, 1)[0];
+            
+            // 添加回可选词语
+            shuffledWords.push(word);
+            
+            // 更新显示
+            updateWordDisplay();
+        }
+        
+        function updateTimer() {
+            timeLeft--;
+            timeDisplay.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                endGame(false);
+            }
+        }
+        
+        function checkAnswer() {
+            const userAnswer = selectedWords.join('');
+            const isCorrect = userAnswer === currentSentence;
+            
+            if (isCorrect) {
+                // 答对了，加3分
+                score += 3;
+                scoreDisplay.textContent = score;
+                
+                // 选择新句子
+                selectNewSentence();
+            } else {
+                // 答错了，可以继续尝试或换题
+                alert('答案不正确，请再试一次或换一题！');
+            }
+        }
+        
+        function endGame(isAllCompleted) {
+            clearInterval(timer);
+            
+            // 显示结束界面
+            gameScreen.classList.remove('active');
+            endScreen.classList.add('active');
+            
+            // 更新结果
+            finalScoreDisplay.textContent = score;
+            
+            if (isAllCompleted) {
+                resultDisplay.textContent = '太棒了！你完成了所有题目！';
+                endCharacter.textContent = '🏆';
+            } else if (score > 0) {
+                resultDisplay.textContent = '时间到！你的表现很棒！';
+                endCharacter.textContent = '🎉';
+            } else {
+                resultDisplay.textContent = '时间到！下次再接再厉！';
+                endCharacter.textContent = '😢';
+            }
+        }
+        
+        // 辅助函数：打乱数组顺序
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+    </script>
+</body>
+</html>
